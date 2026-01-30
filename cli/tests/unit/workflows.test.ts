@@ -186,7 +186,9 @@ jobs:
         filename: "test.yml",
         reusableWorkflow: "test.yml",
       };
-      expect(() => generateWorkflow(unknownWorkflow, "v1.0.0", DEFAULT_CONFIG)).toThrow("Unknown workflow");
+      expect(() => generateWorkflow(unknownWorkflow, "v1.0.0", DEFAULT_CONFIG)).toThrow(
+        "Unknown workflow",
+      );
     });
   });
 

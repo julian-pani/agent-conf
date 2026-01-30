@@ -1,7 +1,7 @@
-import * as prompts from "@clack/prompts";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import * as prompts from "@clack/prompts";
 import pc from "picocolors";
 import tabtab from "tabtab";
 // @ts-expect-error - tabtab internal module not typed
@@ -41,7 +41,18 @@ const COMMANDS = {
   },
   "init-canonical-repo": {
     description: "Scaffold a new canonical repository",
-    options: ["-n", "--name", "-o", "--org", "-d", "--dir", "--marker-prefix", "--no-examples", "-y", "--yes"],
+    options: [
+      "-n",
+      "--name",
+      "-o",
+      "--org",
+      "-d",
+      "--dir",
+      "--marker-prefix",
+      "--no-examples",
+      "-y",
+      "--yes",
+    ],
   },
   completion: {
     description: "Manage shell completions",
@@ -152,7 +163,9 @@ export function isCompletionInstalled(): boolean {
 
   try {
     const content = fs.readFileSync(configFile, "utf-8");
-    return content.includes(`tabtab source for ${CLI_NAME}`) || content.includes(`begin ${CLI_NAME}`);
+    return (
+      content.includes(`tabtab source for ${CLI_NAME}`) || content.includes(`begin ${CLI_NAME}`)
+    );
   } catch {
     return false;
   }
@@ -233,7 +246,9 @@ export async function installCompletion(): Promise<void> {
     await installCompletionForShell(shell);
 
     prompts.log.success(`Completions installed for ${pc.cyan(shell)}`);
-    prompts.log.info(`Restart your shell or run: ${pc.cyan(`source ${getShellConfigFile(shell)}`)}`);
+    prompts.log.info(
+      `Restart your shell or run: ${pc.cyan(`source ${getShellConfigFile(shell)}`)}`,
+    );
     prompts.outro("Done!");
   } catch (error) {
     prompts.log.error(`Failed to install completions: ${error}`);
@@ -292,7 +307,9 @@ export async function promptCompletionInstall(): Promise<boolean> {
     await installCompletionForShell(shell);
 
     prompts.log.success(`Completions installed for ${pc.cyan(shell)}`);
-    prompts.log.info(`Restart your shell or run: ${pc.cyan(`source ${getShellConfigFile(shell)}`)}`);
+    prompts.log.info(
+      `Restart your shell or run: ${pc.cyan(`source ${getShellConfigFile(shell)}`)}`,
+    );
     return true;
   } catch (error) {
     prompts.log.warn(`Could not install completions: ${error}`);

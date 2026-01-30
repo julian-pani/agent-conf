@@ -1,5 +1,9 @@
 # agent-conf CLI
 
+[![npm version](https://img.shields.io/npm/v/agent-conf.svg)](https://www.npmjs.com/package/agent-conf)
+[![CI](https://github.com/julian-pani/agent-conf/actions/workflows/ci.yml/badge.svg)](https://github.com/julian-pani/agent-conf/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 CLI utility to sync AI agent configurations across repositories.
 
 ## Architecture

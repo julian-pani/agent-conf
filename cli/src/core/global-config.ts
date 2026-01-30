@@ -36,7 +36,7 @@ export async function readGlobalConfig(): Promise<GlobalConfig> {
  */
 export async function writeGlobalConfig(config: GlobalConfig): Promise<void> {
   await fs.mkdir(CONFIG_DIR, { recursive: true });
-  await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2) + "\n", "utf-8");
+  await fs.writeFile(CONFIG_FILE, `${JSON.stringify(config, null, 2)}\n`, "utf-8");
 }
 
 /**

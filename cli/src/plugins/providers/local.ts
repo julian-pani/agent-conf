@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { simpleGit, type SimpleGit } from "simple-git";
+import { type SimpleGit, simpleGit } from "simple-git";
 import type { ResolvedConfig } from "../../config/schema.js";
 import type { ResolvedSource, SourceProvider, SourceResolveOptions } from "./types.js";
 
@@ -190,7 +190,9 @@ export class LocalProvider implements SourceProvider {
     }
 
     if (!skillsExists) {
-      throw new Error(`Invalid canonical repository: missing ${config.skillsDir}/ directory at ${basePath}`);
+      throw new Error(
+        `Invalid canonical repository: missing ${config.skillsDir}/ directory at ${basePath}`,
+      );
     }
   }
 

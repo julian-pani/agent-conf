@@ -9,22 +9,22 @@ import { createLogger, formatPath } from "../utils/logger.js";
 
 export interface InitCanonicalRepoOptions {
   /** Canonical repo name */
-  name?: string;
+  name?: string | undefined;
   /** Organization name */
-  org?: string;
+  org?: string | undefined;
   /** Target directory (default: cwd) */
-  dir?: string;
+  dir?: string | undefined;
   /** Marker prefix (default: "agent-conf") */
-  markerPrefix?: string;
+  markerPrefix?: string | undefined;
   /** Include example skill (default: true) */
-  includeExamples?: boolean;
+  includeExamples?: boolean | undefined;
   /** Non-interactive mode */
-  yes?: boolean;
+  yes?: boolean | undefined;
 }
 
 interface ResolvedOptions {
   name: string;
-  organization?: string;
+  organization?: string | undefined;
   targetDir: string;
   markerPrefix: string;
   includeExamples: boolean;
@@ -353,7 +353,7 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
     const organization = await prompts.text({
       message: `Organization name${orgHint} (optional):`,
       placeholder: orgDefault ?? "ACME Corp",
-      defaultValue: orgDefault,
+      ...(orgDefault ? { defaultValue: orgDefault } : {}),
     });
 
     if (prompts.isCancel(organization)) {
@@ -367,7 +367,8 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
       defaultValue: options.markerPrefix ?? "agent-conf",
       validate: (value) => {
         if (!value.trim()) return "Prefix is required";
-        if (!/^[a-z0-9-]+$/.test(value)) return "Prefix must be lowercase alphanumeric with hyphens";
+        if (!/^[a-z0-9-]+$/.test(value))
+          return "Prefix must be lowercase alphanumeric with hyphens";
         return undefined;
       },
     });
@@ -462,7 +463,9 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
     console.log(`  ${pc.green("+")} ${formatPath(configPath)}`);
     console.log(`  ${pc.green("+")} ${formatPath(agentsMdPath)}`);
     if (resolvedOptions.includeExamples) {
-      console.log(`  ${pc.green("+")} ${formatPath(path.join(skillsDir, "example-skill/SKILL.md"))}`);
+      console.log(
+        `  ${pc.green("+")} ${formatPath(path.join(skillsDir, "example-skill/SKILL.md"))}`,
+      );
     }
     console.log(`  ${pc.green("+")} ${formatPath(syncWorkflowPath)}`);
     console.log(`  ${pc.green("+")} ${formatPath(checkWorkflowPath)}`);
@@ -478,7 +481,9 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
     console.log(pc.bold("Next steps:"));
     console.log(`  1. Edit ${pc.cyan("instructions/AGENTS.md")} with your engineering standards`);
     console.log(`  2. Add skills to ${pc.cyan("skills/")} directory`);
-    console.log(`  3. Update ${pc.cyan(".github/workflows/")} files with your CLI installation method`);
+    console.log(
+      `  3. Update ${pc.cyan(".github/workflows/")} files with your CLI installation method`,
+    );
     console.log(`     (The workflow files will fail until you configure how to install the CLI)`);
     console.log(`  4. Commit and push to create your canonical repository`);
     console.log();

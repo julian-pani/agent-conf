@@ -240,10 +240,7 @@ export function hasGlobalBlockChanges(
 /**
  * Check if AGENTS.md is managed by agent-conf.
  */
-export function isAgentsMdManaged(
-  agentsMdContent: string,
-  options: MarkerOptions = {},
-): boolean {
+export function isAgentsMdManaged(agentsMdContent: string, options: MarkerOptions = {}): boolean {
   const parsed = parseAgentsMd(agentsMdContent, options);
   return parsed.hasMarkers && parsed.globalBlock !== null;
 }

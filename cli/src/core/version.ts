@@ -24,7 +24,10 @@ function getGitHubToken(): string {
 
   // Try gh CLI
   try {
-    const token = execSync("gh auth token", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+    const token = execSync("gh auth token", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
     if (token) {
       return token;
     }

@@ -2,11 +2,11 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { parse as parseYaml } from "yaml";
 import {
+  type CanonicalRepoConfig,
   CanonicalRepoConfigSchema,
   DEFAULT_CONFIG,
-  DownstreamConfigSchema,
-  type CanonicalRepoConfig,
   type DownstreamConfig,
+  DownstreamConfigSchema,
   type ResolvedConfig,
 } from "./schema.js";
 

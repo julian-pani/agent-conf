@@ -8,7 +8,7 @@ declare const __BUILD_COMMIT__: string;
 
 const CONFIG_DIR = ".agent-conf";
 const LOCKFILE_NAME = "lockfile.json";
-const CLI_VERSION = "1.0.0";
+const CLI_VERSION = "0.1.0";
 
 /**
  * Gets the git commit SHA the CLI was built from.

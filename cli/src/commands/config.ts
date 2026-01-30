@@ -1,13 +1,9 @@
 import * as prompts from "@clack/prompts";
 import pc from "picocolors";
-import {
-  getCliRepository,
-  readGlobalConfig,
-  setCliRepository,
-} from "../core/global-config.js";
+import { getCliRepository, readGlobalConfig, setCliRepository } from "../core/global-config.js";
 import { createLogger } from "../utils/logger.js";
 
-export type ConfigOptions = {}
+export type ConfigOptions = Record<string, never>;
 
 export type ConfigSetKey = "cli-repo";
 

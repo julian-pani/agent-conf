@@ -4,11 +4,7 @@ import * as path from "node:path";
 import { simpleGit } from "simple-git";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { parse as parseYaml } from "yaml";
-import {
-  getGitOrganization,
-  getGitProjectName,
-  isGitRoot,
-} from "../../src/utils/git.js";
+import { getGitOrganization, getGitProjectName, isGitRoot } from "../../src/utils/git.js";
 
 // Import the internal functions we want to test
 // Since initCanonicalRepoCommand uses prompts, we'll test the file generation logic directly
@@ -203,8 +199,14 @@ describe("init-canonical-repo integration", () => {
     const gitkeepPath = path.join(tempDir, "skills", "example-skill", "references", ".gitkeep");
 
     const [skillExists, gitkeepExists] = await Promise.all([
-      fs.access(skillMdPath).then(() => true).catch(() => false),
-      fs.access(gitkeepPath).then(() => true).catch(() => false),
+      fs
+        .access(skillMdPath)
+        .then(() => true)
+        .catch(() => false),
+      fs
+        .access(gitkeepPath)
+        .then(() => true)
+        .catch(() => false),
     ]);
 
     expect(skillExists).toBe(true);
@@ -224,7 +226,10 @@ describe("init-canonical-repo integration", () => {
     });
 
     const exampleSkillDir = path.join(tempDir, "skills", "example-skill");
-    const exampleExists = await fs.access(exampleSkillDir).then(() => true).catch(() => false);
+    const exampleExists = await fs
+      .access(exampleSkillDir)
+      .then(() => true)
+      .catch(() => false);
 
     expect(exampleExists).toBe(false);
   });
@@ -241,8 +246,14 @@ describe("init-canonical-repo integration", () => {
     const checkWorkflowPath = path.join(tempDir, ".github", "workflows", "check-reusable.yml");
 
     const [syncExists, checkExists] = await Promise.all([
-      fs.access(syncWorkflowPath).then(() => true).catch(() => false),
-      fs.access(checkWorkflowPath).then(() => true).catch(() => false),
+      fs
+        .access(syncWorkflowPath)
+        .then(() => true)
+        .catch(() => false),
+      fs
+        .access(checkWorkflowPath)
+        .then(() => true)
+        .catch(() => false),
     ]);
 
     expect(syncExists).toBe(true);
@@ -275,7 +286,10 @@ describe("init-canonical-repo integration", () => {
     });
 
     const configPath = path.join(nestedDir, "agent-conf.yaml");
-    const configExists = await fs.access(configPath).then(() => true).catch(() => false);
+    const configExists = await fs
+      .access(configPath)
+      .then(() => true)
+      .catch(() => false);
 
     expect(configExists).toBe(true);
   });

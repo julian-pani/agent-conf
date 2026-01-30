@@ -6,9 +6,9 @@ import { getMetadataKeys } from "../config/schema.js";
 import {
   hasGlobalBlockChanges,
   isAgentsMdManaged,
+  type MarkerOptions,
   parseAgentsMd,
   parseGlobalBlockMetadata,
-  type MarkerOptions,
 } from "./markers.js";
 
 // Default metadata prefix
@@ -228,7 +228,7 @@ export function stripManagedMetadata(content: string, options: MetadataOptions =
   }
 
   // Get the key prefix (convert dashes to underscores for key names)
-  const keyPrefix = metadataPrefix.replace(/-/g, "_") + "_";
+  const keyPrefix = `${metadataPrefix.replace(/-/g, "_")}_`;
 
   // Remove managed fields from metadata
   if (frontmatter.metadata && typeof frontmatter.metadata === "object") {

@@ -131,48 +131,48 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
   const targets = await parseAndValidateTargets(options.target);
   const currentStatus = await getSyncStatus(gitRoot);
 
-    // Create resolved version for the latest release
-    const resolvedVersion: ResolvedVersion = {
-      ref: latestRelease.tag,
-      version: latestRelease.version,
-      isRelease: true,
-      releaseInfo: latestRelease,
-    };
+  // Create resolved version for the latest release
+  const resolvedVersion: ResolvedVersion = {
+    ref: latestRelease.tag,
+    version: latestRelease.version,
+    isRelease: true,
+    releaseInfo: latestRelease,
+  };
 
-    // Clone the source from the same repository in the lockfile
-    let tempDir: string | null = null;
-    try {
-      tempDir = await createTempDir();
-      const resolvedSource = await resolveGithubSource(
-        { repository: sourceRepository, ref: latestRelease.tag },
-        tempDir,
-      );
+  // Clone the source from the same repository in the lockfile
+  let tempDir: string | null = null;
+  try {
+    tempDir = await createTempDir();
+    const resolvedSource = await resolveGithubSource(
+      { repository: sourceRepository, ref: latestRelease.tag },
+      tempDir,
+    );
 
-      // Check for modified files
-      await checkModifiedFilesBeforeSync(gitRoot, targets, options, tempDir);
+    // Check for modified files
+    await checkModifiedFilesBeforeSync(gitRoot, targets, options, tempDir);
 
-      // Determine merge behavior (always merge for updates)
-      const shouldOverride = await promptMergeOrOverride(
-        currentStatus,
-        { ...options, override: false },
-        tempDir,
-      );
+    // Determine merge behavior (always merge for updates)
+    const shouldOverride = await promptMergeOrOverride(
+      currentStatus,
+      { ...options, override: false },
+      tempDir,
+    );
 
-      // Perform sync
-      await performSync({
-        targetDir: gitRoot,
-        resolvedSource,
-        resolvedVersion,
-        shouldOverride,
-        targets,
-        context: {
-          commandName: "sync",
-          status: currentStatus,
-        },
-        tempDir,
-        yes: options.yes,
-        sourceRepo: sourceRepository,
-      });
+    // Perform sync
+    await performSync({
+      targetDir: gitRoot,
+      resolvedSource,
+      resolvedVersion,
+      shouldOverride,
+      targets,
+      context: {
+        commandName: "sync",
+        status: currentStatus,
+      },
+      tempDir,
+      yes: options.yes,
+      sourceRepo: sourceRepository,
+    });
   } catch (error) {
     if (tempDir) await removeTempDir(tempDir);
     throw error;

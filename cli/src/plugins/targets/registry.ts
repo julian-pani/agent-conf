@@ -86,9 +86,7 @@ export function parseTargetNames(
     const parts = t.split(",").map((p) => p.trim().toLowerCase());
     for (const part of parts) {
       if (!registry.isValidTarget(part)) {
-        throw new Error(
-          `Invalid target "${part}". Supported targets: ${validNames.join(", ")}`,
-        );
+        throw new Error(`Invalid target "${part}". Supported targets: ${validNames.join(", ")}`);
       }
       if (!targets.includes(part)) {
         targets.push(part);

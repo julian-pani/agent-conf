@@ -31,7 +31,9 @@ export async function syncCommand(options: SyncOptions): Promise<void> {
   const status = await getSyncStatus(targetDir);
 
   if (!status.hasSynced) {
-    logger.warn("This repository has not been synced yet. Consider running 'agent-conf init' first.");
+    logger.warn(
+      "This repository has not been synced yet. Consider running 'agent-conf init' first.",
+    );
   }
 
   // For sync command, try to get source from:
@@ -54,12 +56,13 @@ export async function syncCommand(options: SyncOptions): Promise<void> {
   }
 
   // Pass the resolved source to options for resolveSource
-  const optionsWithSource: SyncOptions = sourceRepo
-    ? { ...options, source: sourceRepo }
-    : options;
+  const optionsWithSource: SyncOptions = sourceRepo ? { ...options, source: sourceRepo } : options;
 
   // Resolve source using the determined version
-  const { resolvedSource, tempDir, repository } = await resolveSource(optionsWithSource, resolvedVersion);
+  const { resolvedSource, tempDir, repository } = await resolveSource(
+    optionsWithSource,
+    resolvedVersion,
+  );
 
   // Determine merge behavior
   const shouldOverride = await promptMergeOrOverride(status, options, tempDir);

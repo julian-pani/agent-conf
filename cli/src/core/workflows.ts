@@ -73,7 +73,6 @@ export function getWorkflowFiles(config: WorkflowConfig): WorkflowFile[] {
   ];
 }
 
-
 export interface WorkflowStatus {
   exists: boolean;
   currentRef?: string;
@@ -108,8 +107,7 @@ export async function getWorkflowStatus(
     const content = await fs.readFile(filePath, "utf-8");
     const currentRef = extractWorkflowRef(content, workflow.reusableWorkflow, config.sourceRepo);
     const isManaged =
-      content.includes(`# Managed by ${config.cliName}`) ||
-      content.includes(config.sourceRepo);
+      content.includes(`# Managed by ${config.cliName}`) || content.includes(config.sourceRepo);
 
     const result: WorkflowStatus = { exists: true, isManaged };
     if (currentRef !== undefined) result.currentRef = currentRef;

@@ -88,7 +88,7 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
       const { frontmatter } = parseFrontmatter(content);
 
       const metadata = frontmatter.metadata as Record<string, string> | undefined;
-      const storedHash = metadata?.["agent_conf_content_hash"] ?? "unknown";
+      const storedHash = metadata?.agent_conf_content_hash ?? "unknown";
       const currentHash = computeContentHash(content);
 
       modifiedFiles.push({

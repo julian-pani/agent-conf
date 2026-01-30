@@ -1,7 +1,8 @@
 {
   "name": "agent-conf",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "CLI utility to sync AI agent configurations across repositories",
+  "author": "Julian Pani",
   "type": "module",
   "bin": {
     "agent-conf": "./dist/index.js"
@@ -26,7 +27,10 @@
     "check:fix": "biome check --fix",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build",
-    "install:global": "pnpm build && npm install -g ."
+    "install:global": "pnpm build && npm install -g .",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
@@ -41,6 +45,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.13",
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
     "@types/node": "^20.14.0",
     "@types/tabtab": "^3.0.4",
     "tsup": "^8.1.0",
@@ -52,16 +58,26 @@
     "node": ">=20.0.0"
   },
   "keywords": [
-    "agent-conf",
-    "ai-agents",
-    "engineering-standards",
     "cli",
-    "sync"
+    "ai-agents",
+    "claude",
+    "codex",
+    "developer-tools",
+    "config-sync",
+    "engineering-standards"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/org/agent-conf.git",
+    "url": "git+https://github.com/julian-pani/agent-conf.git",
     "directory": "cli"
   },
-  "license": "MIT"
+  "homepage": "https://github.com/julian-pani/agent-conf#readme",
+  "bugs": {
+    "url": "https://github.com/julian-pani/agent-conf/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

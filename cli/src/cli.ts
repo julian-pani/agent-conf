@@ -1,11 +1,7 @@
 import { Command } from "commander";
 import pc from "picocolors";
 import { checkCommand } from "./commands/check.js";
-import {
-  handleCompletion,
-  installCompletion,
-  uninstallCompletion,
-} from "./commands/completion.js";
+import { handleCompletion, installCompletion, uninstallCompletion } from "./commands/completion.js";
 import { configGetCommand, configSetCommand, configShowCommand } from "./commands/config.js";
 import { initCommand } from "./commands/init.js";
 import { initCanonicalRepoCommand } from "./commands/init-canonical-repo.js";
@@ -41,7 +37,9 @@ async function warnIfCliOutdated(): Promise<void> {
         ),
       );
       console.log(
-        pc.yellow("  Rebuild the CLI: cd <agent-conf-repo>/cli && pnpm build && pnpm link --global"),
+        pc.yellow(
+          "  Rebuild the CLI: cd <agent-conf-repo>/cli && pnpm build && pnpm link --global",
+        ),
       );
       console.log();
     }
@@ -64,7 +62,10 @@ export function createCli(): Command {
   program
     .command("init")
     .description("Initialize or sync agent-conf standards to the current repository")
-    .option("-s, --source <repo>", "Canonical repository in owner/repo format (e.g., acme/standards)")
+    .option(
+      "-s, --source <repo>",
+      "Canonical repository in owner/repo format (e.g., acme/standards)",
+    )
     .option("--local [path]", "Use local canonical repository (auto-discover or specify path)")
     .option("-y, --yes", "Non-interactive mode (merge by default)")
     .option("--override", "Override existing AGENTS.md instead of merging")
@@ -86,7 +87,10 @@ export function createCli(): Command {
   program
     .command("sync")
     .description("Sync agent-conf standards (skips initial setup prompts)")
-    .option("-s, --source <repo>", "Canonical repository in owner/repo format (e.g., acme/standards)")
+    .option(
+      "-s, --source <repo>",
+      "Canonical repository in owner/repo format (e.g., acme/standards)",
+    )
     .option("--local [path]", "Use local canonical repository (auto-discover or specify path)")
     .option("-y, --yes", "Non-interactive mode (merge by default)")
     .option("--override", "Override existing AGENTS.md instead of merging")
@@ -118,14 +122,9 @@ export function createCli(): Command {
     .description("Check for and apply updates from the canonical repository")
     .option("-y, --yes", "Non-interactive mode")
     .option("-t, --target <targets...>", "Target platforms (claude, codex)", ["claude"])
-    .action(
-      async (options: {
-        yes?: boolean;
-        target?: string[];
-      }) => {
-        await updateCommand(options);
-      },
-    );
+    .action(async (options: { yes?: boolean; target?: string[] }) => {
+      await updateCommand(options);
+    });
 
   program
     .command("check")
@@ -140,19 +139,12 @@ export function createCli(): Command {
     .description("Upgrade the agent-conf CLI to the latest version")
     .option("-r, --repo <repo>", "CLI repository in owner/repo format")
     .option("-y, --yes", "Non-interactive mode")
-    .action(
-      async (options: {
-        repo?: string;
-        yes?: boolean;
-      }) => {
-        await upgradeCliCommand(options);
-      },
-    );
+    .action(async (options: { repo?: string; yes?: boolean }) => {
+      await upgradeCliCommand(options);
+    });
 
   // Config command with subcommands
-  const configCmd = program
-    .command("config")
-    .description("Manage global CLI configuration");
+  const configCmd = program.command("config").description("Manage global CLI configuration");
 
   configCmd
     .command("show")
