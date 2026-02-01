@@ -204,17 +204,13 @@ jobs:
  * Generates the content for the check workflow file.
  */
 export function generateCheckWorkflow(versionRef: string, config: WorkflowConfig): string {
-  const { sourceRepo, cliName, secretName } = config;
+  const { sourceRepo, cliName } = config;
 
   return `# ${cliName} File Integrity Check
 # Managed by ${cliName} CLI - do not edit the version ref manually
 #
 # This workflow checks that ${cliName}-managed files haven't been modified.
 # Version changes should be made using: ${cliName} sync --ref <version>
-#
-# TOKEN: Requires a PAT with read access to the source repository.
-# Create a fine-grained PAT at https://github.com/settings/tokens?type=beta
-# with read access to ${sourceRepo}, then add it as ${secretName} secret.
 
 name: ${cliName} Check
 
@@ -233,8 +229,6 @@ on:
 jobs:
   check:
     uses: ${sourceRepo}/.github/workflows/check-reusable.yml@${versionRef}
-    secrets:
-      token: \${{ secrets.${secretName} }}
 `;
 }
 

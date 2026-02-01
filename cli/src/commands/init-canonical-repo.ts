@@ -367,17 +367,11 @@ function generateCheckWorkflow(repoFullName: string, prefix: string): string {
 #
 # Downstream repos will reference this workflow like:
 #   uses: ${repoFullName}/.github/workflows/check-reusable.yml@v1.0.0
-#
-# TOKEN: Requires a token with read access to the canonical repository.
 
 name: Check Reusable
 
 on:
   workflow_call:
-    secrets:
-      token:
-        description: 'GitHub token with read access to the canonical repository'
-        required: true
 
 jobs:
   check:
@@ -396,8 +390,6 @@ jobs:
 
       - name: Check file integrity
         run: agent-conf check
-        env:
-          GITHUB_TOKEN: \${{ secrets.token }}
 `;
 }
 
