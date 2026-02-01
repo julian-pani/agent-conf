@@ -1,3 +1,9 @@
+## [0.2.0](https://github.com/julian-pani/agent-conf/compare/v0.1.0...v0.2.0) (2026-02-01)
+
+### Features
+
+* **cli:** implement schema-based versioning and simplify architecture ([e6ae828](https://github.com/julian-pani/agent-conf/commit/e6ae8280b1bfb569aeff08321bde03deb65adc00))
+
 ## [0.1.0](https://github.com/julian-pani/agent-conf/compare/v0.0.3...v0.1.0) (2026-02-01)
 
 ### Features
