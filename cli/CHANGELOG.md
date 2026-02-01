@@ -1,3 +1,9 @@
+## [2.0.1](https://github.com/julian-pani/agent-conf/compare/v2.0.0...v2.0.1) (2026-02-01)
+
+### Bug Fixes
+
+* **tests:** handle global git config in getGitOrganization test ([9333213](https://github.com/julian-pani/agent-conf/commit/93332137b1753dc75213379bd0a26137e8978846))
+
 ## [2.0.0](https://github.com/julian-pani/agent-conf/compare/v1.0.2...v2.0.0) (2026-02-01)
 
 ### ⚠ BREAKING CHANGES
