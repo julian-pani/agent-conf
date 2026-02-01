@@ -147,6 +147,9 @@ function generateSyncWorkflow(repoFullName: string, prefix: string): string {
 #
 # Downstream repos will reference this workflow like:
 #   uses: ${repoFullName}/.github/workflows/sync-reusable.yml@v1.0.0
+#
+# TOKEN: Requires a token with read access to the canonical repository.
+# The default GITHUB_TOKEN is used for operations on the downstream repo.
 
 name: Sync Reusable
 
@@ -158,23 +161,60 @@ on:
         required: false
         default: false
         type: boolean
-      reviewers:
-        description: 'PR reviewers (comma-separated)'
+      commit_strategy:
+        description: 'How to commit changes: "pr" (create pull request) or "direct" (commit to current branch)'
         required: false
+        default: 'pr'
+        type: string
+      pr_branch_prefix:
+        description: 'Branch prefix for PR branches'
+        required: false
+        default: '${prefix}/sync'
+        type: string
+      pr_title:
+        description: 'Pull request title'
+        required: false
+        default: 'chore(${prefix}): sync agent configuration'
+        type: string
+      reviewers:
+        description: 'PR reviewers (comma-separated GitHub usernames)'
+        required: false
+        type: string
+      commit_message:
+        description: 'Commit message for direct commits'
+        required: false
+        default: 'chore(${prefix}): sync agent configuration'
         type: string
     secrets:
       token:
-        description: 'GitHub token with repo access'
+        description: 'GitHub token with read access to the canonical repository'
         required: true
+    outputs:
+      changes_detected:
+        description: 'Whether changes were detected after sync'
+        value: \${{ jobs.sync.outputs.changes_detected }}
+      pr_number:
+        description: 'Pull request number (if PR strategy and changes detected)'
+        value: \${{ jobs.sync.outputs.pr_number }}
+      pr_url:
+        description: 'Pull request URL (if PR strategy and changes detected)'
+        value: \${{ jobs.sync.outputs.pr_url }}
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      changes_detected: \${{ steps.check-changes.outputs.changes_detected }}
+      pr_number: \${{ steps.create-pr.outputs.pr_number }}
+      pr_url: \${{ steps.create-pr.outputs.pr_url }}
     steps:
-      - name: Checkout downstream repo
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: \${{ secrets.token }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -185,10 +225,74 @@ jobs:
         run: npm install -g agent-conf
 
       - name: Run sync
-        run: |
-          agent-conf sync --yes
+        run: agent-conf sync --yes
         env:
           GITHUB_TOKEN: \${{ secrets.token }}
+
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if [ -n "\$(git status --porcelain)" ]; then
+            echo "changes_detected=true" >> \$GITHUB_OUTPUT
+            echo "Changes detected after sync"
+            git status --short
+          else
+            echo "changes_detected=false" >> \$GITHUB_OUTPUT
+            echo "No changes detected after sync"
+          fi
+
+      - name: Configure git
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create PR branch and commit
+        if: steps.check-changes.outputs.changes_detected == 'true' && inputs.commit_strategy == 'pr'
+        run: |
+          BRANCH_NAME="\${{ inputs.pr_branch_prefix }}-\$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "\$BRANCH_NAME"
+          git add -A
+          git commit -m "\${{ inputs.pr_title }}"
+          git push -u origin "\$BRANCH_NAME"
+          echo "BRANCH_NAME=\$BRANCH_NAME" >> \$GITHUB_ENV
+
+      - name: Create pull request
+        id: create-pr
+        if: steps.check-changes.outputs.changes_detected == 'true' && inputs.commit_strategy == 'pr'
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          PR_BODY="This PR was automatically created by the ${prefix} sync workflow.
+
+          ## Changes
+          - Synced agent configuration from canonical repository
+
+          ---
+          *This is an automated PR. Review the changes and merge when ready.*"
+
+          REVIEWERS_ARG=""
+          if [ -n "\${{ inputs.reviewers }}" ]; then
+            REVIEWERS_ARG="--reviewer \${{ inputs.reviewers }}"
+          fi
+
+          PR_URL=\$(gh pr create \\
+            --title "\${{ inputs.pr_title }}" \\
+            --body "\$PR_BODY" \\
+            \$REVIEWERS_ARG)
+
+          PR_NUMBER=\$(gh pr view --json number -q .number)
+          echo "pr_url=\$PR_URL" >> \$GITHUB_OUTPUT
+          echo "pr_number=\$PR_NUMBER" >> \$GITHUB_OUTPUT
+          echo "Created PR #\$PR_NUMBER: \$PR_URL"
+
+      - name: Commit directly to branch
+        if: steps.check-changes.outputs.changes_detected == 'true' && inputs.commit_strategy == 'direct'
+        run: |
+          git add -A
+          git commit -m "\${{ inputs.commit_message }}"
+          git push
+          echo "Changes committed directly to \$(git branch --show-current)"
 `;
 }
 
@@ -201,6 +305,8 @@ function generateCheckWorkflow(repoFullName: string, prefix: string): string {
 #
 # Downstream repos will reference this workflow like:
 #   uses: ${repoFullName}/.github/workflows/check-reusable.yml@v1.0.0
+#
+# TOKEN: Requires a token with read access to the canonical repository.
 
 name: Check Reusable
 
@@ -208,7 +314,7 @@ on:
   workflow_call:
     secrets:
       token:
-        description: 'GitHub token with repo access'
+        description: 'GitHub token with read access to the canonical repository'
         required: true
 
 jobs:
@@ -217,8 +323,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: \${{ secrets.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -229,8 +333,9 @@ jobs:
         run: npm install -g agent-conf
 
       - name: Check file integrity
-        run: |
-          agent-conf check
+        run: agent-conf check
+        env:
+          GITHUB_TOKEN: \${{ secrets.token }}
 `;
 }
 
