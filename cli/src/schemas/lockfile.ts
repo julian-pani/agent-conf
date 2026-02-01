@@ -21,6 +21,8 @@ export const ContentSchema = z.object({
   }),
   skills: z.array(z.string()),
   targets: z.array(z.string()).optional(),
+  /** Marker prefix used for managed content (default: "agent-conf") */
+  marker_prefix: z.string().optional(),
 });
 
 export const LockfileSchema = z.object({

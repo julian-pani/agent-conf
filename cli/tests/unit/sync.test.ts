@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { addManagedMetadata } from "../../src/core/skill-metadata.js";
+import { addManagedMetadata, isManaged } from "../../src/core/skill-metadata.js";
 import { deleteOrphanedSkills, findOrphanedSkills } from "../../src/core/sync.js";
 
 describe("sync", () => {
@@ -233,6 +233,69 @@ description: A test skill
       expect(await skillExists("skill-a", "claude")).toBe(false);
       expect(await skillExists("skill-b", "claude")).toBe(false);
       expect(await skillExists("skill-c", "claude")).toBe(true);
+    });
+
+    describe("custom metadata prefix", () => {
+      const CUSTOM_PREFIX = "fbagents";
+
+      it("deletes skill managed with custom prefix when using custom prefix", async () => {
+        const managedContent = addManagedMetadata(SAMPLE_SKILL, { metadataPrefix: CUSTOM_PREFIX });
+        await createSkillFile("orphan-skill", "claude", managedContent);
+
+        // Verify it's managed with custom prefix
+        expect(isManaged(managedContent, { metadataPrefix: CUSTOM_PREFIX })).toBe(true);
+        expect(isManaged(managedContent)).toBe(false); // Not managed with default prefix
+
+        const result = await deleteOrphanedSkills(
+          tempDir,
+          ["orphan-skill"],
+          ["claude"],
+          ["orphan-skill"],
+          { metadataPrefix: CUSTOM_PREFIX },
+        );
+
+        expect(result.deleted).toEqual(["orphan-skill"]);
+        expect(result.skipped).toEqual([]);
+        expect(await skillExists("orphan-skill", "claude")).toBe(false);
+      });
+
+      it("skips skill managed with default prefix when using custom prefix", async () => {
+        // Skill is managed with default prefix
+        const managedContent = addManagedMetadata(SAMPLE_SKILL);
+        await createSkillFile("orphan-skill", "claude", managedContent);
+
+        // Should skip because we're looking for custom prefix managed skills
+        const result = await deleteOrphanedSkills(
+          tempDir,
+          ["orphan-skill"],
+          ["claude"],
+          ["orphan-skill"],
+          { metadataPrefix: CUSTOM_PREFIX },
+        );
+
+        expect(result.deleted).toEqual([]);
+        expect(result.skipped).toEqual(["orphan-skill"]);
+        expect(await skillExists("orphan-skill", "claude")).toBe(true);
+      });
+
+      it("skips skill managed with custom prefix when using default prefix", async () => {
+        // Skill is managed with custom prefix
+        const managedContent = addManagedMetadata(SAMPLE_SKILL, { metadataPrefix: CUSTOM_PREFIX });
+        await createSkillFile("orphan-skill", "claude", managedContent);
+
+        // Should skip because we're looking for default prefix managed skills
+        const result = await deleteOrphanedSkills(
+          tempDir,
+          ["orphan-skill"],
+          ["claude"],
+          ["orphan-skill"],
+          // No prefix option = use default
+        );
+
+        expect(result.deleted).toEqual([]);
+        expect(result.skipped).toEqual(["orphan-skill"]);
+        expect(await skillExists("orphan-skill", "claude")).toBe(true);
+      });
     });
   });
 });

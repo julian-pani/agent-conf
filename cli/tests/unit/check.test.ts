@@ -80,10 +80,31 @@ describe("check command", () => {
         JSON.stringify(lockfile, null, 2),
       );
 
-      // Create AGENTS.md without agent-conf markers (not managed)
-      await fs.writeFile(path.join(tempDir, "AGENTS.md"), "# AGENTS.md\n\nSome content");
+      // Create managed AGENTS.md with markers and matching hash
+      const globalContent = "# Global Standards\n\nSome content";
+      // Compute the hash the same way the code does
+      const { createHash } = await import("node:crypto");
+      const hash = createHash("sha256").update(globalContent.trim()).digest("hex");
+      const contentHash = `sha256:${hash.slice(0, 12)}`;
 
-      // Create a skill file without agent-conf metadata (not managed)
+      const agentsMd = `<!-- agent-conf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+<!-- Content hash: ${contentHash} -->
+
+${globalContent}
+
+<!-- agent-conf:global:end -->
+
+<!-- agent-conf:repo:start -->
+<!-- Repository-specific instructions below -->
+
+# Repo content
+
+<!-- agent-conf:repo:end -->
+`;
+      await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
+
+      // Create a skill file without managed metadata (not managed, but that's ok)
       const skillContent = `---
 name: test-skill
 description: A test skill
@@ -219,6 +240,185 @@ metadata:
       // Should show both expected and current hashes
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("Expected hash:"));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("Current hash:"));
+    });
+  });
+
+  describe("with custom marker prefix", () => {
+    const CUSTOM_PREFIX = "fbagents";
+
+    beforeEach(async () => {
+      // Create a lockfile with custom marker prefix
+      const lockfile = {
+        version: "1",
+        synced_at: new Date().toISOString(),
+        source: { type: "local", path: "/some/path", ref: "abc123" },
+        content: {
+          agents_md: { global_block_hash: "sha256:abc123def456", merged: true },
+          skills: ["test-skill"],
+          targets: ["claude"],
+          marker_prefix: CUSTOM_PREFIX,
+        },
+        cli_version: "1.0.0",
+      };
+      await fs.writeFile(
+        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        JSON.stringify(lockfile, null, 2),
+      );
+    });
+
+    it("should detect modified AGENTS.md with custom prefix markers", async () => {
+      // Create AGENTS.md with custom prefix and modified content
+      const agentsMd = `<!-- ${CUSTOM_PREFIX}:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+<!-- Content hash: sha256:originalHash -->
+
+# Original content that has been MODIFIED
+
+<!-- ${CUSTOM_PREFIX}:global:end -->
+
+<!-- ${CUSTOM_PREFIX}:repo:start -->
+<!-- Repository-specific instructions below -->
+
+# Repo content
+
+<!-- ${CUSTOM_PREFIX}:repo:end -->
+`;
+      await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
+
+      // Create unmanaged skill file
+      await fs.writeFile(
+        path.join(tempDir, ".claude", "skills", "test-skill", "SKILL.md"),
+        `---
+name: test-skill
+description: A test skill
+---
+
+# Test Skill
+`,
+      );
+
+      await expect(checkCommand({})).rejects.toThrow("process.exit called");
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("have been modified"));
+      expect(mockExit).toHaveBeenCalledWith(1);
+    });
+
+    it("should detect modified skill with custom prefix metadata", async () => {
+      // Create unmanaged AGENTS.md
+      await fs.writeFile(path.join(tempDir, "AGENTS.md"), "# AGENTS.md\n\nSome content");
+
+      // Create skill with custom prefix metadata that's been modified
+      const skillContent = `---
+name: test-skill
+description: A test skill
+metadata:
+  ${CUSTOM_PREFIX.replace(/-/g, "_")}_managed: "true"
+  ${CUSTOM_PREFIX.replace(/-/g, "_")}_content_hash: "sha256:originalHash"
+---
+
+# Test Skill - MODIFIED
+`;
+      await fs.writeFile(
+        path.join(tempDir, ".claude", "skills", "test-skill", "SKILL.md"),
+        skillContent,
+      );
+
+      await expect(checkCommand({})).rejects.toThrow("process.exit called");
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("have been modified"));
+      expect(mockExit).toHaveBeenCalledWith(1);
+    });
+
+    it("should fail when no managed files found with custom prefix", async () => {
+      // Create AGENTS.md with DEFAULT prefix markers (not custom)
+      const agentsMd = `<!-- agent-conf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+<!-- Content hash: sha256:originalHash -->
+
+# Original content
+
+<!-- agent-conf:global:end -->
+
+<!-- agent-conf:repo:start -->
+<!-- Repository-specific instructions below -->
+
+# Repo content
+
+<!-- agent-conf:repo:end -->
+`;
+      await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
+
+      // Create skill with default prefix (should not be detected as managed with custom prefix)
+      const skillContent = `---
+name: test-skill
+description: A test skill
+metadata:
+  agent_conf_managed: "true"
+  agent_conf_content_hash: "sha256:originalHash"
+---
+
+# Test Skill
+`;
+      await fs.writeFile(
+        path.join(tempDir, ".claude", "skills", "test-skill", "SKILL.md"),
+        skillContent,
+      );
+
+      // Should fail because no files are managed with the custom prefix
+      await expect(checkCommand({})).rejects.toThrow("process.exit called");
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("No managed files found"));
+      expect(mockExit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe("when synced but no managed files found", () => {
+    beforeEach(async () => {
+      // Create a lockfile (indicates repo was synced)
+      const lockfile = {
+        version: "1",
+        synced_at: new Date().toISOString(),
+        source: { type: "local", path: "/some/path", ref: "abc123" },
+        content: {
+          agents_md: { global_block_hash: "sha256:abc123def456", merged: true },
+          skills: ["test-skill"],
+          targets: ["claude"],
+        },
+        cli_version: "1.0.0",
+      };
+      await fs.writeFile(
+        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        JSON.stringify(lockfile, null, 2),
+      );
+
+      // Create AGENTS.md WITHOUT markers (not managed)
+      await fs.writeFile(path.join(tempDir, "AGENTS.md"), "# AGENTS.md\n\nSome content");
+
+      // Create skill WITHOUT managed metadata
+      const skillContent = `---
+name: test-skill
+description: A test skill
+---
+
+# Test Skill
+`;
+      await fs.writeFile(
+        path.join(tempDir, ".claude", "skills", "test-skill", "SKILL.md"),
+        skillContent,
+      );
+    });
+
+    it("should fail with error when no managed files found", async () => {
+      await expect(checkCommand({})).rejects.toThrow("process.exit called");
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("No managed files found"));
+      expect(mockExit).toHaveBeenCalledWith(1);
+    });
+
+    it("should exit with code 1 in quiet mode", async () => {
+      await expect(checkCommand({ quiet: true })).rejects.toThrow("process.exit called");
+
+      expect(mockExit).toHaveBeenCalledWith(1);
     });
   });
 });

@@ -327,4 +327,115 @@ ${GLOBAL_END_MARKER}`;
       expect(isAgentsMdManaged(agentsMd)).toBe(false);
     });
   });
+
+  describe("custom marker prefix", () => {
+    const CUSTOM_PREFIX = "fbagents";
+
+    describe("buildGlobalBlock with custom prefix", () => {
+      it("should use custom prefix in markers", () => {
+        const content = "# Standards\nSome content";
+        const metadata = {};
+
+        const result = buildGlobalBlock(content, metadata, { prefix: CUSTOM_PREFIX });
+
+        expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:global:start -->`);
+        expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:global:end -->`);
+        expect(result).not.toContain("agent-conf:global");
+      });
+    });
+
+    describe("buildRepoBlock with custom prefix", () => {
+      it("should use custom prefix in markers", () => {
+        const result = buildRepoBlock("My custom instructions", { prefix: CUSTOM_PREFIX });
+
+        expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:repo:start -->`);
+        expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:repo:end -->`);
+        expect(result).not.toContain("agent-conf:repo");
+      });
+    });
+
+    describe("buildAgentsMd with custom prefix", () => {
+      it("should use custom prefix in all markers", () => {
+        const globalContent = "# Global Standards";
+        const repoContent = "# Repo Instructions";
+        const metadata = {};
+
+        const result = buildAgentsMd(globalContent, repoContent, metadata, {
+          prefix: CUSTOM_PREFIX,
+        });
+
+        expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:global:start -->`);
+        expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:global:end -->`);
+        expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:repo:start -->`);
+        expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:repo:end -->`);
+        expect(result).not.toContain("agent-conf:");
+      });
+    });
+
+    describe("parseAgentsMd with custom prefix", () => {
+      it("should parse content with custom prefix markers", () => {
+        const content = `<!-- ${CUSTOM_PREFIX}:global:start -->
+<!-- DO NOT EDIT THIS SECTION -->
+
+# Global Standards
+Some content here
+
+<!-- ${CUSTOM_PREFIX}:global:end -->
+
+<!-- ${CUSTOM_PREFIX}:repo:start -->
+<!-- Repository-specific instructions below -->
+
+# Repo Specific
+My custom instructions
+
+<!-- ${CUSTOM_PREFIX}:repo:end -->
+`;
+
+        const result = parseAgentsMd(content, { prefix: CUSTOM_PREFIX });
+
+        expect(result.hasMarkers).toBe(true);
+        expect(result.globalBlock).toContain("# Global Standards");
+        expect(result.repoBlock).toContain("# Repo Specific");
+      });
+
+      it("should not parse default markers when using custom prefix", () => {
+        const content = `${GLOBAL_START_MARKER}
+Global content
+${GLOBAL_END_MARKER}`;
+
+        const result = parseAgentsMd(content, { prefix: CUSTOM_PREFIX });
+
+        expect(result.hasMarkers).toBe(false);
+        expect(result.globalBlock).toBeNull();
+      });
+    });
+
+    describe("isAgentsMdManaged with custom prefix", () => {
+      it("should detect managed content with custom prefix", () => {
+        const agentsMd = buildAgentsMd("# Standards", "# Repo", {}, { prefix: CUSTOM_PREFIX });
+
+        expect(isAgentsMdManaged(agentsMd, { prefix: CUSTOM_PREFIX })).toBe(true);
+      });
+
+      it("should not detect default prefix as managed when using custom prefix", () => {
+        const agentsMd = buildAgentsMd("# Standards", "# Repo", {});
+
+        expect(isAgentsMdManaged(agentsMd, { prefix: CUSTOM_PREFIX })).toBe(false);
+      });
+    });
+
+    describe("hasGlobalBlockChanges with custom prefix", () => {
+      it("should detect changes in content with custom prefix", () => {
+        const globalContent = "# Standards\nSome content";
+        let agentsMd = buildAgentsMd(globalContent, "# Repo", {}, { prefix: CUSTOM_PREFIX });
+
+        expect(hasGlobalBlockChanges(agentsMd, { prefix: CUSTOM_PREFIX })).toBe(false);
+
+        // Modify the content
+        agentsMd = agentsMd.replace("Some content", "Modified content");
+
+        expect(hasGlobalBlockChanges(agentsMd, { prefix: CUSTOM_PREFIX })).toBe(true);
+      });
+    });
+  });
 });

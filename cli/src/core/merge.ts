@@ -5,6 +5,8 @@ import { buildAgentsMd, extractRepoBlockContent, parseAgentsMd } from "./markers
 
 export interface MergeOptions {
   override: boolean;
+  /** Marker prefix to use for managed content (default: "agent-conf") */
+  markerPrefix?: string;
 }
 
 export interface MergeResult {
@@ -82,13 +84,14 @@ export async function mergeAgentsMd(
   }
 > {
   const existing = await gatherExistingContent(targetDir);
+  const markerOptions = options.markerPrefix ? { prefix: options.markerPrefix } : undefined;
 
   // Collect content to merge into repo block
   const contentToMerge: string[] = [];
 
   // Handle existing AGENTS.md
   if (existing.agentsMd !== null && !options.override) {
-    const parsed = parseAgentsMd(existing.agentsMd);
+    const parsed = parseAgentsMd(existing.agentsMd, markerOptions);
     if (parsed.hasMarkers) {
       // Has markers - preserve repo block content
       const repoContent = extractRepoBlockContent(parsed);
@@ -113,7 +116,7 @@ export async function mergeAgentsMd(
 
   // Build final repo content
   const repoContent = contentToMerge.length > 0 ? contentToMerge.join("\n\n") : null;
-  const content = buildAgentsMd(globalContent, repoContent, {});
+  const content = buildAgentsMd(globalContent, repoContent, {}, markerOptions);
 
   const merged = !options.override && (existing.agentsMd !== null || existing.claudeMd !== null);
   const preservedRepoContent = contentToMerge.length > 0;

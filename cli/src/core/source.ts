@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { promisify } from "node:util";
 import { type SimpleGit, simpleGit } from "simple-git";
+import { loadCanonicalRepoConfig } from "../config/loader.js";
 import type { Source } from "../schemas/lockfile.js";
 
 const execAsync = promisify(exec);
@@ -12,6 +13,8 @@ export interface ResolvedSource {
   basePath: string;
   agentsMdPath: string;
   skillsPath: string;
+  /** Marker prefix from canonical config (default: "agent-conf") */
+  markerPrefix: string;
 }
 
 export interface LocalSourceOptions {
@@ -48,6 +51,10 @@ export async function resolveLocalSource(
     // Not a git repo or git not available
   }
 
+  // Load canonical config to get marker prefix
+  const canonicalConfig = await loadCanonicalRepoConfig(basePath);
+  const markerPrefix = canonicalConfig?.markers.prefix ?? "agent-conf";
+
   const source: Source = {
     type: "local",
     path: basePath,
@@ -59,6 +66,7 @@ export async function resolveLocalSource(
     basePath,
     agentsMdPath: path.join(basePath, "instructions", "AGENTS.md"),
     skillsPath: path.join(basePath, "skills"),
+    markerPrefix,
   };
 }
 
@@ -74,6 +82,10 @@ export async function resolveGithubSource(
   const log = await clonedGit.log({ maxCount: 1 });
   const commitSha = log.latest?.hash ?? "";
 
+  // Load canonical config to get marker prefix
+  const canonicalConfig = await loadCanonicalRepoConfig(tempDir);
+  const markerPrefix = canonicalConfig?.markers.prefix ?? "agent-conf";
+
   const source: Source = {
     type: "github",
     repository,
@@ -86,6 +98,7 @@ export async function resolveGithubSource(
     basePath: tempDir,
     agentsMdPath: path.join(tempDir, "instructions", "AGENTS.md"),
     skillsPath: path.join(tempDir, "skills"),
+    markerPrefix,
   };
 }
 

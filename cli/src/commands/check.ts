@@ -54,12 +54,19 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
   }
 
   const targets = lockfile.content.targets ?? ["claude"];
+  const markerPrefix = lockfile.content.marker_prefix;
   const modifiedFiles: ModifiedFileInfo[] = [];
 
+  // Build options for checking managed files
+  const checkOptions = markerPrefix ? { markerPrefix, metadataPrefix: markerPrefix } : {};
+
   // Check all managed files
-  const allFiles = await checkAllManagedFiles(targetDir, targets);
+  const allFiles = await checkAllManagedFiles(targetDir, targets, checkOptions);
 
   // Gather detailed info for modified files
+  // Compute the metadata key prefix (convert dashes to underscores)
+  const keyPrefix = markerPrefix ? `${markerPrefix.replace(/-/g, "_")}_` : "agent_conf_";
+
   for (const file of allFiles) {
     if (!file.hasChanges) continue;
 
@@ -67,7 +74,7 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
       // Get hash info for AGENTS.md
       const agentsMdPath = path.join(targetDir, "AGENTS.md");
       const content = await fs.readFile(agentsMdPath, "utf-8");
-      const parsed = parseAgentsMd(content);
+      const parsed = parseAgentsMd(content, markerPrefix ? { prefix: markerPrefix } : undefined);
 
       if (parsed.globalBlock) {
         const metadata = parseGlobalBlockMetadata(parsed.globalBlock);
@@ -88,8 +95,11 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
       const { frontmatter } = parseFrontmatter(content);
 
       const metadata = frontmatter.metadata as Record<string, string> | undefined;
-      const storedHash = metadata?.agent_conf_content_hash ?? "unknown";
-      const currentHash = computeContentHash(content);
+      const storedHash = metadata?.[`${keyPrefix}content_hash`] ?? "unknown";
+      const currentHash = computeContentHash(
+        content,
+        markerPrefix ? { metadataPrefix: markerPrefix } : undefined,
+      );
 
       modifiedFiles.push({
         path: file.path,
@@ -98,6 +108,25 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
         currentHash,
       });
     }
+  }
+
+  // Check if any managed files were found
+  if (allFiles.length === 0) {
+    if (options.quiet) {
+      process.exit(1);
+    }
+    console.log();
+    console.log(pc.bold("agent-conf check"));
+    console.log();
+    console.log(`${pc.red("✗")} No managed files found`);
+    console.log();
+    console.log(pc.dim("This repository appears to be synced but no managed files were detected."));
+    if (markerPrefix) {
+      console.log(pc.dim(`Expected marker prefix: ${markerPrefix}`));
+    }
+    console.log(pc.dim("Run 'agent-conf sync' to restore the managed files."));
+    console.log();
+    process.exit(1);
   }
 
   // Output results

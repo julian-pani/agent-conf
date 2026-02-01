@@ -51,12 +51,16 @@ export async function sync(
   resolvedSource: ResolvedSource,
   options: SyncOptions = { override: false, targets: ["claude"] },
 ): Promise<SyncResult> {
+  // Get marker prefix from resolved source
+  const markerPrefix = resolvedSource.markerPrefix;
+
   // Read global AGENTS.md content
   const globalContent = await fs.readFile(resolvedSource.agentsMdPath, "utf-8");
 
   // Merge/write AGENTS.md (also gathers existing CLAUDE.md content)
   const mergeResult = await mergeAgentsMd(targetDir, globalContent, resolvedSource.source, {
     override: options.override,
+    markerPrefix,
   });
   await writeAgentsMd(targetDir, mergeResult.content);
 
@@ -96,6 +100,7 @@ export async function sync(
       resolvedSource.skillsPath,
       skillNames,
       config,
+      markerPrefix,
     );
     totalCopied += skillsCopied;
 
@@ -130,6 +135,7 @@ export async function sync(
     globalBlockContent: globalContent,
     skills: skillNames,
     targets: options.targets,
+    markerPrefix,
   };
   if (options.pinnedVersion) {
     lockfileOptions.pinnedVersion = options.pinnedVersion;
@@ -156,6 +162,7 @@ async function syncSkillsToTarget(
   sourceSkillsPath: string,
   skillNames: string[],
   config: TargetConfig,
+  metadataPrefix: string,
 ): Promise<number> {
   const targetSkillsPath = path.join(targetDir, config.dir, "skills");
   let copied = 0;
@@ -164,7 +171,7 @@ async function syncSkillsToTarget(
     const sourceDir = path.join(sourceSkillsPath, skillName);
     const targetSkillDir = path.join(targetSkillsPath, skillName);
 
-    const filesCopied = await copySkillDirectory(sourceDir, targetSkillDir);
+    const filesCopied = await copySkillDirectory(sourceDir, targetSkillDir, metadataPrefix);
     copied += filesCopied;
   }
 
@@ -174,7 +181,11 @@ async function syncSkillsToTarget(
 /**
  * Copy a skill directory, adding managed metadata to SKILL.md files.
  */
-async function copySkillDirectory(sourceDir: string, targetDir: string): Promise<number> {
+async function copySkillDirectory(
+  sourceDir: string,
+  targetDir: string,
+  metadataPrefix: string,
+): Promise<number> {
   await fs.mkdir(targetDir, { recursive: true });
 
   const entries = await fs.readdir(sourceDir, { withFileTypes: true });
@@ -185,11 +196,11 @@ async function copySkillDirectory(sourceDir: string, targetDir: string): Promise
     const targetPath = path.join(targetDir, entry.name);
 
     if (entry.isDirectory()) {
-      copied += await copySkillDirectory(sourcePath, targetPath);
+      copied += await copySkillDirectory(sourcePath, targetPath, metadataPrefix);
     } else if (entry.name === "SKILL.md") {
       // Add managed metadata to SKILL.md files
       const content = await fs.readFile(sourcePath, "utf-8");
-      const contentWithMetadata = addManagedMetadata(content);
+      const contentWithMetadata = addManagedMetadata(content, { metadataPrefix });
       await fs.writeFile(targetPath, contentWithMetadata, "utf-8");
       copied++;
     } else {
@@ -265,6 +276,12 @@ export function findOrphanedSkills(previousSkills: string[], currentSkills: stri
   return previousSkills.filter((skill) => !currentSkills.includes(skill));
 }
 
+/** Options for deleting orphaned skills */
+export interface DeleteOrphanedSkillsOptions {
+  /** Metadata prefix to use for checking managed status (default: "agent-conf") */
+  metadataPrefix?: string;
+}
+
 /**
  * Delete orphaned skill directories from all targets.
  * Only deletes skills that:
@@ -280,9 +297,13 @@ export async function deleteOrphanedSkills(
   orphanedSkills: string[],
   targets: string[],
   previouslyTrackedSkills: string[],
+  options: DeleteOrphanedSkillsOptions = {},
 ): Promise<{ deleted: string[]; skipped: string[] }> {
   const deleted: string[] = [];
   const skipped: string[] = [];
+  const metadataOptions = options.metadataPrefix
+    ? { metadataPrefix: options.metadataPrefix }
+    : undefined;
 
   for (const skillName of orphanedSkills) {
     let wasDeleted = false;
@@ -303,7 +324,7 @@ export async function deleteOrphanedSkills(
         const content = await fs.readFile(skillMdPath, "utf-8");
         const { isManaged, hasManualChanges } = await import("./skill-metadata.js");
 
-        if (!isManaged(content)) {
+        if (!isManaged(content, metadataOptions)) {
           // Not managed, skip deletion
           if (!skipped.includes(skillName)) {
             skipped.push(skillName);
@@ -315,7 +336,7 @@ export async function deleteOrphanedSkills(
         // 1. The skill was in the previous lockfile (confirming it was synced), OR
         // 2. The content hash matches (skill hasn't been modified)
         const wasInPreviousLockfile = previouslyTrackedSkills.includes(skillName);
-        const isUnmodified = !hasManualChanges(content);
+        const isUnmodified = !hasManualChanges(content, metadataOptions);
 
         if (!wasInPreviousLockfile && !isUnmodified) {
           // Skill is managed but wasn't in lockfile and has been modified

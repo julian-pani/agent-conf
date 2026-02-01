@@ -206,4 +206,74 @@ ${REPO_END_MARKER}
       expect(content).toBe("@AGENTS.md\n\nSome content");
     });
   });
+
+  describe("custom marker prefix", () => {
+    const CUSTOM_PREFIX = "fbagents";
+
+    describe("mergeAgentsMd with custom prefix", () => {
+      it("should use custom prefix in generated markers", async () => {
+        const result = await mergeAgentsMd(tempDir, "# Global Standards", testSource, {
+          override: false,
+          markerPrefix: CUSTOM_PREFIX,
+        });
+
+        expect(result.content).toContain(`<!-- ${CUSTOM_PREFIX}:global:start -->`);
+        expect(result.content).toContain(`<!-- ${CUSTOM_PREFIX}:global:end -->`);
+        expect(result.content).toContain(`<!-- ${CUSTOM_PREFIX}:repo:start -->`);
+        expect(result.content).toContain(`<!-- ${CUSTOM_PREFIX}:repo:end -->`);
+        expect(result.content).not.toContain("agent-conf:global");
+        expect(result.content).not.toContain("agent-conf:repo");
+      });
+
+      it("should preserve repo block content from files with custom prefix markers", async () => {
+        const existingContent = `<!-- ${CUSTOM_PREFIX}:global:start -->
+Old global content
+<!-- ${CUSTOM_PREFIX}:global:end -->
+
+<!-- ${CUSTOM_PREFIX}:repo:start -->
+# My Repo Specific
+Keep this content
+<!-- ${CUSTOM_PREFIX}:repo:end -->
+`;
+        const agentsMdPath = path.join(tempDir, "AGENTS.md");
+        await fs.writeFile(agentsMdPath, existingContent, "utf-8");
+
+        const result = await mergeAgentsMd(tempDir, "# New Global Standards", testSource, {
+          override: false,
+          markerPrefix: CUSTOM_PREFIX,
+        });
+
+        expect(result.merged).toBe(true);
+        expect(result.preservedRepoContent).toBe(true);
+        expect(result.content).toContain("# New Global Standards");
+        expect(result.content).not.toContain("Old global content");
+        expect(result.content).toContain("Keep this content");
+      });
+
+      it("should not parse default-prefix markers when using custom prefix", async () => {
+        // Existing file has default prefix, but we're syncing with custom prefix
+        const existingContent = `${GLOBAL_START_MARKER}
+Old global content
+${GLOBAL_END_MARKER}
+
+${REPO_START_MARKER}
+# Repo content with default markers
+${REPO_END_MARKER}
+`;
+        const agentsMdPath = path.join(tempDir, "AGENTS.md");
+        await fs.writeFile(agentsMdPath, existingContent, "utf-8");
+
+        const result = await mergeAgentsMd(tempDir, "# New Global Standards", testSource, {
+          override: false,
+          markerPrefix: CUSTOM_PREFIX,
+        });
+
+        // Should treat entire existing content as repo-specific (no markers found)
+        // since we're looking for custom prefix markers, not default ones
+        expect(result.content).toContain(`<!-- ${CUSTOM_PREFIX}:global:start -->`);
+        // The old content should end up in repo block since markers weren't recognized
+        expect(result.preservedRepoContent).toBe(true);
+      });
+    });
+  });
 });

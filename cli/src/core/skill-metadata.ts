@@ -343,6 +343,7 @@ export interface SkillFileCheckResult {
 export async function checkSkillFiles(
   targetDir: string,
   targets: string[] = ["claude"],
+  options: MetadataOptions = {},
 ): Promise<SkillFileCheckResult[]> {
   const results: SkillFileCheckResult[] = [];
 
@@ -369,8 +370,8 @@ export async function checkSkillFiles(
 
       try {
         const content = await fs.readFile(fullPath, "utf-8");
-        const fileIsManaged = isManaged(content);
-        const hasChanges = fileIsManaged && hasManualChanges(content);
+        const fileIsManaged = isManaged(content, options);
+        const hasChanges = fileIsManaged && hasManualChanges(content, options);
 
         results.push({
           path: relativePath,
@@ -391,8 +392,9 @@ export async function checkSkillFiles(
 export async function getModifiedSkillFiles(
   targetDir: string,
   targets: string[] = ["claude"],
+  options: MetadataOptions = {},
 ): Promise<SkillFileCheckResult[]> {
-  const allFiles = await checkSkillFiles(targetDir, targets);
+  const allFiles = await checkSkillFiles(targetDir, targets, options);
   return allFiles.filter((f) => f.hasChanges);
 }
 
@@ -420,21 +422,24 @@ export interface ManagedFileCheckResult {
 /**
  * Check AGENTS.md for manual modifications.
  */
-export async function checkAgentsMd(targetDir: string): Promise<ManagedFileCheckResult | null> {
+export async function checkAgentsMd(
+  targetDir: string,
+  options: MarkerOptions = {},
+): Promise<ManagedFileCheckResult | null> {
   const agentsMdPath = path.join(targetDir, "AGENTS.md");
 
   try {
     const content = await fs.readFile(agentsMdPath, "utf-8");
-    const isManaged = isAgentsMdManaged(content);
+    const managed = isAgentsMdManaged(content, options);
 
-    if (!isManaged) {
+    if (!managed) {
       return null;
     }
 
-    const hasChanges = hasGlobalBlockChanges(content);
+    const hasChanges = hasGlobalBlockChanges(content, options);
 
     // Extract metadata
-    const parsed = parseAgentsMd(content);
+    const parsed = parseAgentsMd(content, options);
     let source: string | undefined;
     let syncedAt: string | undefined;
 
@@ -447,7 +452,7 @@ export async function checkAgentsMd(targetDir: string): Promise<ManagedFileCheck
     const result: ManagedFileCheckResult = {
       path: "AGENTS.md",
       type: "agents",
-      isManaged,
+      isManaged: managed,
       hasChanges,
     };
     if (source !== undefined) result.source = source;
@@ -458,23 +463,34 @@ export async function checkAgentsMd(targetDir: string): Promise<ManagedFileCheck
   }
 }
 
+/** Options for checking managed files */
+export interface CheckManagedFilesOptions {
+  /** Marker prefix for AGENTS.md (default: "agent-conf") */
+  markerPrefix?: string;
+  /** Metadata prefix for skill files (default: "agent-conf") */
+  metadataPrefix?: string;
+}
+
 /**
  * Check all managed files (skills and AGENTS.md) for modifications.
  */
 export async function checkAllManagedFiles(
   targetDir: string,
   targets: string[] = ["claude"],
+  options: CheckManagedFilesOptions = {},
 ): Promise<ManagedFileCheckResult[]> {
   const results: ManagedFileCheckResult[] = [];
+  const markerOptions = options.markerPrefix ? { prefix: options.markerPrefix } : {};
+  const metadataOptions = options.metadataPrefix ? { metadataPrefix: options.metadataPrefix } : {};
 
   // Check AGENTS.md
-  const agentsMdResult = await checkAgentsMd(targetDir);
+  const agentsMdResult = await checkAgentsMd(targetDir, markerOptions);
   if (agentsMdResult) {
     results.push(agentsMdResult);
   }
 
   // Check skill files
-  const skillFiles = await checkSkillFiles(targetDir, targets);
+  const skillFiles = await checkSkillFiles(targetDir, targets, metadataOptions);
   for (const skill of skillFiles) {
     if (skill.isManaged) {
       results.push({
@@ -496,7 +512,8 @@ export async function checkAllManagedFiles(
 export async function getModifiedManagedFiles(
   targetDir: string,
   targets: string[] = ["claude"],
+  options: CheckManagedFilesOptions = {},
 ): Promise<ManagedFileCheckResult[]> {
-  const allFiles = await checkAllManagedFiles(targetDir, targets);
+  const allFiles = await checkAllManagedFiles(targetDir, targets, options);
   return allFiles.filter((f) => f.hasChanges);
 }

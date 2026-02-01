@@ -174,4 +174,97 @@ describe("skill-metadata", () => {
       expect(isManaged(SAMPLE_SKILL_WITH_METADATA)).toBe(false);
     });
   });
+
+  describe("custom metadata prefix", () => {
+    const CUSTOM_PREFIX = "fbagents";
+
+    describe("addManagedMetadata with custom prefix", () => {
+      it("uses custom prefix for metadata keys", () => {
+        const result = addManagedMetadata(SAMPLE_SKILL, { metadataPrefix: CUSTOM_PREFIX });
+
+        // Should use custom prefix (with underscores)
+        expect(result).toContain('fbagents_managed: "true"');
+        expect(result).toContain('fbagents_content_hash: "sha256:');
+        // Should NOT use default prefix
+        expect(result).not.toContain("agent_conf_managed");
+        expect(result).not.toContain("agent_conf_content_hash");
+      });
+
+      it("preserves existing metadata when using custom prefix", () => {
+        const result = addManagedMetadata(SAMPLE_SKILL_WITH_METADATA, {
+          metadataPrefix: CUSTOM_PREFIX,
+        });
+
+        expect(result).toContain("author: test-author");
+        expect(result).toContain('fbagents_managed: "true"');
+      });
+    });
+
+    describe("isManaged with custom prefix", () => {
+      it("detects files managed with custom prefix", () => {
+        const synced = addManagedMetadata(SAMPLE_SKILL, { metadataPrefix: CUSTOM_PREFIX });
+
+        expect(isManaged(synced, { metadataPrefix: CUSTOM_PREFIX })).toBe(true);
+      });
+
+      it("does not detect default-prefix files when using custom prefix", () => {
+        const synced = addManagedMetadata(SAMPLE_SKILL);
+
+        expect(isManaged(synced, { metadataPrefix: CUSTOM_PREFIX })).toBe(false);
+      });
+
+      it("does not detect custom-prefix files when using default prefix", () => {
+        const synced = addManagedMetadata(SAMPLE_SKILL, { metadataPrefix: CUSTOM_PREFIX });
+
+        expect(isManaged(synced)).toBe(false);
+      });
+    });
+
+    describe("hasManualChanges with custom prefix", () => {
+      it("detects changes in files with custom prefix", () => {
+        const synced = addManagedMetadata(SAMPLE_SKILL, { metadataPrefix: CUSTOM_PREFIX });
+
+        expect(hasManualChanges(synced, { metadataPrefix: CUSTOM_PREFIX })).toBe(false);
+
+        const modified = synced.replace("This is the skill content.", "Modified content.");
+        expect(hasManualChanges(modified, { metadataPrefix: CUSTOM_PREFIX })).toBe(true);
+      });
+    });
+
+    describe("stripManagedMetadata with custom prefix", () => {
+      it("strips custom prefix metadata keys", () => {
+        const withMetadata = addManagedMetadata(SAMPLE_SKILL_WITH_METADATA, {
+          metadataPrefix: CUSTOM_PREFIX,
+        });
+        const stripped = stripManagedMetadata(withMetadata, { metadataPrefix: CUSTOM_PREFIX });
+
+        expect(stripped).not.toContain("fbagents_managed");
+        expect(stripped).not.toContain("fbagents_content_hash");
+        expect(stripped).toContain("author: test-author");
+      });
+
+      it("does not strip default prefix metadata when using custom prefix", () => {
+        const withDefaultMetadata = addManagedMetadata(SAMPLE_SKILL);
+        const stripped = stripManagedMetadata(withDefaultMetadata, {
+          metadataPrefix: CUSTOM_PREFIX,
+        });
+
+        // Default prefix metadata should still be present since we're stripping custom prefix
+        expect(stripped).toContain("agent_conf_managed");
+      });
+    });
+
+    describe("computeContentHash with custom prefix", () => {
+      it("ignores custom prefix metadata when computing hash", () => {
+        const withMetadata = addManagedMetadata(SAMPLE_SKILL, { metadataPrefix: CUSTOM_PREFIX });
+
+        const hashOriginal = computeContentHash(SAMPLE_SKILL, { metadataPrefix: CUSTOM_PREFIX });
+        const hashWithMetadata = computeContentHash(withMetadata, {
+          metadataPrefix: CUSTOM_PREFIX,
+        });
+
+        expect(hashOriginal).toBe(hashWithMetadata);
+      });
+    });
+  });
 });

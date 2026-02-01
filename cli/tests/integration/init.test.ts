@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { stringify as yamlStringify } from "yaml";
 import {
   GLOBAL_END_MARKER,
   GLOBAL_START_MARKER,
@@ -190,5 +191,69 @@ describe("init integration", () => {
     expect(result.targets).toHaveLength(2);
     expect(result.targets.map((t) => t.target)).toContain("claude");
     expect(result.targets.map((t) => t.target)).toContain("codex");
+  });
+
+  it("should use custom marker prefix from canonical config", async () => {
+    const CUSTOM_PREFIX = "fbagents";
+
+    // Create agent-conf.yaml with custom marker prefix
+    const canonicalConfig = {
+      version: "1",
+      meta: {
+        name: "test-canonical",
+        organization: "test-org",
+      },
+      markers: {
+        prefix: CUSTOM_PREFIX,
+      },
+    };
+    await fs.writeFile(
+      path.join(agentConfDir, "agent-conf.yaml"),
+      yamlStringify(canonicalConfig),
+      "utf-8",
+    );
+
+    // Create skill with proper frontmatter
+    await fs.writeFile(
+      path.join(agentConfDir, "skills", "test-skill", "SKILL.md"),
+      `---
+name: test-skill
+description: A test skill
+---
+
+# Test Skill
+
+Skill instructions.`,
+      "utf-8",
+    );
+
+    const resolvedSource = await resolveLocalSource({ path: agentConfDir });
+    await sync(tempTargetDir, resolvedSource, {
+      override: false,
+      targets: ["claude"],
+    });
+
+    // Check AGENTS.md uses custom prefix markers
+    const agentsMdPath = path.join(tempTargetDir, "AGENTS.md");
+    const agentsMd = await fs.readFile(agentsMdPath, "utf-8");
+
+    expect(agentsMd).toContain(`<!-- ${CUSTOM_PREFIX}:global:start -->`);
+    expect(agentsMd).toContain(`<!-- ${CUSTOM_PREFIX}:global:end -->`);
+    expect(agentsMd).toContain(`<!-- ${CUSTOM_PREFIX}:repo:start -->`);
+    expect(agentsMd).toContain(`<!-- ${CUSTOM_PREFIX}:repo:end -->`);
+    // Should NOT contain default prefix
+    expect(agentsMd).not.toContain("agent-conf:global");
+    expect(agentsMd).not.toContain("agent-conf:repo");
+
+    // Check skill metadata uses custom prefix
+    const skillPath = path.join(tempTargetDir, ".claude", "skills", "test-skill", "SKILL.md");
+    const skillContent = await fs.readFile(skillPath, "utf-8");
+
+    // Should use custom prefix (with underscores)
+    expect(skillContent).toContain("fbagents_managed");
+    expect(skillContent).toContain("fbagents_content_hash");
+    // Should NOT contain default prefix
+    expect(skillContent).not.toContain("agent_conf_managed");
+    expect(skillContent).not.toContain("agent_conf_content_hash");
   });
 });
