@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- 0d90f29: Fix changeset publishing
+
 ## 0.1.0
 
 ### Minor Changes
