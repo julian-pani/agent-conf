@@ -232,13 +232,19 @@ jobs:
       - name: Check for changes
         id: check-changes
         run: |
-          if [ -n "\$(git status --porcelain)" ]; then
+          # Check for meaningful changes (excluding lockfile which always updates with synced_at)
+          LOCKFILE_PATH=".agent-conf/lockfile.json"
+
+          # Get changed files excluding lockfile
+          MEANINGFUL_CHANGES=\$(git status --porcelain | grep -v "^.. \$LOCKFILE_PATH\$" || true)
+
+          if [ -n "\$MEANINGFUL_CHANGES" ]; then
             echo "changes_detected=true" >> \$GITHUB_OUTPUT
-            echo "Changes detected after sync"
+            echo "Meaningful changes detected after sync:"
             git status --short
           else
             echo "changes_detected=false" >> \$GITHUB_OUTPUT
-            echo "No changes detected after sync"
+            echo "No meaningful changes detected (only lockfile updated)"
           fi
 
       - name: Configure git
