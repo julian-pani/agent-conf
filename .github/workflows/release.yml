@@ -30,7 +30,6 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: cli/pnpm-lock.yaml
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -44,4 +43,5 @@ jobs:
         working-directory: cli
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
         run: npx semantic-release

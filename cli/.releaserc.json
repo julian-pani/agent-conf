@@ -1,6 +1,11 @@
 {
   "branches": ["master"],
   "tagFormat": "v${version}",
+  "verifyConditions": [
+    "@semantic-release/changelog",
+    "@semantic-release/github",
+    "@semantic-release/git"
+  ],
   "plugins": [
     ["@semantic-release/commit-analyzer", {
       "preset": "conventionalcommits"
