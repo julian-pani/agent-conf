@@ -424,7 +424,7 @@ jobs:
 1. Edit files in your canonical repository
 2. Commit and push changes
 3. Create a new release tag
-4. Downstream repos can update with `agent-conf update`
+4. Downstream repos can update with `agent-conf sync`
 
 ### Adding New Skills
 

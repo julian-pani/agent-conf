@@ -7,7 +7,6 @@ import { initCommand } from "./commands/init.js";
 import { initCanonicalRepoCommand } from "./commands/init-canonical-repo.js";
 import { statusCommand } from "./commands/status.js";
 import { syncCommand } from "./commands/sync.js";
-import { updateCommand } from "./commands/update.js";
 import { upgradeCliCommand } from "./commands/upgrade-cli.js";
 import { checkCliVersionMismatch, getCliVersion } from "./core/lockfile.js";
 import { getGitRoot } from "./utils/git.js";
@@ -86,7 +85,7 @@ export function createCli(): Command {
 
   program
     .command("sync")
-    .description("Sync agent-conf standards (skips initial setup prompts)")
+    .description("Sync content from canonical repository (fetches latest by default)")
     .option(
       "-s, --source <repo>",
       "Canonical repository in owner/repo format (e.g., acme/standards)",
@@ -94,7 +93,8 @@ export function createCli(): Command {
     .option("--local [path]", "Use local canonical repository (auto-discover or specify path)")
     .option("-y, --yes", "Non-interactive mode (merge by default)")
     .option("--override", "Override existing AGENTS.md instead of merging")
-    .option("--ref <ref>", "GitHub ref/version to sync from (default: lockfile version)")
+    .option("--ref <ref>", "GitHub ref/version to sync from")
+    .option("--pinned", "Use lockfile version without fetching latest")
     .option("-t, --target <targets...>", "Target platforms (claude, codex)", ["claude"])
     .action(
       async (options: {
@@ -103,6 +103,7 @@ export function createCli(): Command {
         yes?: boolean;
         override?: boolean;
         ref?: string;
+        pinned?: boolean;
         target?: string[];
       }) => {
         await syncCommand(options);
@@ -115,15 +116,6 @@ export function createCli(): Command {
     .option("-c, --check", "Check for manually modified skill files")
     .action(async (options: { check?: boolean }) => {
       await statusCommand(options);
-    });
-
-  program
-    .command("update")
-    .description("Check for and apply updates from the canonical repository")
-    .option("-y, --yes", "Non-interactive mode")
-    .option("-t, --target <targets...>", "Target platforms (claude, codex)", ["claude"])
-    .action(async (options: { yes?: boolean; target?: string[] }) => {
-      await updateCommand(options);
     });
 
   program

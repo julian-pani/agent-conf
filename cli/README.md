@@ -22,10 +22,9 @@ Full documentation, setup guides, and FAQ available on GitHub:
 | Command | Description |
 |---------|-------------|
 | `init` | Initialize repo from a canonical source |
-| `sync` | Re-sync content from canonical repo |
+| `sync` | Sync content from canonical repo (fetches latest by default) |
 | `status` | Show current sync status |
 | `check` | Verify managed files are unchanged |
-| `update` | Check for and apply updates |
 | `init-canonical-repo` | Scaffold a new canonical repository |
 
 

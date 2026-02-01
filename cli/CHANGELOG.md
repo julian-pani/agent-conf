@@ -1,14 +1,24 @@
-## [1.0.2](https://github.com/julian-pani/agent-conf/compare/v1.0.1...v1.0.2) (2026-02-01)
-
-### Bug Fixes
-
-* bump version ([41c3ccf](https://github.com/julian-pani/agent-conf/commit/41c3ccf34746ba358e676b577cba9be8f8bf65f7))
-
 ---
 layout: default
 title: Changelog
 nav_order: 7
 ---
+
+## [Unreleased]
+
+### Changed
+
+- **BREAKING**: Consolidated `update` command into `sync`. The `sync` command now fetches the latest release by default (like `update` did). Use `--pinned` to sync using the lockfile version without fetching.
+
+### Removed
+
+- `update` command (functionality merged into `sync`)
+
+## [1.0.2](https://github.com/julian-pani/agent-conf/compare/v1.0.1...v1.0.2) (2026-02-01)
+
+### Bug Fixes
+
+* bump version ([41c3ccf](https://github.com/julian-pani/agent-conf/commit/41c3ccf34746ba358e676b577cba9be8f8bf65f7))
 
 ## [1.0.1](https://github.com/julian-pani/agent-conf/compare/v1.0.0...v1.0.1) (2026-02-01)
 
@@ -58,6 +68,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING**: Consolidated `update` command into `sync`. The `sync` command now fetches the latest release by default (like `update` did). Use `--pinned` to sync using the lockfile version without fetching.
+
+### Removed
+
+- `update` command (functionality merged into `sync`)
+
 ## [0.1.0] - 2025-01-30
 
 ### Added
@@ -65,10 +83,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Core Commands**
 
   - `agent-conf init` - Initialize a repository with standards from a canonical repository
-  - `agent-conf sync` - Re-sync content from the canonical repository
+  - `agent-conf sync` - Sync content from the canonical repository (fetches latest by default)
   - `agent-conf status` - Show current sync status
   - `agent-conf check` - Check if managed files have been modified
-  - `agent-conf update` - Check for and apply updates from canonical repository
 
 - **Repository Management**
 

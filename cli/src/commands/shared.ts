@@ -27,6 +27,7 @@ export interface SharedSyncOptions {
   override?: boolean;
   ref?: string;
   target?: string[];
+  pinned?: boolean;
 }
 
 export interface CommandContext {
@@ -85,7 +86,7 @@ export async function resolveTargetDirectory(): Promise<string> {
 export async function resolveVersion(
   options: SharedSyncOptions,
   status: SyncStatus,
-  commandName: "init" | "sync",
+  _commandName: "init" | "sync",
   repo?: string,
 ): Promise<ResolvedVersion> {
   const logger = createLogger();
@@ -119,8 +120,12 @@ export async function resolveVersion(
     };
   }
 
-  // For sync without --ref: use lockfile version if available
-  if (commandName === "sync" && status.lockfile?.pinned_version) {
+  // If --pinned is specified, use lockfile version without fetching
+  if (options.pinned) {
+    if (!status.lockfile?.pinned_version) {
+      logger.error("Cannot use --pinned: no version pinned in lockfile.");
+      process.exit(1);
+    }
     const version = status.lockfile.pinned_version;
     return {
       ref: formatTag(version),
@@ -130,7 +135,7 @@ export async function resolveVersion(
     };
   }
 
-  // For init or sync without lockfile version: fetch latest release
+  // Default for both init and sync: fetch latest release
   // This requires a repo to be specified
   if (!repo) {
     // No repo means we can't fetch releases - use master as fallback

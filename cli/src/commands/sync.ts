@@ -1,6 +1,7 @@
 import * as prompts from "@clack/prompts";
 import pc from "picocolors";
 import { getSyncStatus } from "../core/sync.js";
+import { compareVersions } from "../core/version.js";
 import { createLogger } from "../utils/logger.js";
 import {
   checkModifiedFilesBeforeSync,
@@ -20,6 +21,16 @@ export async function syncCommand(options: SyncOptions): Promise<void> {
 
   console.log();
   prompts.intro(pc.bold("agent-conf sync"));
+
+  // Validate mutually exclusive flags
+  if (options.pinned && options.ref) {
+    logger.error("Cannot use --pinned with --ref. Choose one.");
+    process.exit(1);
+  }
+  if (options.pinned && options.local !== undefined) {
+    logger.error("Cannot use --pinned with --local.");
+    process.exit(1);
+  }
 
   // Resolve target directory to git root
   const targetDir = await resolveTargetDirectory();
@@ -44,8 +55,50 @@ export async function syncCommand(options: SyncOptions): Promise<void> {
     sourceRepo = status.lockfile.source.repository;
   }
 
-  // Resolve version (uses lockfile version if no --ref specified)
+  // Resolve version (fetches latest by default, unless --pinned or --ref)
   const resolvedVersion = await resolveVersion(options, status, "sync", sourceRepo);
+
+  // Check if already up to date (when fetching latest, not --pinned or --ref)
+  if (!options.pinned && !options.ref && !options.local && status.lockfile?.pinned_version) {
+    const currentVersion = status.lockfile.pinned_version;
+
+    if (resolvedVersion.version) {
+      const comparison = compareVersions(currentVersion, resolvedVersion.version);
+
+      // Display version info
+      console.log();
+      console.log(`Canonical source: ${pc.cyan(sourceRepo)}`);
+      console.log(`Latest release: ${pc.cyan(resolvedVersion.version)}`);
+      console.log(`Pinned version: ${pc.cyan(currentVersion)}`);
+
+      if (comparison >= 0) {
+        // Current version is equal or newer
+        console.log(`  ${pc.green("✓")} Up to date`);
+        console.log();
+        prompts.outro(pc.green("Already up to date!"));
+        return;
+      }
+
+      // Update available
+      console.log(
+        `  ${pc.yellow("→")} Update available: ${currentVersion} → ${resolvedVersion.version}`,
+      );
+      console.log();
+
+      // Confirm update
+      if (!options.yes) {
+        const shouldUpdate = await prompts.confirm({
+          message: "Proceed with update?",
+          initialValue: true,
+        });
+
+        if (prompts.isCancel(shouldUpdate) || !shouldUpdate) {
+          prompts.cancel("Sync cancelled");
+          process.exit(0);
+        }
+      }
+    }
+  }
 
   // If --ref was specified, inform user about version change
   if (options.ref && status.lockfile?.pinned_version) {

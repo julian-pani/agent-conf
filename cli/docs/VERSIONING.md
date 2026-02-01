@@ -15,7 +15,7 @@ agent-conf uses a **3-repository model** with independent versioning:
 | Component | Version Source | Update Method |
 |-----------|---------------|---------------|
 | **CLI** | Installed binary | Reinstall from CLI repository |
-| **Content** | `.agent-conf/lockfile.json` | `agent-conf sync --ref` or `agent-conf update` |
+| **Content** | `.agent-conf/lockfile.json` | `agent-conf sync` |
 | **Workflows** | `.github/workflows/*.yml` | Updated automatically with content |
 
 The CLI and content are **independently versioned**. You can use CLI v2.0 to sync content v1.5 - they don't need to match.
@@ -73,21 +73,25 @@ agent-conf init --local /path/to/content-repo
 
 ### `agent-conf sync`
 
-Re-syncs content from the content repository.
+Syncs content from the content repository. By default, fetches the latest release.
 
 **Version behavior:**
-- If `--ref` not specified: Uses **version from lockfile** (idempotent)
-- If `--ref v1.3.0` specified: Updates to that version (lockfile + workflows)
+- Default (no flags): Fetches **latest release** and syncs to it
+- If `--pinned` specified: Uses **version from lockfile** (no fetch, idempotent)
+- If `--ref v1.3.0` specified: Uses that specific version
 - If `--ref my-branch` specified: Uses that branch (workflows reference `@my-branch`)
 - If `--local` specified: No version management, no workflow files (development mode)
 - Source is read from lockfile unless `--source` is specified
 
 **Example:**
 ```bash
-# Re-sync using current pinned version (restore files, fix modifications)
+# Sync to latest release (default)
 agent-conf sync
 
-# Update to a new version
+# Re-sync using pinned version (restore files, fix modifications)
+agent-conf sync --pinned
+
+# Update to a specific version
 agent-conf sync --ref v1.3.0
 
 # Sync from a branch (for testing)
@@ -95,25 +99,9 @@ agent-conf sync --ref feature-branch
 
 # Sync from local source (development)
 agent-conf sync --local /path/to/content-repo
-```
-
-### `agent-conf update`
-
-Checks for and applies updates from the content repository.
-
-**Version behavior:**
-- Fetches the latest release from the content repository (stored in lockfile)
-- Compares with current pinned version
-- If newer version available, syncs to it
-- Updates lockfile, workflows, and content
-
-**Example:**
-```bash
-# Check for updates and apply
-agent-conf update
 
 # Non-interactive mode
-agent-conf update --yes
+agent-conf sync --yes
 ```
 
 ### `agent-conf status`
@@ -161,7 +149,7 @@ agent-conf sync --ref v1.3.0
 agent-conf init --source acme/standards
 
 # Update to latest when ready
-agent-conf update
+agent-conf sync
 ```
 
 **Pros:**
@@ -263,20 +251,19 @@ npm install -g agent-conf@1.2.0
 ### Scenario 1: Routine Content Update
 
 ```bash
-# Check what's available
-agent-conf update
+# Check for updates and apply
+agent-conf sync
 
 # Output shows:
-# CLI version: 1.2.0
-# Content source: acme/engineering-standards
-# Latest release: v1.3.0
+# Canonical source: acme/engineering-standards
+# Latest release: 1.3.0
 # Pinned version: 1.2.0
-#   -> Update available: 1.3.0
+#   -> Update available: 1.2.0 -> 1.3.0
 #
 # Proceed with update? (y/n)
 
-# Apply the update
-agent-conf update --yes
+# Non-interactive mode
+agent-conf sync --yes
 ```
 
 ### Scenario 2: Skip a Version
@@ -318,13 +305,13 @@ The GitHub API couldn't find releases. This might mean:
 
 If you manually edited workflow files, the versions might be out of sync.
 
-**Solution:** Run `agent-conf sync` to re-sync everything to the lockfile version.
+**Solution:** Run `agent-conf sync --pinned` to re-sync everything to the lockfile version.
 
 ### CI Workflow Uses Wrong Version
 
 The workflow file might have a different version than the lockfile.
 
-**Solution:** Run `agent-conf sync` (without `--ref`) to update workflows to match the lockfile version.
+**Solution:** Run `agent-conf sync --pinned` to update workflows to match the lockfile version.
 
 ### "No GitHub source found in lockfile"
 

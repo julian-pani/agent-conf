@@ -123,13 +123,16 @@ agent-conf init --local /path/to/canonical-repo
 
 ### `agent-conf sync`
 
-Re-sync content from the canonical repository. Uses the source and version from the lockfile.
+Sync content from the canonical repository. By default, fetches the latest release and applies it.
 
 ```bash
-# Re-sync using pinned version (default)
+# Sync to latest release (default)
 agent-conf sync
 
-# Update to a new version
+# Use pinned version from lockfile (no network fetch)
+agent-conf sync --pinned
+
+# Sync to a specific version
 agent-conf sync --ref v1.3.0
 
 # Switch to a different canonical repository
@@ -137,6 +140,9 @@ agent-conf sync --source different-org/standards
 
 # Use a local canonical repository (development mode)
 agent-conf sync --local /path/to/canonical-repo
+
+# Non-interactive mode
+agent-conf sync --yes
 ```
 
 ### `agent-conf status`
@@ -162,17 +168,6 @@ Exit codes:
 - `1` - One or more managed files have been modified
 
 This command is used by the pre-commit hook and CI workflows to detect unauthorized modifications to agent-conf-managed files.
-
-### `agent-conf update`
-
-Check for and apply updates from the canonical repository.
-
-```bash
-agent-conf update                  # Check for updates and apply
-agent-conf update --yes            # Non-interactive mode
-```
-
-The `update` command compares your pinned version against the latest release in the canonical repository. If a newer version is available, it syncs to that version.
 
 ### `agent-conf upgrade-cli`
 
@@ -250,7 +245,7 @@ agent-conf tracks **canonical content versions** independently from CLI versions
 | Component | Version Location | Updated By |
 |-----------|------------------|------------|
 | CLI | Installed binary | Reinstall from CLI repo |
-| Canonical Content | `.agent-conf/lockfile.json` | `agent-conf sync --ref` or `agent-conf update` |
+| Canonical Content | `.agent-conf/lockfile.json` | `agent-conf sync` |
 | Workflows | `.github/workflows/*.yml` | Automatically with canonical content |
 
 **See [cli/docs/VERSIONING.md](cli/docs/VERSIONING.md) for detailed versioning documentation.**
@@ -260,7 +255,8 @@ agent-conf tracks **canonical content versions** independently from CLI versions
 | Strategy | Command | Use Case |
 |----------|---------|----------|
 | Pin to latest | `agent-conf init --source org/repo` | Initial setup |
-| Update to latest | `agent-conf update` | Routine updates |
+| Update to latest | `agent-conf sync` | Routine updates |
+| Re-sync pinned version | `agent-conf sync --pinned` | Restore modified files |
 | Pin specific version | `agent-conf sync --ref v1.2.0` | Production stability |
 | Development mode | `agent-conf init --local` | Testing changes |
 
