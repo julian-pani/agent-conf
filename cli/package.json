@@ -49,10 +49,11 @@
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "conventional-changelog-conventionalcommits": "^8.0.0",
-    "semantic-release": "^24.0.0",
     "@types/node": "^20.14.0",
     "@types/tabtab": "^3.0.4",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "lint-staged": "^16.2.7",
+    "semantic-release": "^24.0.0",
     "tsup": "^8.1.0",
     "tsx": "^4.21.0",
     "typescript": "^5.4.5",
@@ -83,5 +84,10 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "biome check --no-errors-on-unmatched"
+    ]
   }
 }

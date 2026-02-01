@@ -1,0 +1,1 @@
+cd cli && pnpm exec lint-staged

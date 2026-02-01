@@ -487,7 +487,11 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
     console.log(`     (The workflow files will fail until you configure how to install the CLI)`);
     console.log(`  4. Commit and push to create your canonical repository`);
     console.log();
-    console.log(pc.dim(`See https://github.com/julian-pani/agent-conf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md for detailed setup instructions.`));
+    console.log(
+      pc.dim(
+        `See https://github.com/julian-pani/agent-conf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md for detailed setup instructions.`,
+      ),
+    );
 
     prompts.outro(pc.green("Done!"));
   } catch (error) {
