@@ -22,12 +22,6 @@ export function getMarkers(prefix: string = DEFAULT_MARKER_PREFIX): Markers {
   return getMarkersFromConfig(prefix);
 }
 
-// Legacy exports for backwards compatibility (default prefix)
-export const GLOBAL_START_MARKER = `<!-- ${DEFAULT_MARKER_PREFIX}:global:start -->`;
-export const GLOBAL_END_MARKER = `<!-- ${DEFAULT_MARKER_PREFIX}:global:end -->`;
-export const REPO_START_MARKER = `<!-- ${DEFAULT_MARKER_PREFIX}:repo:start -->`;
-export const REPO_END_MARKER = `<!-- ${DEFAULT_MARKER_PREFIX}:repo:end -->`;
-
 export interface ParsedAgentsMd {
   globalBlock: string | null;
   repoBlock: string | null;

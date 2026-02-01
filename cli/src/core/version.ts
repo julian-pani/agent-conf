@@ -32,7 +32,7 @@ function getGitHubToken(): string {
       return token;
     }
   } catch {
-    // gh CLI not available or not authenticated
+    // Expected: gh CLI not installed or not authenticated
   }
 
   throw new Error(
@@ -118,24 +118,6 @@ export async function getReleaseByTag(repo: string, tag: string): Promise<Releas
 }
 
 /**
- * Lists all releases from a GitHub repository.
- */
-export async function listReleases(repo: string, limit = 10): Promise<ReleaseInfo[]> {
-  const url = `${GITHUB_API_BASE}/repos/${repo}/releases?per_page=${limit}`;
-
-  const response = await fetch(url, {
-    headers: getGitHubHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch releases: ${response.statusText}`);
-  }
-
-  const data: unknown = await response.json();
-  return (data as Record<string, unknown>[]).map(parseReleaseResponse);
-}
-
-/**
  * Parses a GitHub release API response into ReleaseInfo.
  */
 function parseReleaseResponse(data: Record<string, unknown>): ReleaseInfo {
@@ -176,32 +158,6 @@ export function isVersionRef(ref: string): boolean {
 }
 
 /**
- * Checks if a ref is a branch name (e.g., "master", "main", "develop").
- */
-export function isBranchRef(ref: string): boolean {
-  return !isVersionRef(ref);
-}
-
-/**
- * Resolves a ref to release info.
- * - "latest" -> fetches latest release
- * - "v1.2.0" or "1.2.0" -> fetches specific release
- * - "master" or other branch -> returns null (not a release)
- */
-export async function resolveRef(repo: string, ref: string): Promise<ReleaseInfo | null> {
-  if (ref === "latest") {
-    return getLatestRelease(repo);
-  }
-
-  if (isVersionRef(ref)) {
-    return getReleaseByTag(repo, ref);
-  }
-
-  // Branch ref - not a release
-  return null;
-}
-
-/**
  * Compares two semantic versions.
  * Returns: -1 if a < b, 0 if a == b, 1 if a > b
  */
@@ -232,19 +188,4 @@ export function compareVersions(a: string, b: string): number {
   }
 
   return 0;
-}
-
-/**
- * Gets the download URL for a CLI tarball from a release.
- */
-export function getCliTarballUrl(repo: string, version: string): string {
-  const tag = formatTag(version);
-  return `https://github.com/${repo}/releases/download/${tag}/agent-conf-cli-${tag}.tar.gz`;
-}
-
-/**
- * Gets the download URL for the latest CLI tarball.
- */
-export function getLatestCliTarballUrl(repo: string): string {
-  return `https://github.com/${repo}/releases/latest/download/agent-conf-cli.tar.gz`;
 }

@@ -2,12 +2,15 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  GLOBAL_END_MARKER,
-  GLOBAL_START_MARKER,
-  REPO_END_MARKER,
-  REPO_START_MARKER,
-} from "../../src/core/markers.js";
+import { getMarkers } from "../../src/core/markers.js";
+
+// Use getMarkers() to get marker strings for tests
+const markers = getMarkers();
+const GLOBAL_START_MARKER = markers.globalStart;
+const GLOBAL_END_MARKER = markers.globalEnd;
+const REPO_START_MARKER = markers.repoStart;
+const REPO_END_MARKER = markers.repoEnd;
+
 import { ensureClaudeMd, mergeAgentsMd } from "../../src/core/merge.js";
 import type { Source } from "../../src/schemas/lockfile.js";
 

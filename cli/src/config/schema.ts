@@ -7,6 +7,17 @@ import { z } from "zod";
 // skills and standards). It defines metadata about the canonical content, marker prefix,
 // and which targets are supported.
 
+/**
+ * Current canonical config schema version.
+ * Follows semver: MAJOR.MINOR.PATCH
+ *
+ * Version bump guidelines:
+ * - PATCH: Bug fixes in validation
+ * - MINOR: Add optional fields (backwards compatible)
+ * - MAJOR: Required field changes, field type changes, field removal
+ */
+export const CURRENT_CONFIG_VERSION = "1.0.0";
+
 export const CanonicalMetaSchema = z.object({
   /** Unique identifier for this canonical source (e.g., "acme-standards") */
   name: z.string().min(1),
@@ -42,7 +53,8 @@ export const MergeConfigSchema = z.object({
  * This file lives in the canonical source repo (e.g., acme-agent-standards).
  */
 export const CanonicalRepoConfigSchema = z.object({
-  version: z.literal("1"),
+  /** Schema version in semver format (e.g., "1.0.0") */
+  version: z.string().regex(/^\d+\.\d+\.\d+$/, "Version must be in semver format (e.g., 1.0.0)"),
   meta: CanonicalMetaSchema,
   content: CanonicalPathsSchema.default({}),
   /** List of supported target agents (e.g., ["claude", "codex"]) */

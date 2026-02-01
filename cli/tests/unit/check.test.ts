@@ -65,7 +65,7 @@ describe("check command", () => {
     beforeEach(async () => {
       // Create a lockfile
       const lockfile = {
-        version: "1",
+        version: "1.0.0",
         synced_at: new Date().toISOString(),
         source: { type: "local", path: "/some/path", ref: "abc123" },
         content: {
@@ -138,7 +138,7 @@ description: A test skill
     beforeEach(async () => {
       // Create a lockfile
       const lockfile = {
-        version: "1",
+        version: "1.0.0",
         synced_at: new Date().toISOString(),
         source: { type: "local", path: "/some/path", ref: "abc123" },
         content: {
@@ -191,7 +191,7 @@ metadata:
     beforeEach(async () => {
       // Create a lockfile
       const lockfile = {
-        version: "1",
+        version: "1.0.0",
         synced_at: new Date().toISOString(),
         source: { type: "local", path: "/some/path", ref: "abc123" },
         content: {
@@ -249,7 +249,7 @@ metadata:
     beforeEach(async () => {
       // Create a lockfile with custom marker prefix
       const lockfile = {
-        version: "1",
+        version: "1.0.0",
         synced_at: new Date().toISOString(),
         source: { type: "local", path: "/some/path", ref: "abc123" },
         content: {
@@ -376,7 +376,7 @@ metadata:
     beforeEach(async () => {
       // Create a lockfile (indicates repo was synced)
       const lockfile = {
-        version: "1",
+        version: "1.0.0",
         synced_at: new Date().toISOString(),
         source: { type: "local", path: "/some/path", ref: "abc123" },
         content: {

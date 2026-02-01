@@ -113,6 +113,7 @@ export async function getWorkflowStatus(
     if (currentRef !== undefined) result.currentRef = currentRef;
     return result;
   } catch {
+    // Expected: workflow file may not exist
     return {
       exists: false,
       isManaged: false,
@@ -301,7 +302,7 @@ export async function updateWorkflowVersion(
     await fs.writeFile(filePath, updatedContent, "utf-8");
     return true;
   } catch {
-    // File doesn't exist, create it
+    // Expected: file doesn't exist, create it
     await writeWorkflow(repoRoot, workflow, newRef, config);
     return true;
   }
@@ -343,7 +344,7 @@ export async function syncWorkflows(
     try {
       existingContent = await fs.readFile(filePath, "utf-8");
     } catch {
-      // File doesn't exist
+      // Expected: file doesn't exist yet
     }
 
     if (existingContent === null) {

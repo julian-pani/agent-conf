@@ -41,6 +41,15 @@ export async function syncCommand(options: SyncOptions): Promise<void> {
   // Check current status (informational only, no confirmation prompt)
   const status = await getSyncStatus(targetDir);
 
+  // Check schema compatibility
+  if (status.schemaError) {
+    logger.error(status.schemaError);
+    process.exit(1);
+  }
+  if (status.schemaWarning) {
+    logger.warn(status.schemaWarning);
+  }
+
   if (!status.hasSynced) {
     logger.warn(
       "This repository has not been synced yet. Consider running 'agent-conf init' first.",

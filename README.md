@@ -154,6 +154,12 @@ agent-conf sync --local /path/to/canonical-repo
 
 # Non-interactive mode
 agent-conf sync --yes
+
+# Write sync summary to file (markdown format, useful for CI)
+agent-conf sync --summary-file sync-report.md
+
+# Show all changed items in output (default shows first 5)
+agent-conf sync --expand-changes
 ```
 
 ### `agent-conf status`
@@ -182,20 +188,15 @@ This command is used by the pre-commit hook and CI workflows to detect unauthori
 
 ### `agent-conf upgrade-cli`
 
-Upgrade the CLI itself to the latest version.
+Upgrade the CLI itself to the latest version from npm.
 
 ```bash
-# First time: specify the CLI repository
-agent-conf upgrade-cli --repo your-org/agent-conf
-
-# Subsequent times: uses saved config
+# Upgrade to latest version
 agent-conf upgrade-cli
 
-# Non-interactive mode
+# Non-interactive mode (skip confirmation)
 agent-conf upgrade-cli --yes
 ```
-
-The CLI repository is saved to `~/.agent-conf/config.json` after the first use.
 
 ### `agent-conf canonical init`
 

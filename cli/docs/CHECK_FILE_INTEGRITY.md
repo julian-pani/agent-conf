@@ -163,8 +163,6 @@ jobs:
   check:
     # Points to YOUR content repository, not a hardcoded default
     uses: your-org/your-content-repo/.github/workflows/check-reusable.yml@v1.0.0
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **Note:** The repository path and version are automatically set based on the source you specified during `agent-conf init --source <owner/repo>`.

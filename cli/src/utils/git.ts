@@ -10,48 +10,8 @@ async function directoryExistsForGit(dir: string): Promise<boolean> {
     const stat = await fs.stat(dir);
     return stat.isDirectory();
   } catch {
+    // Expected: directory doesn't exist
     return false;
-  }
-}
-
-export interface GitInfo {
-  isGitRepo: boolean;
-  branch?: string;
-  commitSha?: string;
-  isDirty?: boolean;
-}
-
-export async function getGitInfo(dir: string): Promise<GitInfo> {
-  const git: SimpleGit = simpleGit(dir);
-
-  try {
-    const isRepo = await git.checkIsRepo();
-    if (!isRepo) {
-      return { isGitRepo: false };
-    }
-
-    const [branch, log, status] = await Promise.all([
-      git
-        .branch()
-        .then((b) => b.current)
-        .catch(() => undefined),
-      git
-        .log({ maxCount: 1 })
-        .then((l) => l.latest?.hash)
-        .catch(() => undefined),
-      git
-        .status()
-        .then((s) => !s.isClean())
-        .catch(() => undefined),
-    ]);
-
-    const result: GitInfo = { isGitRepo: true };
-    if (branch !== undefined) result.branch = branch;
-    if (log !== undefined) result.commitSha = log;
-    if (status !== undefined) result.isDirty = status;
-    return result;
-  } catch {
-    return { isGitRepo: false };
   }
 }
 
@@ -60,6 +20,7 @@ export async function isGitRepo(dir: string): Promise<boolean> {
   try {
     return await git.checkIsRepo();
   } catch {
+    // Expected: not a git repo or git not available
     return false;
   }
 }
@@ -78,6 +39,7 @@ export async function getGitRoot(dir: string): Promise<string | null> {
     const root = await git.revparse(["--show-toplevel"]);
     return root.trim();
   } catch {
+    // Expected: not a git repo or git operation failed
     return null;
   }
 }
@@ -112,29 +74,8 @@ export async function isGitRoot(dir: string): Promise<boolean> {
     const realGitRoot = await fs.realpath(gitRoot);
     return realDir === realGitRoot;
   } catch {
-    // Fallback to simple comparison if realpath fails
+    // Fallback to simple comparison if realpath fails (e.g., symlink issues)
     return path.resolve(dir) === path.resolve(gitRoot);
-  }
-}
-
-/**
- * Get git config value.
- * Returns undefined if directory doesn't exist, not in a git repo, or config not set.
- */
-export async function getGitConfig(dir: string, key: string): Promise<string | undefined> {
-  if (!(await directoryExistsForGit(dir))) {
-    return undefined;
-  }
-  try {
-    const git: SimpleGit = simpleGit(dir);
-    const isRepo = await git.checkIsRepo();
-    if (!isRepo) {
-      return undefined;
-    }
-    const value = await git.getConfig(key);
-    return value.value ?? undefined;
-  } catch {
-    return undefined;
   }
 }
 
@@ -174,6 +115,7 @@ export async function getGitOrganization(dir: string): Promise<string | undefine
     const userName = await git.getConfig("user.name");
     return userName.value ?? undefined;
   } catch {
+    // Expected: not a git repo or git operation failed
     return undefined;
   }
 }

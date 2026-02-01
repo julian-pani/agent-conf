@@ -120,7 +120,7 @@ export async function installPreCommitHook(
   try {
     existingContent = await fs.readFile(hookPath, "utf-8");
   } catch {
-    // Hook doesn't exist
+    // Expected: hook file doesn't exist yet
   }
 
   if (existingContent !== null) {
@@ -165,18 +165,4 @@ export async function installPreCommitHook(
     alreadyExisted: false,
     wasUpdated: false,
   };
-}
-
-/**
- * Check if the pre-commit hook is installed.
- */
-export async function isPreCommitHookInstalled(targetDir: string): Promise<boolean> {
-  const hookPath = path.join(targetDir, ".git", "hooks", "pre-commit");
-
-  try {
-    const content = await fs.readFile(hookPath, "utf-8");
-    return content.includes(HOOK_IDENTIFIER);
-  } catch {
-    return false;
-  }
 }

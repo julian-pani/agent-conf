@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+/**
+ * Current lockfile schema version.
+ * Follows semver: MAJOR.MINOR.PATCH
+ *
+ * Version bump guidelines:
+ * - PATCH: Bug fixes in validation
+ * - MINOR: Add optional fields (backwards compatible)
+ * - MAJOR: Required field changes, field type changes, field removal
+ */
+export const CURRENT_LOCKFILE_VERSION = "1.0.0";
+
 export const SourceSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("github"),
@@ -26,12 +37,15 @@ export const ContentSchema = z.object({
 });
 
 export const LockfileSchema = z.object({
-  version: z.literal("1"),
-  pinned_version: z.string().optional(), // Pinned release version (e.g., "1.2.0")
+  /** Schema version in semver format (e.g., "1.0.0") */
+  version: z.string().regex(/^\d+\.\d+\.\d+$/, "Version must be in semver format (e.g., 1.0.0)"),
+  /** Pinned release version of the canonical source (e.g., "1.2.0") */
+  pinned_version: z.string().optional(),
   synced_at: z.string().datetime(),
   source: SourceSchema,
   content: ContentSchema,
-  cli_version: z.string(),
+  /** CLI version used for sync (optional, for diagnostics only) */
+  cli_version: z.string().optional(),
 });
 
 export type Source = z.infer<typeof SourceSchema>;

@@ -1,13 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  compareVersions,
-  formatTag,
-  getCliTarballUrl,
-  getLatestCliTarballUrl,
-  isBranchRef,
-  isVersionRef,
-  parseVersion,
-} from "../../src/core/version.js";
+import { compareVersions, formatTag, isVersionRef, parseVersion } from "../../src/core/version.js";
 
 describe("version", () => {
   describe("parseVersion", () => {
@@ -79,21 +71,6 @@ describe("version", () => {
     });
   });
 
-  describe("isBranchRef", () => {
-    it("returns true for branch names", () => {
-      expect(isBranchRef("master")).toBe(true);
-      expect(isBranchRef("main")).toBe(true);
-      expect(isBranchRef("develop")).toBe(true);
-      expect(isBranchRef("feature/new-thing")).toBe(true);
-    });
-
-    it("returns false for version tags", () => {
-      expect(isBranchRef("v1.0.0")).toBe(false);
-      expect(isBranchRef("1.2.3")).toBe(false);
-      expect(isBranchRef("v1.0.0-alpha")).toBe(false);
-    });
-  });
-
   describe("compareVersions", () => {
     it("returns 0 for equal versions", () => {
       expect(compareVersions("1.0.0", "1.0.0")).toBe(0);
@@ -136,40 +113,6 @@ describe("version", () => {
     it("handles v prefix in comparisons", () => {
       expect(compareVersions("v1.2.0", "v1.1.0")).toBe(1);
       expect(compareVersions("v1.0.0", "1.0.1")).toBe(-1);
-    });
-  });
-
-  describe("getCliTarballUrl", () => {
-    const TEST_REPO = "org/agent-conf";
-
-    it("generates correct URL for version without v prefix", () => {
-      const url = getCliTarballUrl(TEST_REPO, "1.2.3");
-      expect(url).toBe(
-        "https://github.com/org/agent-conf/releases/download/v1.2.3/agent-conf-cli-v1.2.3.tar.gz",
-      );
-    });
-
-    it("generates correct URL for version with v prefix", () => {
-      const url = getCliTarballUrl(TEST_REPO, "v1.2.3");
-      expect(url).toBe(
-        "https://github.com/org/agent-conf/releases/download/v1.2.3/agent-conf-cli-v1.2.3.tar.gz",
-      );
-    });
-
-    it("handles prerelease versions", () => {
-      const url = getCliTarballUrl(TEST_REPO, "1.0.0-alpha");
-      expect(url).toBe(
-        "https://github.com/org/agent-conf/releases/download/v1.0.0-alpha/agent-conf-cli-v1.0.0-alpha.tar.gz",
-      );
-    });
-  });
-
-  describe("getLatestCliTarballUrl", () => {
-    it("returns the latest release URL", () => {
-      const url = getLatestCliTarballUrl("org/agent-conf");
-      expect(url).toBe(
-        "https://github.com/org/agent-conf/releases/latest/download/agent-conf-cli.tar.gz",
-      );
     });
   });
 });

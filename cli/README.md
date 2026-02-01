@@ -25,8 +25,11 @@ Full documentation, setup guides, and FAQ available on GitHub:
 | `sync` | Sync content from canonical repo (fetches latest by default) |
 | `status` | Show current sync status |
 | `check` | Verify managed files are unchanged |
+| `upgrade-cli` | Upgrade the CLI to latest version from npm |
 | `canonical init` | Scaffold a new canonical repository |
 | `canonical update` | Update CLI version in workflow files |
+| `config show` | Show current configuration |
+| `completion install` | Install shell completions |
 
 
 ## Quick Start

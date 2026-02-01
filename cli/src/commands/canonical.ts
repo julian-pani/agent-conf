@@ -4,7 +4,7 @@ import * as path from "node:path";
 import * as prompts from "@clack/prompts";
 import pc from "picocolors";
 import { stringify as stringifyYaml } from "yaml";
-import { getCliVersion } from "../core/lockfile.js";
+import { CURRENT_CONFIG_VERSION } from "../config/schema.js";
 import { directoryExists, ensureDir, fileExists } from "../utils/fs.js";
 import { getGitOrganization, getGitProjectName, isGitRoot } from "../utils/git.js";
 import { createLogger, formatPath } from "../utils/logger.js";
@@ -20,17 +20,6 @@ export interface CanonicalInitOptions {
   markerPrefix?: string | undefined;
   /** Include example skill (default: true) */
   includeExamples?: boolean | undefined;
-  /** CLI version to pin in workflows (default: current) */
-  cliVersion?: string | undefined;
-  /** Non-interactive mode */
-  yes?: boolean | undefined;
-}
-
-export interface CanonicalUpdateOptions {
-  /** CLI version to pin in workflows (default: current) */
-  cliVersion?: string | undefined;
-  /** Working directory (default: process.cwd()) */
-  cwd?: string | undefined;
   /** Non-interactive mode */
   yes?: boolean | undefined;
 }
@@ -41,7 +30,6 @@ interface ResolvedOptions {
   targetDir: string;
   markerPrefix: string;
   includeExamples: boolean;
-  cliVersion: string;
 }
 
 /**
@@ -49,7 +37,7 @@ interface ResolvedOptions {
  */
 function generateConfigYaml(options: ResolvedOptions): string {
   const config: Record<string, unknown> = {
-    version: "1",
+    version: CURRENT_CONFIG_VERSION,
     meta: {
       name: options.name,
     },
@@ -155,7 +143,7 @@ skills/
 /**
  * Generates the sync workflow file content.
  */
-function generateSyncWorkflow(repoFullName: string, prefix: string, cliVersion: string): string {
+function generateSyncWorkflow(repoFullName: string, prefix: string): string {
   return `# ${prefix} Auto-Sync Workflow (Reusable)
 # This workflow is called by downstream repositories.
 #
@@ -236,7 +224,7 @@ jobs:
           node-version: '20'
 
       - name: Install agent-conf CLI
-        run: npm install -g agent-conf@${cliVersion}
+        run: npm install -g agent-conf
 
       - name: Run sync
         run: agent-conf sync --yes --summary-file /tmp/sync-summary.md --expand-changes
@@ -374,7 +362,7 @@ jobs:
 /**
  * Generates the check workflow file content.
  */
-function generateCheckWorkflow(repoFullName: string, prefix: string, cliVersion: string): string {
+function generateCheckWorkflow(repoFullName: string, prefix: string): string {
   return `# ${prefix} File Integrity Check (Reusable)
 # This workflow is called by downstream repositories.
 #
@@ -399,32 +387,11 @@ jobs:
           node-version: '20'
 
       - name: Install agent-conf CLI
-        run: npm install -g agent-conf@${cliVersion}
+        run: npm install -g agent-conf
 
       - name: Check file integrity
         run: agent-conf check
 `;
-}
-
-/**
- * Regex pattern to match the agent-conf CLI install line in workflow files.
- * Matches: npm install -g agent-conf or npm install -g agent-conf@X.Y.Z
- */
-const CLI_INSTALL_PATTERN = /npm install -g agent-conf(@[\d.]+)?/g;
-
-/**
- * Updates CLI version in workflow file content.
- */
-function updateCliVersionInWorkflow(content: string, newVersion: string): string {
-  return content.replace(CLI_INSTALL_PATTERN, `npm install -g agent-conf@${newVersion}`);
-}
-
-/**
- * Checks if a canonical repository configuration exists.
- */
-async function isCanonicalRepo(dir: string): Promise<boolean> {
-  const configPath = path.join(dir, "agent-conf.yaml");
-  return fileExists(configPath);
 }
 
 export async function canonicalInitCommand(options: CanonicalInitOptions): Promise<void> {
@@ -491,9 +458,6 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
     }
   }
 
-  // Get CLI version to pin (default to current)
-  const cliVersionToPin = options.cliVersion ?? getCliVersion();
-
   // Gather options (interactive or from CLI)
   let resolvedOptions: ResolvedOptions;
 
@@ -505,7 +469,6 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
       targetDir,
       markerPrefix: options.markerPrefix ?? "agent-conf",
       includeExamples: options.includeExamples !== false,
-      cliVersion: cliVersionToPin,
     };
   } else {
     // Interactive mode: prompt for values
@@ -573,7 +536,6 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
       targetDir,
       markerPrefix: markerPrefix as string,
       includeExamples: includeExamples as boolean,
-      cliVersion: cliVersionToPin,
     };
   }
 
@@ -626,12 +588,12 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
 
     await fs.writeFile(
       syncWorkflowPath,
-      generateSyncWorkflow(repoFullName, resolvedOptions.markerPrefix, resolvedOptions.cliVersion),
+      generateSyncWorkflow(repoFullName, resolvedOptions.markerPrefix),
       "utf-8",
     );
     await fs.writeFile(
       checkWorkflowPath,
-      generateCheckWorkflow(repoFullName, resolvedOptions.markerPrefix, resolvedOptions.cliVersion),
+      generateCheckWorkflow(repoFullName, resolvedOptions.markerPrefix),
       "utf-8",
     );
 
@@ -656,7 +618,6 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
       console.log(pc.dim(`Organization: ${resolvedOptions.organization}`));
     }
     console.log(pc.dim(`Marker prefix: ${resolvedOptions.markerPrefix}`));
-    console.log(pc.dim(`CLI version pinned: ${resolvedOptions.cliVersion}`));
 
     console.log();
     console.log(pc.bold("Next steps:"));
@@ -673,120 +634,6 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
     prompts.outro(pc.green("Done!"));
   } catch (error) {
     spinner.fail("Failed to create canonical repository");
-    logger.error(error instanceof Error ? error.message : String(error));
-    process.exit(1);
-  }
-}
-
-export async function canonicalUpdateCommand(options: CanonicalUpdateOptions): Promise<void> {
-  const logger = createLogger();
-
-  console.log();
-  prompts.intro(pc.bold("agent-conf canonical update"));
-
-  const cwd = options.cwd ?? process.cwd();
-
-  // Check if we're in a canonical repository
-  if (!(await isCanonicalRepo(cwd))) {
-    const error = new Error("Not in a canonical repository (no agent-conf.yaml found)");
-    logger.error(error.message);
-    logger.error("Run this command from a canonical repository directory.");
-    throw error;
-  }
-
-  const newVersion = options.cliVersion ?? getCliVersion();
-  const workflowsDir = path.join(cwd, ".github", "workflows");
-
-  // Check if workflows directory exists
-  if (!(await directoryExists(workflowsDir))) {
-    const error = new Error("No .github/workflows directory found");
-    logger.error(error.message);
-    logger.error("Run 'agent-conf canonical init' first to create workflow files.");
-    throw error;
-  }
-
-  // Find workflow files
-  const workflowFiles = ["sync-reusable.yml", "check-reusable.yml"];
-  const existingWorkflows: string[] = [];
-
-  for (const file of workflowFiles) {
-    const filePath = path.join(workflowsDir, file);
-    if (await fileExists(filePath)) {
-      existingWorkflows.push(filePath);
-    }
-  }
-
-  if (existingWorkflows.length === 0) {
-    const error = new Error("No workflow files found in .github/workflows/");
-    logger.error(error.message);
-    logger.error("Expected: sync-reusable.yml and/or check-reusable.yml");
-    throw error;
-  }
-
-  // Preview changes
-  console.log();
-  console.log(pc.bold("Workflow files to update:"));
-
-  const updates: Array<{ path: string; oldContent: string; newContent: string }> = [];
-
-  for (const filePath of existingWorkflows) {
-    const content = await fs.readFile(filePath, "utf-8");
-    const newContent = updateCliVersionInWorkflow(content, newVersion);
-
-    if (content !== newContent) {
-      updates.push({ path: filePath, oldContent: content, newContent });
-      console.log(`  ${pc.yellow("~")} ${formatPath(filePath)}`);
-    } else {
-      console.log(`  ${pc.dim("-")} ${formatPath(filePath)} ${pc.dim("(no changes)")}`);
-    }
-  }
-
-  if (updates.length === 0) {
-    console.log();
-    console.log(pc.green(`All workflow files already use CLI version ${newVersion}`));
-    prompts.outro(pc.green("Done!"));
-    return;
-  }
-
-  console.log();
-  console.log(`Will update CLI version to: ${pc.cyan(newVersion)}`);
-
-  // Confirm unless --yes
-  if (!options.yes) {
-    const shouldContinue = await prompts.confirm({
-      message: "Proceed with update?",
-      initialValue: true,
-    });
-
-    if (prompts.isCancel(shouldContinue) || !shouldContinue) {
-      prompts.cancel("Operation cancelled");
-      process.exit(0);
-    }
-  }
-
-  // Apply updates
-  const spinner = logger.spinner("Updating workflow files...");
-  spinner.start();
-
-  try {
-    for (const update of updates) {
-      await fs.writeFile(update.path, update.newContent, "utf-8");
-    }
-
-    spinner.succeed("Workflow files updated");
-
-    console.log();
-    console.log(pc.bold("Updated:"));
-    for (const update of updates) {
-      console.log(`  ${pc.green("~")} ${formatPath(update.path)}`);
-    }
-
-    console.log();
-    console.log(pc.dim(`CLI version: ${newVersion}`));
-
-    prompts.outro(pc.green("Done!"));
-  } catch (error) {
-    spinner.fail("Failed to update workflow files");
     logger.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }

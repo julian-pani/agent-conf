@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { installPreCommitHook, isPreCommitHookInstalled } from "../../src/core/hooks.js";
+import { installPreCommitHook } from "../../src/core/hooks.js";
 
 describe("hooks", () => {
   let tempDir: string;
@@ -74,27 +74,6 @@ describe("hooks", () => {
       expect(result.installed).toBe(true);
       expect(result.alreadyExisted).toBe(true);
       expect(result.wasUpdated).toBe(false);
-    });
-  });
-
-  describe("isPreCommitHookInstalled", () => {
-    it("should return false when no hook exists", async () => {
-      const result = await isPreCommitHookInstalled(tempDir);
-      expect(result).toBe(false);
-    });
-
-    it("should return true when agent-conf hook is installed", async () => {
-      await installPreCommitHook(tempDir);
-      const result = await isPreCommitHookInstalled(tempDir);
-      expect(result).toBe(true);
-    });
-
-    it("should return false when a custom hook exists", async () => {
-      const hookPath = path.join(tempDir, ".git", "hooks", "pre-commit");
-      await fs.writeFile(hookPath, "#!/bin/bash\necho 'Custom hook'");
-
-      const result = await isPreCommitHookInstalled(tempDir);
-      expect(result).toBe(false);
     });
   });
 });
