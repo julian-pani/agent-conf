@@ -1,3 +1,9 @@
+## [0.1.0](https://github.com/julian-pani/agent-conf/compare/v0.0.3...v0.1.0) (2026-02-01)
+
+### Features
+
+* **cli:** pin CLI version in generated workflows and add canonical command ([7669899](https://github.com/julian-pani/agent-conf/commit/7669899a16b3a693aca6acc1cb680c119c7158a0))
+
 ## [0.0.3](https://github.com/julian-pani/agent-conf/compare/v0.0.2...v0.0.3) (2026-02-01)
 
 ### Bug Fixes
