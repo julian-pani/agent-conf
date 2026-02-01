@@ -254,17 +254,53 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Create PR branch and commit
+      - name: Check for existing PR
+        id: check-pr
         if: steps.check-changes.outputs.changes_detected == 'true' && inputs.commit_strategy == 'pr'
+        env:
+          GH_TOKEN: \${{ github.token }}
         run: |
-          BRANCH_NAME="\${{ inputs.pr_branch_prefix }}-\$(date +%Y%m%d-%H%M%S)"
-          git checkout -b "\$BRANCH_NAME"
-          git add -A
-          git commit -m "\${{ inputs.pr_title }}"
-          git push -u origin "\$BRANCH_NAME"
+          BRANCH_NAME="\${{ inputs.pr_branch_prefix }}"
+
+          # Check if there's an existing open PR from this branch
+          EXISTING_PR=\$(gh pr list --head "\$BRANCH_NAME" --state open --json number,url --jq '.[0]' 2>/dev/null || echo "")
+
+          if [ -n "\$EXISTING_PR" ] && [ "\$EXISTING_PR" != "null" ]; then
+            PR_NUMBER=\$(echo "\$EXISTING_PR" | jq -r '.number')
+            PR_URL=\$(echo "\$EXISTING_PR" | jq -r '.url')
+            echo "existing_pr=true" >> \$GITHUB_OUTPUT
+            echo "pr_number=\$PR_NUMBER" >> \$GITHUB_OUTPUT
+            echo "pr_url=\$PR_URL" >> \$GITHUB_OUTPUT
+            echo "Found existing PR #\$PR_NUMBER: \$PR_URL"
+          else
+            echo "existing_pr=false" >> \$GITHUB_OUTPUT
+            echo "No existing PR found for branch \$BRANCH_NAME"
+          fi
+
           echo "BRANCH_NAME=\$BRANCH_NAME" >> \$GITHUB_ENV
 
-      - name: Create pull request
+      - name: Create or update PR branch
+        if: steps.check-changes.outputs.changes_detected == 'true' && inputs.commit_strategy == 'pr'
+        run: |
+          BRANCH_NAME="\${{ inputs.pr_branch_prefix }}"
+
+          # Check if remote branch exists
+          if git ls-remote --exit-code --heads origin "\$BRANCH_NAME" >/dev/null 2>&1; then
+            # Branch exists - fetch and reset to it, then apply our changes
+            git fetch origin "\$BRANCH_NAME"
+            git checkout -B "\$BRANCH_NAME" origin/"\$BRANCH_NAME"
+            # Reset to match the base branch, then apply changes
+            git reset --soft \${{ github.ref_name }}
+          else
+            # Create new branch
+            git checkout -b "\$BRANCH_NAME"
+          fi
+
+          git add -A
+          git commit -m "\${{ inputs.pr_title }}" || echo "No changes to commit"
+          git push --force-with-lease -u origin "\$BRANCH_NAME"
+
+      - name: Create or update pull request
         id: create-pr
         if: steps.check-changes.outputs.changes_detected == 'true' && inputs.commit_strategy == 'pr'
         env:
@@ -285,20 +321,32 @@ jobs:
           ---
           *This is an automated PR. Review the changes and merge when ready.*"
 
-          REVIEWERS_ARG=""
-          if [ -n "\${{ inputs.reviewers }}" ]; then
-            REVIEWERS_ARG="--reviewer \${{ inputs.reviewers }}"
+          if [ "\${{ steps.check-pr.outputs.existing_pr }}" == "true" ]; then
+            # Update existing PR body
+            PR_NUMBER="\${{ steps.check-pr.outputs.pr_number }}"
+            PR_URL="\${{ steps.check-pr.outputs.pr_url }}"
+
+            gh pr edit "\$PR_NUMBER" --body "\$PR_BODY"
+            echo "pr_url=\$PR_URL" >> \$GITHUB_OUTPUT
+            echo "pr_number=\$PR_NUMBER" >> \$GITHUB_OUTPUT
+            echo "Updated existing PR #\$PR_NUMBER: \$PR_URL"
+          else
+            # Create new PR
+            REVIEWERS_ARG=""
+            if [ -n "\${{ inputs.reviewers }}" ]; then
+              REVIEWERS_ARG="--reviewer \${{ inputs.reviewers }}"
+            fi
+
+            PR_URL=\$(gh pr create \\
+              --title "\${{ inputs.pr_title }}" \\
+              --body "\$PR_BODY" \\
+              \$REVIEWERS_ARG)
+
+            PR_NUMBER=\$(gh pr view --json number -q .number)
+            echo "pr_url=\$PR_URL" >> \$GITHUB_OUTPUT
+            echo "pr_number=\$PR_NUMBER" >> \$GITHUB_OUTPUT
+            echo "Created PR #\$PR_NUMBER: \$PR_URL"
           fi
-
-          PR_URL=\$(gh pr create \\
-            --title "\${{ inputs.pr_title }}" \\
-            --body "\$PR_BODY" \\
-            \$REVIEWERS_ARG)
-
-          PR_NUMBER=\$(gh pr view --json number -q .number)
-          echo "pr_url=\$PR_URL" >> \$GITHUB_OUTPUT
-          echo "pr_number=\$PR_NUMBER" >> \$GITHUB_OUTPUT
-          echo "Created PR #\$PR_NUMBER: \$PR_URL"
 
       - name: Commit directly to branch
         if: steps.check-changes.outputs.changes_detected == 'true' && inputs.commit_strategy == 'direct'
