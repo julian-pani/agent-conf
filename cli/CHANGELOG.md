@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+### Patch Changes
+
+- Cleaned up history
+
 ## 0.1.1
 
 ### Patch Changes
