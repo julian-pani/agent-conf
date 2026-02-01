@@ -1,3 +1,9 @@
+---
+layout: default
+title: agent-conf cli
+nav_order: 8
+---
+
 # agent-conf
 
 [![npm version](https://img.shields.io/npm/v/agent-conf.svg)](https://www.npmjs.com/package/agent-conf)
