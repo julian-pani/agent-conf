@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noUselessEscapeInString: escaping $ is required in template literals that generate shell scripts
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as prompts from "@clack/prompts";
