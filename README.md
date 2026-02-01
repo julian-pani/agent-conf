@@ -103,6 +103,16 @@ GitHub Actions workflows are created automatically to keep downstream repos in s
 
 ## Commands
 
+| Command | Description |
+|---------|-------------|
+| `init` | Initialize repo from a canonical source |
+| `sync` | Sync content from canonical repo (fetches latest by default) |
+| `status` | Show current sync status |
+| `check` | Verify managed files are unchanged |
+| `upgrade-cli` | Upgrade the CLI to the latest version |
+| `init-canonical-repo` | Scaffold a new canonical repository |
+| `config` | Manage global CLI configuration |
+
 ### `agent-conf init`
 
 Initialize a repository with standards from a canonical repository.
