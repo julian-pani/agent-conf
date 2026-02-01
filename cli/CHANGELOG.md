@@ -1,3 +1,9 @@
+## [2.2.2](https://github.com/julian-pani/agent-conf/compare/v2.2.1...v2.2.2) (2026-02-01)
+
+### Bug Fixes
+
+* **workflows:** remove token requirement from check workflow ([7f9a7f7](https://github.com/julian-pani/agent-conf/commit/7f9a7f73fefdfe44c0e490cb941466078747f752))
+
 ## [2.2.1](https://github.com/julian-pani/agent-conf/compare/v2.2.0...v2.2.1) (2026-02-01)
 
 ### Bug Fixes
