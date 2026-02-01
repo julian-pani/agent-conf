@@ -1,3 +1,24 @@
+## [2.0.0](https://github.com/julian-pani/agent-conf/compare/v1.0.2...v2.0.0) (2026-02-01)
+
+### ⚠ BREAKING CHANGES
+
+* **cli:** The `update` command has been removed. The `sync` command
+now fetches the latest release by default (like `update` did).
+
+- `sync` without flags now fetches latest and syncs (was: use lockfile version)
+- `sync --pinned` uses lockfile version without fetching (old `sync` behavior)
+- `sync --ref <version>` pins to specific version (unchanged)
+
+Migration:
+- `agent-conf update` → `agent-conf sync`
+- `agent-conf sync` (old) → `agent-conf sync --pinned`
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Bug Fixes
+
+* **cli:** consolidate update command into sync ([7b156ec](https://github.com/julian-pani/agent-conf/commit/7b156ec2b80a4b536d0cb24ace915eb29bd2b597))
+
 ---
 layout: default
 title: Changelog
