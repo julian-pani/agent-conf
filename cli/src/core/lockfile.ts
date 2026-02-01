@@ -5,10 +5,10 @@ import { type Lockfile, LockfileSchema, type Source } from "../schemas/lockfile.
 
 // Injected at build time by tsup
 declare const __BUILD_COMMIT__: string;
+declare const __BUILD_VERSION__: string;
 
 const CONFIG_DIR = ".agent-conf";
 const LOCKFILE_NAME = "lockfile.json";
-const CLI_VERSION = "0.1.0";
 
 /**
  * Gets the git commit SHA the CLI was built from.
@@ -66,7 +66,7 @@ export async function writeLockfile(
       targets: options.targets ?? ["claude"],
       marker_prefix: options.markerPrefix,
     },
-    cli_version: CLI_VERSION,
+    cli_version: getCliVersion(),
   };
 
   await fs.mkdir(path.dirname(lockfilePath), { recursive: true });
@@ -81,7 +81,7 @@ export function hashContent(content: string): string {
 }
 
 export function getCliVersion(): string {
-  return CLI_VERSION;
+  return typeof __BUILD_VERSION__ !== "undefined" ? __BUILD_VERSION__ : "0.0.0";
 }
 
 export interface VersionMismatch {

@@ -1,5 +1,7 @@
+import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { hashContent } from "../../src/core/lockfile.js";
+import { getCliVersion, hashContent } from "../../src/core/lockfile.js";
 import { LockfileSchema } from "../../src/schemas/lockfile.js";
 
 describe("lockfile", () => {
@@ -141,6 +143,28 @@ describe("lockfile", () => {
     it("should produce sha256 prefixed hashes", () => {
       const hash = hashContent("test");
       expect(hash).toMatch(/^sha256:[a-f0-9]{12}$/);
+    });
+  });
+
+  describe("getCliVersion", () => {
+    it("should return fallback version when not built (dev mode)", () => {
+      // During tests (not built with tsup), __BUILD_VERSION__ is undefined
+      // so it should return the fallback "0.0.0"
+      const version = getCliVersion();
+      expect(version).toMatch(/^\d+\.\d+\.\d+/);
+    });
+
+    it("built CLI should output version matching package.json", () => {
+      // This test verifies that after building, the CLI version matches package.json
+      const pkgJson = JSON.parse(readFileSync("./package.json", "utf-8"));
+      const expectedVersion = pkgJson.version;
+
+      // Run the built CLI to get its version
+      const output = execSync("node ./dist/index.js --version", {
+        encoding: "utf-8",
+      }).trim();
+
+      expect(output).toBe(expectedVersion);
     });
   });
 });

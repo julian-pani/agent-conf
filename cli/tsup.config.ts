@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { defineConfig } from "tsup";
 
 // Get git commit SHA at build time
@@ -7,6 +8,16 @@ function getBuildCommit(): string {
     return execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
   } catch {
     return "unknown";
+  }
+}
+
+// Get version from package.json at build time
+function getBuildVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
+    return pkg.version;
+  } catch {
+    return "0.0.0";
   }
 }
 
@@ -23,5 +34,6 @@ export default defineConfig({
   },
   define: {
     __BUILD_COMMIT__: JSON.stringify(getBuildCommit()),
+    __BUILD_VERSION__: JSON.stringify(getBuildVersion()),
   },
 });
