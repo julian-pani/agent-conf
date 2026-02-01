@@ -137,9 +137,8 @@ export function createCli(): Command {
   program
     .command("upgrade-cli")
     .description("Upgrade the agent-conf CLI to the latest version")
-    .option("-r, --repo <repo>", "CLI repository in owner/repo format")
     .option("-y, --yes", "Non-interactive mode")
-    .action(async (options: { repo?: string; yes?: boolean }) => {
+    .action(async (options: { yes?: boolean }) => {
       await upgradeCliCommand(options);
     });
 

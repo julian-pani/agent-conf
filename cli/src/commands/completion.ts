@@ -37,7 +37,7 @@ const COMMANDS = {
   },
   "upgrade-cli": {
     description: "Upgrade the CLI to latest version",
-    options: ["-r", "--repo", "-y", "--yes"],
+    options: ["-y", "--yes"],
   },
   "init-canonical-repo": {
     description: "Scaffold a new canonical repository",

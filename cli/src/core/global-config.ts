@@ -12,10 +12,8 @@ import * as path from "node:path";
 const CONFIG_DIR = path.join(os.homedir(), ".agent-conf");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
-export interface GlobalConfig {
-  /** Repository where the CLI is hosted (e.g., "your-org/agent-conf") */
-  cliRepository?: string;
-}
+// Reserved for future configuration options
+export type GlobalConfig = Record<string, unknown>;
 
 /**
  * Reads the global config file.
@@ -48,19 +46,4 @@ export async function updateGlobalConfig(updates: Partial<GlobalConfig>): Promis
   const updated = { ...existing, ...updates };
   await writeGlobalConfig(updated);
   return updated;
-}
-
-/**
- * Gets the CLI repository from config.
- */
-export async function getCliRepository(): Promise<string | undefined> {
-  const config = await readGlobalConfig();
-  return config.cliRepository;
-}
-
-/**
- * Sets the CLI repository in config.
- */
-export async function setCliRepository(repo: string): Promise<void> {
-  await updateGlobalConfig({ cliRepository: repo });
 }

@@ -307,9 +307,7 @@ describe("completion", () => {
       });
 
       expect(handleCompletion()).toBe(true);
-      expect(tabtab.log).toHaveBeenCalledWith(
-        expect.arrayContaining(["-r", "--repo", "-y", "--yes"]),
-      );
+      expect(tabtab.log).toHaveBeenCalledWith(expect.arrayContaining(["-y", "--yes"]));
     });
 
     it("should fall back to command names for unknown input", () => {
