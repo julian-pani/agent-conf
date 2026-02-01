@@ -1,3 +1,9 @@
+## [2.0.4](https://github.com/julian-pani/agent-conf/compare/v2.0.3...v2.0.4) (2026-02-01)
+
+### Bug Fixes
+
+* **workflows:** ignore lockfile when detecting meaningful changes in sync workflow ([fa70eff](https://github.com/julian-pani/agent-conf/commit/fa70effe3ca2044ffe5cdfc492a771775e663e09))
+
 ## [2.0.3](https://github.com/julian-pani/agent-conf/compare/v2.0.2...v2.0.3) (2026-02-01)
 
 ### Bug Fixes
