@@ -1,3 +1,9 @@
+## [2.0.3](https://github.com/julian-pani/agent-conf/compare/v2.0.2...v2.0.3) (2026-02-01)
+
+### Bug Fixes
+
+* **source:** use gh CLI for authenticated git clone in CI ([2404eac](https://github.com/julian-pani/agent-conf/commit/2404eacab568a27cea2ebf2742c9809174f78b0d))
+
 ## [2.0.2](https://github.com/julian-pani/agent-conf/compare/v2.0.1...v2.0.2) (2026-02-01)
 
 ### Bug Fixes
