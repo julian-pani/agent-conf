@@ -1,6 +1,7 @@
 import * as prompts from "@clack/prompts";
 import pc from "picocolors";
 import { getSyncStatus } from "../core/sync.js";
+import { createLogger } from "../utils/logger.js";
 import { promptCompletionInstall } from "./completion.js";
 import {
   checkModifiedFilesBeforeSync,
@@ -16,6 +17,8 @@ import {
 export interface InitOptions extends SharedSyncOptions {}
 
 export async function initCommand(options: InitOptions): Promise<void> {
+  const logger = createLogger();
+
   console.log();
   prompts.intro(pc.bold("agent-conf init"));
 
@@ -27,6 +30,15 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
   // Check current status
   const status = await getSyncStatus(targetDir);
+
+  // Check schema compatibility
+  if (status.schemaError) {
+    logger.error(status.schemaError);
+    process.exit(1);
+  }
+  if (status.schemaWarning) {
+    logger.warn(status.schemaWarning);
+  }
 
   // Prompt if already synced (init-specific behavior)
   if (status.hasSynced && !options.yes) {

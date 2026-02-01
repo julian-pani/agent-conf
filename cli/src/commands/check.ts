@@ -38,9 +38,9 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
   const targetDir = process.cwd();
 
   // Check if synced (lockfile exists)
-  const lockfile = await readLockfile(targetDir);
+  const result = await readLockfile(targetDir);
 
-  if (!lockfile) {
+  if (!result) {
     if (!options.quiet) {
       console.log();
       console.log(pc.yellow("Not synced"));
@@ -51,6 +51,22 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
     }
     // Exit 0 - not synced is not an error for the check command
     return;
+  }
+
+  // Check schema compatibility
+  const { lockfile, schemaCompatibility } = result;
+  if (!schemaCompatibility.compatible) {
+    if (!options.quiet) {
+      console.log();
+      console.log(pc.red(`Schema error: ${schemaCompatibility.error}`));
+      console.log();
+    }
+    process.exit(1);
+  }
+  if (schemaCompatibility.warning && !options.quiet) {
+    console.log();
+    console.log(pc.yellow(`Warning: ${schemaCompatibility.warning}`));
+    console.log();
   }
 
   const targets = lockfile.content.targets ?? ["claude"];

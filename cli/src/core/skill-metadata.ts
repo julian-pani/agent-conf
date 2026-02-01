@@ -354,7 +354,8 @@ export async function checkSkillFiles(
     try {
       await fs.access(skillsDir);
     } catch {
-      continue; // Skills directory doesn't exist for this target
+      // Expected: skills directory may not exist for this target
+      continue;
     }
 
     // Find all SKILL.md files
@@ -379,7 +380,9 @@ export async function checkSkillFiles(
           isManaged: fileIsManaged,
           hasChanges,
         });
-      } catch (_error) {}
+      } catch (_error) {
+        // Expected: file read may fail, skip this skill file
+      }
     }
   }
 
@@ -459,7 +462,8 @@ export async function checkAgentsMd(
     if (syncedAt !== undefined) result.syncedAt = syncedAt;
     return result;
   } catch {
-    return null; // File doesn't exist or can't be read
+    // Expected: AGENTS.md may not exist or can't be read
+    return null;
   }
 }
 

@@ -341,9 +341,9 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
   const logger = createLogger();
 
   // Read previous lockfile to detect orphaned skills later
-  const previousLockfile = await readLockfile(targetDir);
-  const previousSkills = previousLockfile?.content.skills ?? [];
-  const previousTargets = previousLockfile?.content.targets ?? ["claude"];
+  const previousLockfileResult = await readLockfile(targetDir);
+  const previousSkills = previousLockfileResult?.lockfile.content.skills ?? [];
+  const previousTargets = previousLockfileResult?.lockfile.content.targets ?? ["claude"];
 
   const syncSpinner = logger.spinner("Syncing...");
   syncSpinner.start();

@@ -53,15 +53,10 @@ const COMMANDS = {
           "-d",
           "--dir",
           "--marker-prefix",
-          "--cli-version",
           "--no-examples",
           "-y",
           "--yes",
         ],
-      },
-      update: {
-        description: "Update CLI version in workflow files",
-        options: ["--cli-version", "-y", "--yes"],
       },
     },
   },
@@ -73,7 +68,7 @@ const COMMANDS = {
 
 const CONFIG_SUBCOMMANDS = ["show", "get", "set"];
 const COMPLETION_SUBCOMMANDS = ["install", "uninstall"];
-const CANONICAL_SUBCOMMANDS = ["init", "update"];
+const CANONICAL_SUBCOMMANDS = ["init"];
 const TARGET_VALUES = ["claude", "codex"];
 
 /**
@@ -133,10 +128,7 @@ export function handleCompletion(): boolean {
     tabtab.log(
       CANONICAL_SUBCOMMANDS.map((name) => ({
         name,
-        description:
-          name === "init"
-            ? "Scaffold a new canonical repository"
-            : "Update CLI version in workflows",
+        description: "Scaffold a new canonical repository",
       })),
     );
     return true;

@@ -4,8 +4,8 @@ import * as path from "node:path";
 import { simpleGit } from "simple-git";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { parse as parseYaml } from "yaml";
-import { canonicalInitCommand, canonicalUpdateCommand } from "../../src/commands/canonical.js";
-import { getCliVersion } from "../../src/core/lockfile.js";
+import { canonicalInitCommand } from "../../src/commands/canonical.js";
+import { CURRENT_CONFIG_VERSION } from "../../src/config/schema.js";
 import { getGitOrganization, getGitProjectName, isGitRoot } from "../../src/utils/git.js";
 
 describe("canonical init", () => {
@@ -44,7 +44,7 @@ describe("canonical init", () => {
     expect(workflowsExists).toBe(true);
   });
 
-  it("should create valid agent-conf.yaml", async () => {
+  it("should create valid agent-conf.yaml with semver version", async () => {
     await canonicalInitCommand({
       name: "acme-standards",
       org: "ACME Corp",
@@ -58,7 +58,8 @@ describe("canonical init", () => {
     const configContent = await fs.readFile(configPath, "utf-8");
     const config = parseYaml(configContent);
 
-    expect(config.version).toBe("1");
+    expect(config.version).toBe(CURRENT_CONFIG_VERSION);
+    expect(config.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(config.meta.name).toBe("acme-standards");
     expect(config.meta.organization).toBe("ACME Corp");
     expect(config.content.instructions).toBe("instructions/AGENTS.md");
@@ -222,20 +223,18 @@ describe("canonical init", () => {
   });
 });
 
-describe("canonical init - CLI version pinning", () => {
+describe("canonical init - workflow generation", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-cli-version-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-workflow-gen-"));
   });
 
   afterEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it("should pin current CLI version in workflow files by default", async () => {
-    const currentVersion = getCliVersion();
-
+  it("should generate workflow files with unpinned CLI version", async () => {
     await canonicalInitCommand({
       name: "test-standards",
       dir: tempDir,
@@ -244,38 +243,17 @@ describe("canonical init - CLI version pinning", () => {
       yes: true,
     });
 
-    // Check sync workflow
+    // Check sync workflow uses unpinned version
     const syncWorkflowPath = path.join(tempDir, ".github", "workflows", "sync-reusable.yml");
     const syncWorkflow = await fs.readFile(syncWorkflowPath, "utf-8");
-    expect(syncWorkflow).toContain(`npm install -g agent-conf@${currentVersion}`);
+    expect(syncWorkflow).toContain("npm install -g agent-conf\n");
+    expect(syncWorkflow).not.toContain("npm install -g agent-conf@");
 
-    // Check check workflow
+    // Check check workflow uses unpinned version
     const checkWorkflowPath = path.join(tempDir, ".github", "workflows", "check-reusable.yml");
     const checkWorkflow = await fs.readFile(checkWorkflowPath, "utf-8");
-    expect(checkWorkflow).toContain(`npm install -g agent-conf@${currentVersion}`);
-  });
-
-  it("should pin custom CLI version when specified", async () => {
-    const customVersion = "1.2.3";
-
-    await canonicalInitCommand({
-      name: "test-standards",
-      dir: tempDir,
-      markerPrefix: "agent-conf",
-      includeExamples: false,
-      cliVersion: customVersion,
-      yes: true,
-    });
-
-    // Check sync workflow
-    const syncWorkflowPath = path.join(tempDir, ".github", "workflows", "sync-reusable.yml");
-    const syncWorkflow = await fs.readFile(syncWorkflowPath, "utf-8");
-    expect(syncWorkflow).toContain(`npm install -g agent-conf@${customVersion}`);
-
-    // Check check workflow
-    const checkWorkflowPath = path.join(tempDir, ".github", "workflows", "check-reusable.yml");
-    const checkWorkflow = await fs.readFile(checkWorkflowPath, "utf-8");
-    expect(checkWorkflow).toContain(`npm install -g agent-conf@${customVersion}`);
+    expect(checkWorkflow).toContain("npm install -g agent-conf\n");
+    expect(checkWorkflow).not.toContain("npm install -g agent-conf@");
   });
 
   it("should include repo full name with organization in workflow comments", async () => {
@@ -324,159 +302,6 @@ describe("canonical init - CLI version pinning", () => {
     expect(syncWorkflow).toContain("# custom-prefix Auto-Sync Workflow");
     expect(syncWorkflow).toContain("custom-prefix/sync");
     expect(syncWorkflow).toContain("chore(custom-prefix):");
-  });
-});
-
-describe("canonical update", () => {
-  let tempDir: string;
-
-  beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-canonical-update-"));
-  });
-
-  afterEach(async () => {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  });
-
-  it("should update CLI version in existing workflow files", async () => {
-    // First create a canonical repo with an older version
-    await canonicalInitCommand({
-      name: "test-standards",
-      dir: tempDir,
-      markerPrefix: "agent-conf",
-      includeExamples: false,
-      cliVersion: "1.0.0",
-      yes: true,
-    });
-
-    // Verify old version
-    const syncWorkflowPath = path.join(tempDir, ".github", "workflows", "sync-reusable.yml");
-    let syncWorkflow = await fs.readFile(syncWorkflowPath, "utf-8");
-    expect(syncWorkflow).toContain("npm install -g agent-conf@1.0.0");
-
-    // Update to new version
-    await canonicalUpdateCommand({
-      cwd: tempDir,
-      cliVersion: "2.0.0",
-      yes: true,
-    });
-
-    // Verify new version
-    syncWorkflow = await fs.readFile(syncWorkflowPath, "utf-8");
-    expect(syncWorkflow).toContain("npm install -g agent-conf@2.0.0");
-    expect(syncWorkflow).not.toContain("npm install -g agent-conf@1.0.0");
-
-    // Check check workflow too
-    const checkWorkflowPath = path.join(tempDir, ".github", "workflows", "check-reusable.yml");
-    const checkWorkflow = await fs.readFile(checkWorkflowPath, "utf-8");
-    expect(checkWorkflow).toContain("npm install -g agent-conf@2.0.0");
-  });
-
-  it("should use current CLI version when no version specified", async () => {
-    const currentVersion = getCliVersion();
-
-    // Create canonical repo with older version
-    await canonicalInitCommand({
-      name: "test-standards",
-      dir: tempDir,
-      markerPrefix: "agent-conf",
-      includeExamples: false,
-      cliVersion: "0.0.1",
-      yes: true,
-    });
-
-    // Update without specifying version
-    await canonicalUpdateCommand({
-      cwd: tempDir,
-      yes: true,
-    });
-
-    // Verify current version is used
-    const syncWorkflowPath = path.join(tempDir, ".github", "workflows", "sync-reusable.yml");
-    const syncWorkflow = await fs.readFile(syncWorkflowPath, "utf-8");
-    expect(syncWorkflow).toContain(`npm install -g agent-conf@${currentVersion}`);
-  });
-
-  it("should report no changes when version is already correct", async () => {
-    // Create canonical repo
-    await canonicalInitCommand({
-      name: "test-standards",
-      dir: tempDir,
-      markerPrefix: "agent-conf",
-      includeExamples: false,
-      cliVersion: "1.5.0",
-      yes: true,
-    });
-
-    // Get file content before update
-    const syncWorkflowPath = path.join(tempDir, ".github", "workflows", "sync-reusable.yml");
-    const contentBefore = await fs.readFile(syncWorkflowPath, "utf-8");
-
-    // Update to same version (should be a no-op)
-    await canonicalUpdateCommand({
-      cwd: tempDir,
-      cliVersion: "1.5.0",
-      yes: true,
-    });
-
-    // Content should be unchanged
-    const contentAfter = await fs.readFile(syncWorkflowPath, "utf-8");
-    expect(contentAfter).toBe(contentBefore);
-  });
-
-  it("should fail gracefully when not in a canonical repository", async () => {
-    // Create a non-canonical directory
-    const nonCanonicalDir = path.join(tempDir, "not-canonical");
-    await fs.mkdir(nonCanonicalDir, { recursive: true });
-
-    await expect(
-      canonicalUpdateCommand({
-        cwd: nonCanonicalDir,
-        cliVersion: "1.0.0",
-        yes: true,
-      }),
-    ).rejects.toThrow();
-  });
-
-  it("should fail gracefully when workflows directory is missing", async () => {
-    // Create agent-conf.yaml but no workflows
-    await fs.writeFile(path.join(tempDir, "agent-conf.yaml"), "version: '1'\n", "utf-8");
-
-    await expect(
-      canonicalUpdateCommand({
-        cwd: tempDir,
-        cliVersion: "1.0.0",
-        yes: true,
-      }),
-    ).rejects.toThrow();
-  });
-
-  it("should update only existing workflow files", async () => {
-    // Create canonical repo
-    await canonicalInitCommand({
-      name: "test-standards",
-      dir: tempDir,
-      markerPrefix: "agent-conf",
-      includeExamples: false,
-      cliVersion: "1.0.0",
-      yes: true,
-    });
-
-    // Remove one workflow file
-    const checkWorkflowPath = path.join(tempDir, ".github", "workflows", "check-reusable.yml");
-    await fs.rm(checkWorkflowPath);
-
-    // Update should still work for remaining file
-    await canonicalUpdateCommand({
-      cwd: tempDir,
-      cliVersion: "2.0.0",
-      yes: true,
-    });
-
-    // Verify sync workflow was updated
-    const syncWorkflowPath = path.join(tempDir, ".github", "workflows", "sync-reusable.yml");
-    const syncWorkflow = await fs.readFile(syncWorkflowPath, "utf-8");
-    expect(syncWorkflow).toContain("npm install -g agent-conf@2.0.0");
   });
 });
 
@@ -580,7 +405,6 @@ describe("canonical init - workflow content validation", () => {
       dir: tempDir,
       markerPrefix: "agent-conf",
       includeExamples: false,
-      cliVersion: "1.0.0",
       yes: true,
     });
 
@@ -601,7 +425,6 @@ describe("canonical init - workflow content validation", () => {
       dir: tempDir,
       markerPrefix: "agent-conf",
       includeExamples: false,
-      cliVersion: "1.0.0",
       yes: true,
     });
 
@@ -621,7 +444,6 @@ describe("canonical init - workflow content validation", () => {
       dir: tempDir,
       markerPrefix: "agent-conf",
       includeExamples: false,
-      cliVersion: "1.0.0",
       yes: true,
     });
 
@@ -646,7 +468,6 @@ describe("canonical init - workflow content validation", () => {
       dir: tempDir,
       markerPrefix: "agent-conf",
       includeExamples: false,
-      cliVersion: "1.0.0",
       yes: true,
     });
 
@@ -665,53 +486,5 @@ describe("canonical init - workflow content validation", () => {
     expect(outputs.changes_detected).toBeDefined();
     expect(outputs.pr_number).toBeDefined();
     expect(outputs.pr_url).toBeDefined();
-  });
-});
-
-describe("canonical update - version pattern matching", () => {
-  let tempDir: string;
-
-  beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-version-pattern-"));
-  });
-
-  afterEach(async () => {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  });
-
-  it("should update version with different formats", async () => {
-    // Create canonical repo
-    await canonicalInitCommand({
-      name: "test-standards",
-      dir: tempDir,
-      markerPrefix: "agent-conf",
-      includeExamples: false,
-      cliVersion: "1.0.0",
-      yes: true,
-    });
-
-    // Update to semantic version
-    await canonicalUpdateCommand({ cwd: tempDir, cliVersion: "2.1.0", yes: true });
-    let syncWorkflow = await fs.readFile(
-      path.join(tempDir, ".github", "workflows", "sync-reusable.yml"),
-      "utf-8",
-    );
-    expect(syncWorkflow).toContain("npm install -g agent-conf@2.1.0");
-
-    // Update to patch version
-    await canonicalUpdateCommand({ cwd: tempDir, cliVersion: "2.1.5", yes: true });
-    syncWorkflow = await fs.readFile(
-      path.join(tempDir, ".github", "workflows", "sync-reusable.yml"),
-      "utf-8",
-    );
-    expect(syncWorkflow).toContain("npm install -g agent-conf@2.1.5");
-
-    // Update to major version
-    await canonicalUpdateCommand({ cwd: tempDir, cliVersion: "3.0.0", yes: true });
-    syncWorkflow = await fs.readFile(
-      path.join(tempDir, ".github", "workflows", "sync-reusable.yml"),
-      "utf-8",
-    );
-    expect(syncWorkflow).toContain("npm install -g agent-conf@3.0.0");
   });
 });

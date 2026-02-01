@@ -3,12 +3,15 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { stringify as yamlStringify } from "yaml";
-import {
-  GLOBAL_END_MARKER,
-  GLOBAL_START_MARKER,
-  REPO_END_MARKER,
-  REPO_START_MARKER,
-} from "../../src/core/markers.js";
+import { getMarkers } from "../../src/core/markers.js";
+
+// Use getMarkers() to get marker strings for tests
+const markers = getMarkers();
+const GLOBAL_START_MARKER = markers.globalStart;
+const GLOBAL_END_MARKER = markers.globalEnd;
+const REPO_START_MARKER = markers.repoStart;
+const REPO_END_MARKER = markers.repoEnd;
+
 import { resolveLocalSource } from "../../src/core/source.js";
 import { getSyncStatus, sync } from "../../src/core/sync.js";
 
@@ -198,7 +201,7 @@ describe("init integration", () => {
 
     // Create agent-conf.yaml with custom marker prefix
     const canonicalConfig = {
-      version: "1",
+      version: "1.0.0",
       meta: {
         name: "test-canonical",
         organization: "test-org",

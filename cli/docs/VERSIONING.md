@@ -6,35 +6,74 @@ nav_order: 2
 
 # agent-conf Versioning
 
-This document explains how versioning works in agent-conf, including how versions are managed for the CLI, content repositories, and CI workflows.
+This document explains how versioning works in agent-conf, including schema versioning, CLI versioning, and content versioning.
 
-## Overview
+## Core Principle: Schema-Based Versioning
 
-agent-conf uses a **3-repository model** with independent versioning:
+**Schema version determines compatibility, not CLI version.**
 
-| Component | Version Source | Update Method |
-|-----------|---------------|---------------|
-| **CLI** | Installed binary | Reinstall from CLI repository |
-| **Content** | `.agent-conf/lockfile.json` | `agent-conf sync` |
-| **Workflows** | `.github/workflows/*.yml` | Updated automatically with content |
+agent-conf uses semantic versioning for its schema format. The CLI checks schema compatibility and:
+- Refuses to work across **major** schema versions
+- Warns but continues for **minor** version differences
+- Tracks CLI version for diagnostics only
 
-The CLI and content are **independently versioned**. You can use CLI v2.0 to sync content v1.5 - they don't need to match.
+## What Gets Versioned
+
+| Component | Version Field | Format | Location |
+|-----------|--------------|--------|----------|
+| Lockfile schema | `version` | Semver (`1.0.0`) | `.agent-conf/lockfile.json` |
+| Canonical config | `version` | Semver (`1.0.0`) | `agent-conf.yaml` |
+| Content release | `pinned_version` | Semver (`1.0.0`) | `.agent-conf/lockfile.json` |
+| CLI (diagnostics) | `cli_version` | Semver (`1.0.0`) | `.agent-conf/lockfile.json` (optional) |
+
+## Schema Compatibility Rules
+
+```
+CLI can work with content if: CLI_SCHEMA_MAJOR == CONTENT_SCHEMA_MAJOR
+```
+
+### Behavior Matrix
+
+| Scenario | Behavior |
+|----------|----------|
+| Schema version matches | Proceed normally |
+| Schema minor/patch newer | Warn, proceed (may miss features) |
+| Schema major newer | Error: "Upgrade CLI to work with this repo" |
+| Schema major older | Error: "Schema version outdated and no longer supported" |
+
+### Examples
+
+```bash
+# CLI supports schema 1.x
+
+# OK - exact match
+lockfile version: 1.0.0  # Works fine
+
+# OK with warning - newer minor
+lockfile version: 1.2.0  # Warns but continues
+
+# ERROR - major too new
+lockfile version: 2.0.0  # Refuses: "Upgrade CLI"
+
+# ERROR - major too old
+lockfile version: 0.9.0  # Refuses: "Schema outdated"
+```
 
 ## Content Versioning
 
-Content repositories use semantic versioning (e.g., `v1.2.0`) for releases. When you sync content to a downstream repository:
+Content repositories use semantic versioning (e.g., `v1.2.0`) for releases. When you sync content:
 
-- The **lockfile** records the pinned version
-- The **workflow files** reference the same version
+- The **lockfile** records the pinned release version
+- The **workflow files** reference the canonical repository
 - The **CLI** knows how to resolve and update versions
 
 ### Version Locations
 
-| Location | Purpose | Managed By |
-|----------|---------|------------|
-| `.agent-conf/lockfile.json` → `pinned_version` | Pinned content version | CLI commands |
-| `.github/workflows/agent-conf-sync.yml` → `@vX.Y.Z` | Workflow version ref | CLI commands |
-| `.github/workflows/agent-conf-check.yml` → `@vX.Y.Z` | Workflow version ref | CLI commands |
+| Location | Purpose |
+|----------|---------|
+| `.agent-conf/lockfile.json` → `pinned_version` | Pinned content release version |
+| `.agent-conf/lockfile.json` → `version` | Schema format version |
+| `agent-conf.yaml` → `version` | Canonical config schema version |
 
 ## Command Behaviors
 
@@ -46,15 +85,8 @@ Initializes a repository with content from a content repository.
 - Requires `--source` to specify the content repository
 - If `--ref` not specified: Fetches and uses the **latest release**
 - If `--ref v1.2.0` specified: Uses that specific version
-- If `--ref my-branch` specified: Uses that branch (workflows reference `@my-branch`)
-- If `--local` specified: No version management, no workflow files (development mode)
-
-**What it creates:**
-- `AGENTS.md` with global standards
-- `.claude/skills/` directory with skills
-- `.agent-conf/lockfile.json` with version info
-- `.github/workflows/agent-conf-sync.yml` pinned to the ref
-- `.github/workflows/agent-conf-check.yml` pinned to the ref
+- If `--ref my-branch` specified: Uses that branch
+- If `--local` specified: No version management, no workflow files
 
 **Example:**
 ```bash
@@ -76,33 +108,31 @@ agent-conf init --local /path/to/content-repo
 Syncs content from the content repository. By default, fetches the latest release.
 
 **Version behavior:**
-- Default (no flags): Fetches **latest release** and syncs to it
-- If `--pinned` specified: Uses **version from lockfile** (no fetch, idempotent)
-- If `--ref v1.3.0` specified: Uses that specific version
-- If `--ref my-branch` specified: Uses that branch (workflows reference `@my-branch`)
-- If `--local` specified: No version management, no workflow files (development mode)
-- Source is read from lockfile unless `--source` is specified
+- Default: Fetches **latest release** and syncs to it
+- `--pinned`: Uses **version from lockfile** (no fetch, idempotent)
+- `--ref v1.3.0`: Uses that specific version
+- `--ref my-branch`: Uses that branch
+- `--local`: No version management
+
+**Schema compatibility check:** Before syncing, the CLI checks the lockfile's schema version and refuses to proceed if incompatible.
 
 **Example:**
 ```bash
 # Sync to latest release (default)
 agent-conf sync
 
-# Re-sync using pinned version (restore files, fix modifications)
+# Re-sync using pinned version
 agent-conf sync --pinned
 
 # Update to a specific version
 agent-conf sync --ref v1.3.0
-
-# Sync from a branch (for testing)
-agent-conf sync --ref feature-branch
-
-# Sync from local source (development)
-agent-conf sync --local /path/to/content-repo
-
-# Non-interactive mode
-agent-conf sync --yes
 ```
+
+### `agent-conf check`
+
+Checks if managed files have been modified.
+
+**Schema compatibility check:** The CLI checks the lockfile's schema version before proceeding.
 
 ### `agent-conf status`
 
@@ -113,105 +143,70 @@ Shows current sync status including version info.
 agent-conf status
 
 Sync Status:
+  Schema: 1.0.0
   Version: 1.2.0
   Synced: 2024-01-15T10:30:00Z
   Source: github:acme/engineering-standards@v1.2.0
 
 Skills: 5 synced
-  - conventional-commits
-  - git-branch-naming
-  ...
 ```
 
-## Version Strategies
+## CLI Version (Diagnostics Only)
 
-Choose the strategy that fits your needs:
+The CLI version is tracked in the lockfile (`cli_version`) for diagnostic purposes only. It does **not** affect compatibility.
 
-### 1. Pin to Specific Version (Recommended for Production)
+**The CLI version is optional** - older lockfiles without `cli_version` are valid.
 
+If the lockfile was created with a newer CLI, a warning is shown:
+```
+⚠ CLI is outdated: v1.0.0 installed, but repo was synced with v1.2.0
+  Run: agent-conf upgrade-cli
+```
+
+This is informational only - the CLI will still work if schema versions are compatible.
+
+## Canonical Repository Setup
+
+When creating a canonical repository with `agent-conf canonical init`:
+
+1. The `agent-conf.yaml` file is created with the current schema version
+2. Workflow files are generated without CLI version pinning
+3. Downstream repos can use any compatible CLI version
+
+**Example:**
 ```bash
-# Initial setup
-agent-conf init --source acme/standards --ref v1.2.0
-
-# Updates are manual - run when ready to upgrade
-agent-conf sync --ref v1.3.0
+agent-conf canonical init --name my-standards --org my-org
 ```
 
-**Pros:**
-- Full control over when updates happen
-- Reproducible builds
-- No surprises
-
-### 2. Track Latest Release
-
-```bash
-# Initial setup (auto-pins to latest)
-agent-conf init --source acme/standards
-
-# Update to latest when ready
-agent-conf sync
-```
-
-**Pros:**
-- Easy updates
-- Always get latest features
-
-### 3. Development Mode (Local Source)
-
-```bash
-# Use local content repository clone
-agent-conf init --local /path/to/content-repo
-
-# Re-sync from local
-agent-conf sync --local
-```
-
-**Pros:**
-- Test changes before release
-- No network required
-
-**Note:** Local mode (`--local`) doesn't create workflow files. It's intended for development and testing of content changes.
-
-## CI/CD Integration
-
-### Workflow Files
-
-When you run `agent-conf init` or `agent-conf sync` from a GitHub source (not `--local`), the CLI creates/updates workflow files with the ref pinned:
-
+The generated workflows use unpinned CLI installation:
 ```yaml
-# .github/workflows/agent-conf-sync.yml
-jobs:
-  sync:
-    uses: acme/engineering-standards/.github/workflows/sync-reusable.yml@v1.2.0  # <- Ref managed by CLI
+- name: Install agent-conf CLI
+  run: npm install -g agent-conf  # Uses latest compatible version
 ```
 
-The ref can be a version tag (`@v1.2.0`) or a branch name (`@master`, `@feature-branch`) depending on how you synced.
+## Version Bump Guidelines
 
-### Automatic Updates via CI
+### Schema Version Bumps
 
-The sync workflow can automatically create PRs when your content repository releases new versions:
+| Change Type | Version Bump | Example |
+|------------|--------------|---------|
+| Add optional field | Minor | Add `hooks` array to lockfile |
+| Add required field | Major | Make `hooks` required |
+| Change field type | Major | Change `skills` from array to object |
+| Remove field | Major | Remove `marker_prefix` |
+| Bug fix in validation | Patch | Fix regex pattern |
 
-1. Content repository release triggers `repository_dispatch` to downstream repos
-2. The sync workflow runs and detects the update
-3. A PR is created with the changes
+### When to Upgrade CLI
 
-To enable this, configure the `DOWNSTREAM_REPOS` secret in the content repository.
-
-### Manual CI Trigger
-
-You can manually trigger the sync workflow with a specific version:
-
-1. Go to Actions → agent-conf Sync
-2. Click "Run workflow"
-3. Enter the desired version in the `ref` input
+- **Patch releases:** Bug fixes, safe to upgrade anytime
+- **Minor releases:** New features, backwards compatible
+- **Major releases:** Breaking changes, verify compatibility first
 
 ## Lockfile Structure
 
-The lockfile tracks all sync metadata:
-
 ```json
 {
-  "version": "1",
+  "version": "1.0.0",
   "pinned_version": "1.2.0",
   "synced_at": "2024-01-15T10:30:00.000Z",
   "source": {
@@ -225,135 +220,42 @@ The lockfile tracks all sync metadata:
       "global_block_hash": "sha256:abc123...",
       "merged": true
     },
-    "skills": ["conventional-commits", "git-branch-naming", ...],
-    "targets": ["claude"]
+    "skills": ["conventional-commits", "git-branch-naming"],
+    "targets": ["claude"],
+    "marker_prefix": "agent-conf"
   },
-  "cli_version": "1.2.0"
+  "cli_version": "1.0.0"
 }
-```
-
-## CLI Versioning
-
-The CLI version is tracked separately from content versions. The CLI version in the lockfile (`cli_version`) records which CLI version performed the sync, but doesn't affect content versioning.
-
-**CLI Version in Workflows:**
-
-Canonical repository workflows pin to a specific CLI version, set during `agent-conf canonical init`. Use `agent-conf canonical update` after upgrading the CLI to update workflow files.
-
-**To update the CLI:**
-
-```bash
-# Upgrade CLI
-npm install -g agent-conf@latest
-
-# Update canonical repo workflows (if in a canonical repo)
-agent-conf canonical update
-```
-
-## CLI Version Pinning in Workflows
-
-When you create a canonical repository with `agent-conf canonical init`, the generated workflow files pin the CLI version:
-
-```yaml
-- name: Install agent-conf CLI
-  run: npm install -g agent-conf@1.2.0  # Pinned to CLI version at init time
-```
-
-### Updating Pinned CLI Version
-
-After upgrading the CLI locally, update your canonical repository's workflows:
-
-```bash
-# Upgrade CLI
-npm install -g agent-conf@latest
-
-# Update workflows to use new version
-agent-conf canonical update
-```
-
-This ensures CI uses the same CLI version you're using locally.
-
-### Specifying a Specific Version
-
-You can pin to a specific version:
-
-```bash
-# During init
-agent-conf canonical init --cli-version 1.5.0
-
-# Or update existing
-agent-conf canonical update --cli-version 1.5.0
-```
-
-## Upgrade Scenarios
-
-### Scenario 1: Routine Content Update
-
-```bash
-# Check for updates and apply
-agent-conf sync
-
-# Output shows:
-# Canonical source: acme/engineering-standards
-# Latest release: 1.3.0
-# Pinned version: 1.2.0
-#   -> Update available: 1.2.0 -> 1.3.0
-#
-# Proceed with update? (y/n)
-
-# Non-interactive mode
-agent-conf sync --yes
-```
-
-### Scenario 2: Skip a Version
-
-```bash
-# Currently on v1.2.0, want to skip v1.3.0 and go to v1.4.0
-agent-conf sync --ref v1.4.0
-```
-
-### Scenario 3: Rollback
-
-```bash
-# Something broke in v1.4.0, rollback to v1.3.0
-agent-conf sync --ref v1.3.0
-```
-
-### Scenario 4: Multiple Repos
-
-```bash
-# Update all repos to same version
-for repo in ~/projects/repo-*; do
-  cd "$repo"
-  agent-conf sync --ref v1.3.0 --yes
-done
 ```
 
 ## Troubleshooting
 
+### "Schema version X.Y.Z requires a newer CLI"
+
+The lockfile was created with a CLI that uses a newer schema format.
+
+**Solution:** Upgrade the CLI: `npm install -g agent-conf@latest`
+
+### "Schema version X.Y.Z is outdated and no longer supported"
+
+The lockfile uses an old schema format that the current CLI no longer supports.
+
+**Solution:** This typically requires manual migration or reinitializing.
+
+### "Content uses schema X.Y.Z, CLI supports X.0.0. Some features may not work"
+
+The lockfile has features from a newer minor version. The CLI will work but may miss some features.
+
+**Solution:** Consider upgrading: `npm install -g agent-conf@latest`
+
 ### "No releases found"
 
-The GitHub API couldn't find releases. This might mean:
-- No releases have been created in the content repository
-- Network issues
-- Rate limiting
+The GitHub API couldn't find releases.
 
-**Solution:** Use `--ref master` for development, or wait and retry.
+**Solution:** Use `--ref master` for development, or check the repository.
 
 ### Version Mismatch Between Lockfile and Workflows
 
-If you manually edited workflow files, the versions might be out of sync.
+If you manually edited workflow files, versions might be out of sync.
 
-**Solution:** Run `agent-conf sync --pinned` to re-sync everything to the lockfile version.
-
-### CI Workflow Uses Wrong Version
-
-The workflow file might have a different version than the lockfile.
-
-**Solution:** Run `agent-conf sync --pinned` to update workflows to match the lockfile version.
-
-### "No GitHub source found in lockfile"
-
-The repository was synced using `--local` mode or the lockfile is missing.
-
-**Solution:** Run `agent-conf init --source <owner/repo>` to set up with a GitHub source.
+**Solution:** Run `agent-conf sync --pinned` to re-sync everything.

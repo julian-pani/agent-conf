@@ -4,7 +4,6 @@ import * as path from "node:path";
 import { simpleGit } from "simple-git";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
-  getGitConfig,
   getGitOrganization,
   getGitProjectName,
   getGitRoot,
@@ -114,35 +113,6 @@ describe("git utilities", () => {
 
       const result = await isGitRoot(subDir);
       expect(result).toBe(false);
-    });
-  });
-
-  describe("getGitConfig", () => {
-    it("should return undefined for non-existent directory", async () => {
-      const result = await getGitConfig("/non/existent/path", "user.name");
-      expect(result).toBeUndefined();
-    });
-
-    it("should return undefined for non-git directory", async () => {
-      const result = await getGitConfig(tempDir, "user.name");
-      expect(result).toBeUndefined();
-    });
-
-    it("should return config value when set", async () => {
-      const git = simpleGit(tempDir);
-      await git.init();
-      await git.addConfig("user.name", "Test User", false, "local");
-
-      const result = await getGitConfig(tempDir, "user.name");
-      expect(result).toBe("Test User");
-    });
-
-    it("should return undefined for unset config", async () => {
-      const git = simpleGit(tempDir);
-      await git.init();
-
-      const result = await getGitConfig(tempDir, "some.nonexistent.key");
-      expect(result).toBeUndefined();
     });
   });
 

@@ -1,7 +1,13 @@
 import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { type Lockfile, LockfileSchema, type Source } from "../schemas/lockfile.js";
+import {
+  CURRENT_LOCKFILE_VERSION,
+  type Lockfile,
+  LockfileSchema,
+  type Source,
+} from "../schemas/lockfile.js";
+import { checkSchemaCompatibility, type SchemaCompatibility } from "./schema.js";
 
 // Injected at build time by tsup
 declare const __BUILD_VERSION__: string;
@@ -13,13 +19,31 @@ export function getLockfilePath(targetDir: string): string {
   return path.join(targetDir, CONFIG_DIR, LOCKFILE_NAME);
 }
 
-export async function readLockfile(targetDir: string): Promise<Lockfile | null> {
+export interface ReadLockfileResult {
+  lockfile: Lockfile;
+  schemaCompatibility: SchemaCompatibility;
+}
+
+/**
+ * Reads and validates the lockfile from a target directory.
+ * Returns null if the lockfile doesn't exist.
+ *
+ * The result includes schema compatibility information that callers should check:
+ * - If compatible is false, the CLI should refuse to proceed
+ * - If warning is set, the CLI should display it but can continue
+ */
+export async function readLockfile(targetDir: string): Promise<ReadLockfileResult | null> {
   const lockfilePath = getLockfilePath(targetDir);
 
   try {
     const content = await fs.readFile(lockfilePath, "utf-8");
     const parsed: unknown = JSON.parse(content);
-    return LockfileSchema.parse(parsed);
+    const lockfile = LockfileSchema.parse(parsed);
+
+    // Check schema compatibility
+    const schemaCompatibility = checkSchemaCompatibility(lockfile.version);
+
+    return { lockfile, schemaCompatibility };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return null;
@@ -45,7 +69,7 @@ export async function writeLockfile(
   const lockfilePath = getLockfilePath(targetDir);
 
   const lockfile: Lockfile = {
-    version: "1",
+    version: CURRENT_LOCKFILE_VERSION,
     pinned_version: options.pinnedVersion,
     synced_at: new Date().toISOString(),
     source: options.source,
@@ -84,17 +108,21 @@ export interface VersionMismatch {
 /**
  * Checks if the installed CLI version is older than the version used to sync.
  * Returns mismatch info if CLI is outdated, null otherwise.
+ *
+ * Note: This is for informational purposes only. The CLI version in lockfile
+ * is optional and used for diagnostics, not for enforcing compatibility.
+ * Schema version compatibility is enforced separately.
  */
 export async function checkCliVersionMismatch(targetDir: string): Promise<VersionMismatch | null> {
-  const lockfile = await readLockfile(targetDir);
+  const result = await readLockfile(targetDir);
 
   // No lockfile means first sync - no mismatch
-  if (!lockfile) {
+  if (!result) {
     return null;
   }
 
   const currentVersion = getCliVersion();
-  const lockfileVersion = lockfile.cli_version;
+  const lockfileVersion = result.lockfile.cli_version;
 
   // Can't compare if either version is missing/invalid
   if (!currentVersion || !lockfileVersion) {

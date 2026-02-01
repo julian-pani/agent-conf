@@ -48,7 +48,7 @@ export async function resolveLocalSource(
     const log = await git.log({ maxCount: 1 });
     commitSha = log.latest?.hash;
   } catch {
-    // Not a git repo or git not available
+    // Expected: not a git repo or git not available, commit SHA is optional
   }
 
   // Load canonical config to get marker prefix
@@ -113,7 +113,7 @@ async function cloneRepository(repository: string, ref: string, tempDir: string)
       await execAsync(`gh repo clone ${repository} ${tempDir} -- --depth 1 --branch ${ref}`);
       return;
     } catch {
-      // gh failed, try other methods
+      // Expected: gh clone may fail, fall back to git with token auth
     }
   }
 
@@ -135,6 +135,7 @@ async function isGhAvailable(): Promise<boolean> {
     await execAsync("gh --version");
     return true;
   } catch {
+    // Expected: gh CLI not installed
     return false;
   }
 }
@@ -208,12 +209,13 @@ async function isCanonicalRepo(dir: string): Promise<boolean> {
         return true;
       }
     } catch {
-      // Git check failed, fall back to structure check only
+      // Expected: git check may fail, fall back to structure check only
     }
 
     // Structure matches, accept it even without git verification
     return true;
   } catch {
+    // Expected: directory access or structure check failed
     return false;
   }
 }

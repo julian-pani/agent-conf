@@ -243,6 +243,8 @@ agent-conf init --source my-org/engineering-standards
 
 For the sync workflows to function, downstream repositories need read access to the canonical repository, and optionally the canonical repository may need write access to downstream repos to push updates.
 
+**Note:** The `check` workflow (`agent-conf-check.yml`) does **not** require any tokens or secrets. It only runs `agent-conf check` to verify file integrity within the repository.
+
 There are two authentication methods:
 1. **GitHub App** (recommended) - More secure, granular permissions, higher rate limits
 2. **Personal Access Token (PAT)** - Simpler setup, but tied to a user account

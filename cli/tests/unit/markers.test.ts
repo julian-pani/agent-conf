@@ -5,16 +5,20 @@ import {
   buildRepoBlock,
   computeGlobalBlockHash,
   extractRepoBlockContent,
-  GLOBAL_END_MARKER,
-  GLOBAL_START_MARKER,
+  getMarkers,
   hasGlobalBlockChanges,
   isAgentsMdManaged,
   parseAgentsMd,
   parseGlobalBlockMetadata,
-  REPO_END_MARKER,
-  REPO_START_MARKER,
   stripMetadataComments,
 } from "../../src/core/markers.js";
+
+// Use getMarkers() to get marker strings for tests
+const markers = getMarkers();
+const GLOBAL_START_MARKER = markers.globalStart;
+const GLOBAL_END_MARKER = markers.globalEnd;
+const REPO_START_MARKER = markers.repoStart;
+const REPO_END_MARKER = markers.repoEnd;
 
 describe("markers", () => {
   describe("parseAgentsMd", () => {

@@ -83,7 +83,7 @@ export async function sync(
         validationErrors.push(error);
       }
     } catch {
-      // Skip if SKILL.md doesn't exist (will be handled elsewhere)
+      // Expected: SKILL.md may not exist, will be handled during sync
     }
   }
 
@@ -243,10 +243,14 @@ export interface SyncStatus {
   lockfile: Lockfile | null;
   agentsMdExists: boolean;
   skillsExist: boolean;
+  /** Schema compatibility warning (null if no warning) */
+  schemaWarning: string | null;
+  /** Schema compatibility error (null if no error) */
+  schemaError: string | null;
 }
 
 export async function getSyncStatus(targetDir: string): Promise<SyncStatus> {
-  const lockfile = await readLockfile(targetDir);
+  const result = await readLockfile(targetDir);
   const agentsMdPath = path.join(targetDir, "AGENTS.md");
   const skillsPath = path.join(targetDir, ".claude", "skills");
 
@@ -262,10 +266,12 @@ export async function getSyncStatus(targetDir: string): Promise<SyncStatus> {
   ]);
 
   return {
-    hasSynced: lockfile !== null,
-    lockfile,
+    hasSynced: result !== null,
+    lockfile: result?.lockfile ?? null,
     agentsMdExists,
     skillsExist,
+    schemaWarning: result?.schemaCompatibility.warning ?? null,
+    schemaError: result?.schemaCompatibility.error ?? null,
   };
 }
 
@@ -315,7 +321,8 @@ export async function deleteOrphanedSkills(
       try {
         await fs.access(skillDir);
       } catch {
-        continue; // Directory doesn't exist for this target
+        // Expected: skill directory may not exist for this target
+        continue;
       }
 
       // Check if the skill is managed before deleting
@@ -347,7 +354,7 @@ export async function deleteOrphanedSkills(
           continue;
         }
       } catch {
-        // SKILL.md doesn't exist, skip deletion to be safe
+        // Expected: SKILL.md may not exist, skip deletion to be safe
         if (!skipped.includes(skillName)) {
           skipped.push(skillName);
         }
