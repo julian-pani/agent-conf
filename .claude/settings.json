@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm check:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm build:*)",
+      "Bash(npm pack:*)",
+      "Bash(pnpm typecheck:*)",
+      "Edit(/tmp/**)"
+    ],
+    "ask": [
+      "Bash(git push:*)"
+    ]
+  },  
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  }
+}

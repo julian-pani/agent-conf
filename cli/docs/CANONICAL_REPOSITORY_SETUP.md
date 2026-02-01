@@ -159,27 +159,20 @@ skills/my-skill/
 
 The scaffolded workflows in `.github/workflows/` are **reusable workflows** that downstream repositories call. The repository references are automatically populated based on your organization and repository name.
 
-### Configuring CLI Installation
+### CLI Installation
 
-The workflow files require you to configure how the `agent-conf` CLI is installed. By default, the workflows will fail with an error message until you update the installation step.
-
-**`.github/workflows/sync-reusable.yml` and `check-reusable.yml`:**
-
-Find the "Install agent-conf CLI" step and replace it with your installation method:
+The generated workflow files install the `agent-conf` CLI from npm:
 
 ```yaml
 - name: Install agent-conf CLI
-  run: |
-    # Option 1: Clone from your CLI repository
-    git clone --depth 1 git@github.com:your-org/agent-conf.git /tmp/agent-conf \
-      && /tmp/agent-conf/cli/scripts/install_local.sh
+  run: npm install -g agent-conf
+```
 
-    # Option 2: Use a specific version
-    git clone --depth 1 --branch v1.0.0 git@github.com:your-org/agent-conf.git /tmp/agent-conf \
-      && /tmp/agent-conf/cli/scripts/install_local.sh
+This is the default and recommended method. If you need a specific version:
 
-    # Option 3: If you publish to npm (future)
-    # npm install -g @your-org/agent-conf
+```yaml
+- name: Install agent-conf CLI
+  run: npm install -g agent-conf@1.2.0
 ```
 
 ### How Reusable Workflows Work
@@ -240,6 +233,189 @@ In each downstream repository:
 ```bash
 agent-conf init --source my-org/engineering-standards
 ```
+
+## Cross-Repository Authentication
+
+For the sync workflows to function, downstream repositories need read access to the canonical repository, and optionally the canonical repository may need write access to downstream repos to push updates.
+
+There are two authentication methods:
+1. **GitHub App** (recommended) - More secure, granular permissions, higher rate limits
+2. **Personal Access Token (PAT)** - Simpler setup, but tied to a user account
+
+### Option 1: GitHub App (Recommended)
+
+A GitHub App provides better security and granular permissions. The app is installed on repositories rather than tied to a user.
+
+#### Step 1: Create the GitHub App
+
+1. Go to your organization settings: `https://github.com/organizations/YOUR-ORG/settings/apps`
+   - For personal accounts: `https://github.com/settings/apps`
+
+2. Click **"New GitHub App"**
+
+3. Configure the app:
+   - **GitHub App name**: `agent-conf-sync` (or your preferred name)
+   - **Homepage URL**: Your organization URL or repo URL
+   - **Webhook**: Uncheck "Active" (not needed for this use case)
+
+4. Set **Repository permissions**:
+   - **Contents**: Read and write (to read canonical repo, write sync PRs)
+   - **Pull requests**: Read and write (to create sync PRs)
+   - **Workflows**: Read and write (if you want to update workflow files)
+   - **Metadata**: Read-only (required, auto-selected)
+
+5. Under **"Where can this GitHub App be installed?"**:
+   - Select **"Only on this account"** for organization-only use
+   - Or **"Any account"** if repos span multiple orgs
+
+6. Click **"Create GitHub App"**
+
+#### Step 2: Generate a Private Key
+
+1. After creating the app, scroll down to **"Private keys"**
+2. Click **"Generate a private key"**
+3. A `.pem` file will download - **keep this secure**
+
+#### Step 3: Note the App ID and Installation ID
+
+1. **App ID**: Found at the top of the app settings page
+2. **Installation ID**:
+   - Go to your app's installations: Click "Install App" in the sidebar
+   - Install the app on your organization/repos
+   - After installation, the URL will contain the installation ID:
+     `https://github.com/organizations/YOUR-ORG/settings/installations/12345678`
+     The number (12345678) is your Installation ID
+
+#### Step 4: Add Secrets to Repositories
+
+Add these secrets to your **downstream repositories** (or at the organization level):
+
+| Secret Name | Value |
+|-------------|-------|
+| `AGENT_CONF_APP_ID` | Your GitHub App ID |
+| `AGENT_CONF_APP_PRIVATE_KEY` | Contents of the `.pem` private key file |
+| `AGENT_CONF_APP_INSTALLATION_ID` | Your Installation ID |
+
+To add at organization level:
+1. Go to **Organization Settings** → **Secrets and variables** → **Actions**
+2. Add each secret with **"All repositories"** or **"Selected repositories"**
+
+#### Step 5: Update Workflow to Use GitHub App
+
+Modify your reusable workflows to generate a token from the GitHub App. Update `.github/workflows/sync-reusable.yml`:
+
+```yaml
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.AGENT_CONF_APP_ID }}
+          private-key: ${{ secrets.AGENT_CONF_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout downstream repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      # ... rest of workflow
+```
+
+### Option 2: Personal Access Token (PAT)
+
+A PAT is simpler to set up but is tied to a user account. Use fine-grained PATs for better security.
+
+#### Step 1: Create a Fine-Grained PAT
+
+1. Go to: `https://github.com/settings/tokens?type=beta`
+2. Click **"Generate new token"**
+3. Configure:
+   - **Token name**: `agent-conf-sync`
+   - **Expiration**: Choose an appropriate duration (90 days recommended)
+   - **Repository access**: Select repositories that need access
+     - Include your canonical repository
+     - Include downstream repositories (for PR creation)
+
+4. Set **Repository permissions**:
+   - **Contents**: Read and write
+   - **Pull requests**: Read and write
+   - **Workflows**: Read and write (if updating workflow files)
+
+5. Click **"Generate token"** and copy the token
+
+#### Step 2: Add Token as Secret
+
+Add the token to your downstream repositories:
+
+1. Go to each downstream repo → **Settings** → **Secrets and variables** → **Actions**
+2. Click **"New repository secret"**
+3. Name: `AGENT_CONF_TOKEN`
+4. Value: Paste your PAT
+
+Or add at organization level for all repos.
+
+#### Step 3: Verify Workflow Configuration
+
+The default workflow files use `secrets.AGENT_CONF_TOKEN`. No changes needed if you used that secret name.
+
+### Pushing Changes from Canonical to Downstream
+
+If you want the canonical repository to automatically push changes to downstream repos when you release a new version:
+
+#### Using Repository Dispatch
+
+1. In your canonical repository, create a release workflow that triggers downstream repos:
+
+```yaml
+# .github/workflows/notify-downstream.yml
+name: Notify Downstream Repos
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo:
+          - my-org/app-one
+          - my-org/app-two
+          - my-org/app-three
+    steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.AGENT_CONF_APP_ID }}
+          private-key: ${{ secrets.AGENT_CONF_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ matrix.repo }}
+
+      - name: Trigger downstream sync
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ steps.app-token.outputs.token }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ matrix.repo }}/dispatches \
+            -d '{"event_type": "agent_conf-release", "client_payload": {"version": "${{ github.event.release.tag_name }}"}}'
+```
+
+2. The downstream repos' sync workflow already listens for `repository_dispatch` events with type `agent_conf-release`.
+
+### Security Best Practices
+
+1. **Prefer GitHub Apps over PATs** - Apps have granular permissions and aren't tied to user accounts
+2. **Minimize permissions** - Only grant the permissions actually needed
+3. **Use short token expiration** - For PATs, set reasonable expiration (90 days or less)
+4. **Rotate credentials regularly** - Regenerate private keys and PATs periodically
+5. **Use organization-level secrets** - Easier to manage and audit than per-repo secrets
+6. **Audit access logs** - Review GitHub App and PAT usage in security logs
 
 ## Maintenance
 

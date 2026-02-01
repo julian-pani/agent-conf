@@ -330,6 +330,8 @@ The CLI creates GitHub Actions workflows that reference reusable workflows in yo
 
 Both workflows use the `agent-conf check` command to verify file integrity. Workflows reference the same version as your lockfile, ensuring consistency.
 
+**For detailed setup instructions including GitHub App configuration for cross-repository access, see [cli/docs/CANONICAL_REPOSITORY_SETUP.md](cli/docs/CANONICAL_REPOSITORY_SETUP.md).**
+
 ### Prerequisites for Private Canonical Repositories
 
 If your canonical repository is **private**, you must configure it to allow other repositories to use its reusable workflows.

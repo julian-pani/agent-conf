@@ -147,9 +147,6 @@ function generateSyncWorkflow(repoFullName: string, prefix: string): string {
 #
 # Downstream repos will reference this workflow like:
 #   uses: ${repoFullName}/.github/workflows/sync-reusable.yml@v1.0.0
-#
-# SETUP REQUIRED: Update the CLI installation step below with your installation method.
-# See https://github.com/julian-pani/agent-conf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md for detailed instructions.
 
 name: Sync Reusable
 
@@ -185,13 +182,7 @@ jobs:
           node-version: '20'
 
       - name: Install agent-conf CLI
-        run: |
-          # TODO: Update with your CLI installation method
-          # Example using git clone (replace with your CLI repository):
-          # git clone --depth 1 git@github.com:your-org/agent-conf.git /tmp/agent-conf \\
-          #   && /tmp/agent-conf/cli/scripts/install_local.sh
-          echo "ERROR: CLI installation not configured. See https://github.com/julian-pani/agent-conf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md"
-          exit 1
+        run: npm install -g agent-conf
 
       - name: Run sync
         run: |
@@ -210,9 +201,6 @@ function generateCheckWorkflow(repoFullName: string, prefix: string): string {
 #
 # Downstream repos will reference this workflow like:
 #   uses: ${repoFullName}/.github/workflows/check-reusable.yml@v1.0.0
-#
-# SETUP REQUIRED: Update the CLI installation step below with your installation method.
-# See https://github.com/julian-pani/agent-conf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md for detailed instructions.
 
 name: Check Reusable
 
@@ -238,13 +226,7 @@ jobs:
           node-version: '20'
 
       - name: Install agent-conf CLI
-        run: |
-          # TODO: Update with your CLI installation method
-          # Example using git clone (replace with your CLI repository):
-          # git clone --depth 1 git@github.com:your-org/agent-conf.git /tmp/agent-conf \\
-          #   && /tmp/agent-conf/cli/scripts/install_local.sh
-          echo "ERROR: CLI installation not configured. See https://github.com/julian-pani/agent-conf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md"
-          exit 1
+        run: npm install -g agent-conf
 
       - name: Check file integrity
         run: |
@@ -481,11 +463,7 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
     console.log(pc.bold("Next steps:"));
     console.log(`  1. Edit ${pc.cyan("instructions/AGENTS.md")} with your engineering standards`);
     console.log(`  2. Add skills to ${pc.cyan("skills/")} directory`);
-    console.log(
-      `  3. Update ${pc.cyan(".github/workflows/")} files with your CLI installation method`,
-    );
-    console.log(`     (The workflow files will fail until you configure how to install the CLI)`);
-    console.log(`  4. Commit and push to create your canonical repository`);
+    console.log(`  3. Commit and push to create your canonical repository`);
     console.log();
     console.log(
       pc.dim(

@@ -251,23 +251,12 @@ The CLI version is tracked separately from content versions. The CLI version in 
 **To update the CLI:**
 
 ```bash
-# Using the upgrade-cli command (recommended)
-# First time: specify the CLI repository
-agent-conf upgrade-cli --repo your-org/agent-conf
+# Using npm (recommended)
+npm install -g agent-conf@latest
 
-# Subsequent times: uses saved config
-agent-conf upgrade-cli
-
-# Or manually reinstall from CLI repository
-git clone --depth 1 git@github.com:your-org/agent-conf.git /tmp/agent-conf \
-  && /tmp/agent-conf/cli/scripts/install_local.sh
-
-# Or install a specific CLI version
-git clone --depth 1 --branch v2.0.0 git@github.com:your-org/agent-conf.git /tmp/agent-conf \
-  && /tmp/agent-conf/cli/scripts/install_local.sh
+# Or install a specific version
+npm install -g agent-conf@1.2.0
 ```
-
-The `upgrade-cli` command saves the CLI repository to `~/.agent-conf/config.json`, so you only need to specify `--repo` once.
 
 ## Upgrade Scenarios
 

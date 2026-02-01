@@ -55,7 +55,3 @@ coverage/
 
 # Custom
 .local/
-
-# temp
-.claude/
-AGENTS.md
