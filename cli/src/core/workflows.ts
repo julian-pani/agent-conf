@@ -37,8 +37,9 @@ export function getWorkflowConfig(
   config?: Partial<ResolvedConfig>,
 ): WorkflowConfig {
   const name = config?.name ?? DEFAULT_CLI_NAME;
-  // Convert name to uppercase for secret name (e.g., "agconf" -> "AGCONF")
-  const secretName = `${name.toUpperCase().replace(/-/g, "_")}_TOKEN`;
+  const markerPrefix = config?.markerPrefix ?? DEFAULT_CLI_NAME;
+  // Convert markerPrefix to uppercase for secret name (e.g., "agconf" -> "AGCONF")
+  const secretName = `${markerPrefix.toUpperCase().replace(/-/g, "_")}_TOKEN`;
 
   return {
     sourceRepo,
