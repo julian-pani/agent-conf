@@ -1,3 +1,10 @@
+## [0.2.0](https://github.com/julian-pani/agent-conf/compare/v0.1.0...v0.2.0) (2026-02-02)
+
+### Features
+
+* **cli:** add rules sync feature and fix check command integrity ([4146f0f](https://github.com/julian-pani/agent-conf/commit/4146f0f462fce5beb5e2a9a6888f0f75f7f6fe1f))
+* **cli:** implement schema-based versioning and simplify architecture ([d9ebe2c](https://github.com/julian-pani/agent-conf/commit/d9ebe2cf83437535a0ec9b222ff12e6314680d36))
+
 ## [0.2.0](https://github.com/julian-pani/agent-conf/compare/v0.1.0...v0.2.0) (2026-02-01)
 
 ### Features
