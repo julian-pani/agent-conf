@@ -1,3 +1,9 @@
+## [0.3.0](https://github.com/julian-pani/agent-conf/compare/v0.2.0...v0.3.0) (2026-02-02)
+
+### Features
+
+* **cli:** improve sync output status indicators and clarify counts ([b1d71d6](https://github.com/julian-pani/agent-conf/commit/b1d71d604ed432f5f75d7977dc6e734abd44ae1b))
+
 ## [0.2.0](https://github.com/julian-pani/agent-conf/compare/v0.1.0...v0.2.0) (2026-02-02)
 
 ### Features
