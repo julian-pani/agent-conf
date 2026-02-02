@@ -12,7 +12,7 @@ import { checkSchemaCompatibility, type SchemaCompatibility } from "./schema.js"
 // Injected at build time by tsup
 declare const __BUILD_VERSION__: string;
 
-const CONFIG_DIR = ".agent-conf";
+const CONFIG_DIR = ".agconf";
 const LOCKFILE_NAME = "lockfile.json";
 
 export function getLockfilePath(targetDir: string): string {
@@ -58,7 +58,7 @@ export interface WriteLockfileOptions {
   skills: string[];
   targets?: string[];
   pinnedVersion?: string;
-  /** Marker prefix used for managed content (default: "agent-conf") */
+  /** Marker prefix used for managed content (default: "agconf") */
   markerPrefix?: string;
   /** Rules content for lockfile tracking */
   rules?: {

@@ -18,7 +18,7 @@ describe("merge", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-test-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-test-"));
     await fs.mkdir(path.join(tempDir, ".claude"), { recursive: true });
   });
 
@@ -28,7 +28,7 @@ describe("merge", () => {
 
   const testSource: Source = {
     type: "local",
-    path: "/path/to/agent-conf",
+    path: "/path/to/agconf",
     commit_sha: "abc1234",
   };
 
@@ -147,7 +147,7 @@ ${REPO_END_MARKER}
       expect(result.content).toContain("# My content");
       // Should not have duplicate @AGENTS.md in repo block
       const repoBlockMatch = result.content.match(
-        /<!-- agent-conf:repo:start -->[\s\S]*<!-- agent-conf:repo:end -->/,
+        /<!-- agconf:repo:start -->[\s\S]*<!-- agconf:repo:end -->/,
       );
       expect(repoBlockMatch?.[0]).not.toContain("@AGENTS.md");
     });
@@ -224,8 +224,8 @@ ${REPO_END_MARKER}
         expect(result.content).toContain(`<!-- ${CUSTOM_PREFIX}:global:end -->`);
         expect(result.content).toContain(`<!-- ${CUSTOM_PREFIX}:repo:start -->`);
         expect(result.content).toContain(`<!-- ${CUSTOM_PREFIX}:repo:end -->`);
-        expect(result.content).not.toContain("agent-conf:global");
-        expect(result.content).not.toContain("agent-conf:repo");
+        expect(result.content).not.toContain("agconf:global");
+        expect(result.content).not.toContain("agconf:repo");
       });
 
       it("should preserve repo block content from files with custom prefix markers", async () => {

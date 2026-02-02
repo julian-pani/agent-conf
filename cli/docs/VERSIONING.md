@@ -4,15 +4,15 @@ title: Versioning
 nav_order: 2
 ---
 
-# agent-conf Versioning
+# agconf Versioning
 
-This document explains how versioning works in agent-conf, including schema versioning, CLI versioning, and content versioning.
+This document explains how versioning works in agconf, including schema versioning, CLI versioning, and content versioning.
 
 ## Core Principle: Schema-Based Versioning
 
 **Schema version determines compatibility, not CLI version.**
 
-agent-conf uses semantic versioning for its schema format. The CLI checks schema compatibility and:
+agconf uses semantic versioning for its schema format. The CLI checks schema compatibility and:
 - Refuses to work across **major** schema versions
 - Warns but continues for **minor** version differences
 - Tracks CLI version for diagnostics only
@@ -21,10 +21,10 @@ agent-conf uses semantic versioning for its schema format. The CLI checks schema
 
 | Component | Version Field | Format | Location |
 |-----------|--------------|--------|----------|
-| Lockfile schema | `version` | Semver (`1.0.0`) | `.agent-conf/lockfile.json` |
-| Canonical config | `version` | Semver (`1.0.0`) | `agent-conf.yaml` |
-| Content release | `pinned_version` | Semver (`1.0.0`) | `.agent-conf/lockfile.json` |
-| CLI (diagnostics) | `cli_version` | Semver (`1.0.0`) | `.agent-conf/lockfile.json` (optional) |
+| Lockfile schema | `version` | Semver (`1.0.0`) | `.agconf/lockfile.json` |
+| Canonical config | `version` | Semver (`1.0.0`) | `agconf.yaml` |
+| Content release | `pinned_version` | Semver (`1.0.0`) | `.agconf/lockfile.json` |
+| CLI (diagnostics) | `cli_version` | Semver (`1.0.0`) | `.agconf/lockfile.json` (optional) |
 
 ## Schema Compatibility Rules
 
@@ -71,13 +71,13 @@ Content repositories use semantic versioning (e.g., `v1.2.0`) for releases. When
 
 | Location | Purpose |
 |----------|---------|
-| `.agent-conf/lockfile.json` → `pinned_version` | Pinned content release version |
-| `.agent-conf/lockfile.json` → `version` | Schema format version |
-| `agent-conf.yaml` → `version` | Canonical config schema version |
+| `.agconf/lockfile.json` → `pinned_version` | Pinned content release version |
+| `.agconf/lockfile.json` → `version` | Schema format version |
+| `agconf.yaml` → `version` | Canonical config schema version |
 
 ## Command Behaviors
 
-### `agent-conf init`
+### `agconf init`
 
 Initializes a repository with content from a content repository.
 
@@ -91,19 +91,19 @@ Initializes a repository with content from a content repository.
 **Example:**
 ```bash
 # Initialize from content repository with latest release (recommended)
-agent-conf init --source acme/engineering-standards
+agconf init --source acme/engineering-standards
 
 # Initialize with specific version
-agent-conf init --source acme/engineering-standards --ref v1.2.0
+agconf init --source acme/engineering-standards --ref v1.2.0
 
 # Initialize from a branch (for testing)
-agent-conf init --source acme/engineering-standards --ref feature-branch
+agconf init --source acme/engineering-standards --ref feature-branch
 
 # Initialize from local source (development)
-agent-conf init --local /path/to/content-repo
+agconf init --local /path/to/content-repo
 ```
 
-### `agent-conf sync`
+### `agconf sync`
 
 Syncs content from the content repository. By default, fetches the latest release.
 
@@ -119,28 +119,28 @@ Syncs content from the content repository. By default, fetches the latest releas
 **Example:**
 ```bash
 # Sync to latest release (default)
-agent-conf sync
+agconf sync
 
 # Re-sync using pinned version
-agent-conf sync --pinned
+agconf sync --pinned
 
 # Update to a specific version
-agent-conf sync --ref v1.3.0
+agconf sync --ref v1.3.0
 ```
 
-### `agent-conf check`
+### `agconf check`
 
 Checks if managed files have been modified.
 
 **Schema compatibility check:** The CLI checks the lockfile's schema version before proceeding.
 
-### `agent-conf status`
+### `agconf status`
 
 Shows current sync status including version info.
 
 **Example output:**
 ```
-agent-conf status
+agconf status
 
 Sync Status:
   Schema: 1.0.0
@@ -160,27 +160,27 @@ The CLI version is tracked in the lockfile (`cli_version`) for diagnostic purpos
 If the lockfile was created with a newer CLI, a warning is shown:
 ```
 ⚠ CLI is outdated: v1.0.0 installed, but repo was synced with v1.2.0
-  Run: agent-conf upgrade-cli
+  Run: agconf upgrade-cli
 ```
 
 This is informational only - the CLI will still work if schema versions are compatible.
 
 ## Canonical Repository Setup
 
-When creating a canonical repository with `agent-conf canonical init`:
+When creating a canonical repository with `agconf canonical init`:
 
-1. The `agent-conf.yaml` file is created with the current schema version
+1. The `agconf.yaml` file is created with the current schema version
 2. Workflow files are generated without CLI version pinning
 3. Downstream repos can use any compatible CLI version
 
 **Example:**
 ```bash
-agent-conf canonical init --name my-standards --org my-org
+agconf canonical init --name my-standards --org my-org
 ```
 
 The generated workflows use unpinned CLI installation:
 ```yaml
-- name: Install agent-conf CLI
+- name: Install agconf CLI
   run: npm install -g agconf  # Uses latest compatible version
 ```
 
@@ -222,7 +222,7 @@ The generated workflows use unpinned CLI installation:
     },
     "skills": ["conventional-commits", "git-branch-naming"],
     "targets": ["claude"],
-    "marker_prefix": "agent-conf"
+    "marker_prefix": "agconf"
   },
   "cli_version": "1.0.0"
 }
@@ -258,4 +258,4 @@ The GitHub API couldn't find releases.
 
 If you manually edited workflow files, versions might be out of sync.
 
-**Solution:** Run `agent-conf sync --pinned` to re-sync everything.
+**Solution:** Run `agconf sync --pinned` to re-sync everything.

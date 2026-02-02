@@ -17,7 +17,7 @@ import {
   updateWorkflowRef,
 } from "../../src/core/workflows.js";
 
-const SOURCE_REPO = "org/agent-conf";
+const SOURCE_REPO = "org/agconf";
 const DEFAULT_CONFIG = getWorkflowConfig(SOURCE_REPO);
 const WORKFLOW_FILES = getWorkflowFiles(DEFAULT_CONFIG);
 
@@ -25,30 +25,30 @@ describe("workflows", () => {
   describe("extractWorkflowRef", () => {
     it("extracts version ref from workflow content", () => {
       const content = `
-name: agent-conf Sync
+name: agconf Sync
 jobs:
   sync:
-    uses: org/agent-conf/.github/workflows/sync-reusable.yml@v1.2.3
+    uses: org/agconf/.github/workflows/sync-reusable.yml@v1.2.3
 `;
       expect(extractWorkflowRef(content, "sync-reusable.yml", SOURCE_REPO)).toBe("v1.2.3");
     });
 
     it("extracts branch ref from workflow content", () => {
       const content = `
-name: agent-conf Sync
+name: agconf Sync
 jobs:
   sync:
-    uses: org/agent-conf/.github/workflows/sync-reusable.yml@master
+    uses: org/agconf/.github/workflows/sync-reusable.yml@master
 `;
       expect(extractWorkflowRef(content, "sync-reusable.yml", SOURCE_REPO)).toBe("master");
     });
 
     it("returns undefined for non-matching workflow", () => {
       const content = `
-name: agent-conf Sync
+name: agconf Sync
 jobs:
   sync:
-    uses: org/agent-conf/.github/workflows/sync-reusable.yml@v1.2.3
+    uses: org/agconf/.github/workflows/sync-reusable.yml@v1.2.3
 `;
       expect(extractWorkflowRef(content, "check-reusable.yml", SOURCE_REPO)).toBeUndefined();
     });
@@ -60,7 +60,7 @@ jobs:
 
     it("handles prerelease versions", () => {
       const content = `
-    uses: org/agent-conf/.github/workflows/check-reusable.yml@v1.0.0-alpha
+    uses: org/agconf/.github/workflows/check-reusable.yml@v1.0.0-alpha
 `;
       expect(extractWorkflowRef(content, "check-reusable.yml", SOURCE_REPO)).toBe("v1.0.0-alpha");
     });
@@ -69,10 +69,10 @@ jobs:
   describe("updateWorkflowRef", () => {
     it("updates version ref in workflow content", () => {
       const content = `
-name: agent-conf Sync
+name: agconf Sync
 jobs:
   sync:
-    uses: org/agent-conf/.github/workflows/sync-reusable.yml@v1.0.0
+    uses: org/agconf/.github/workflows/sync-reusable.yml@v1.0.0
 `;
       const updated = updateWorkflowRef(content, "sync-reusable.yml", "v2.0.0", SOURCE_REPO);
       expect(updated).toContain("@v2.0.0");
@@ -81,7 +81,7 @@ jobs:
 
     it("updates branch ref to version ref", () => {
       const content = `
-    uses: org/agent-conf/.github/workflows/sync-reusable.yml@master
+    uses: org/agconf/.github/workflows/sync-reusable.yml@master
 `;
       const updated = updateWorkflowRef(content, "sync-reusable.yml", "v1.5.0", SOURCE_REPO);
       expect(updated).toContain("@v1.5.0");
@@ -90,7 +90,7 @@ jobs:
 
     it("leaves non-matching workflows unchanged", () => {
       const content = `
-    uses: org/agent-conf/.github/workflows/sync-reusable.yml@v1.0.0
+    uses: org/agconf/.github/workflows/sync-reusable.yml@v1.0.0
 `;
       const updated = updateWorkflowRef(content, "check-reusable.yml", "v2.0.0", SOURCE_REPO);
       expect(updated).toContain("@v1.0.0");
@@ -98,8 +98,8 @@ jobs:
 
     it("updates multiple occurrences", () => {
       const content = `
-    uses: org/agent-conf/.github/workflows/sync-reusable.yml@v1.0.0
-    uses: org/agent-conf/.github/workflows/sync-reusable.yml@v1.0.0
+    uses: org/agconf/.github/workflows/sync-reusable.yml@v1.0.0
+    uses: org/agconf/.github/workflows/sync-reusable.yml@v1.0.0
 `;
       const updated = updateWorkflowRef(content, "sync-reusable.yml", "v2.0.0", SOURCE_REPO);
       const matches = updated.match(/@v2\.0\.0/g);
@@ -116,7 +116,7 @@ jobs:
 
     it("includes managed by comment", () => {
       const content = generateSyncWorkflow("v1.0.0", DEFAULT_CONFIG);
-      expect(content).toContain("Managed by agent-conf CLI");
+      expect(content).toContain("Managed by agconf CLI");
     });
 
     it("includes schedule trigger", () => {
@@ -133,7 +133,7 @@ jobs:
     it("includes repository_dispatch trigger", () => {
       const content = generateSyncWorkflow("v1.0.0", DEFAULT_CONFIG);
       expect(content).toContain("repository_dispatch:");
-      expect(content).toContain("agent_conf-release");
+      expect(content).toContain("agconf-release");
     });
   });
 
@@ -146,7 +146,7 @@ jobs:
 
     it("includes managed by comment", () => {
       const content = generateCheckWorkflow("v1.0.0", DEFAULT_CONFIG);
-      expect(content).toContain("Managed by agent-conf CLI");
+      expect(content).toContain("Managed by agconf CLI");
     });
 
     it("includes pull_request trigger", () => {
@@ -223,7 +223,7 @@ jobs:
     let tempDir: string;
 
     beforeEach(async () => {
-      tempDir = await fs.mkdtemp(path.join("/tmp", "agent-conf-test-"));
+      tempDir = await fs.mkdtemp(path.join("/tmp", "agconf-test-"));
     });
 
     afterEach(async () => {
@@ -256,7 +256,7 @@ jobs:
         const workflow = WORKFLOW_FILES[0];
         const workflowsDir = path.join(tempDir, ".github/workflows");
         await fs.mkdir(workflowsDir, { recursive: true });
-        const content = `# Managed by agent-conf
+        const content = `# Managed by agconf
 name: Test
 jobs: {}`;
         await fs.writeFile(path.join(workflowsDir, workflow.filename), content);

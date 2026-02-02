@@ -16,7 +16,7 @@ export interface RuleFrontmatter {
   paths?: string[];
 
   /**
-   * Metadata added by agent-conf during sync or by the rule author.
+   * Metadata added by agconf during sync or by the rule author.
    */
   metadata?: Record<string, string>;
 
@@ -349,7 +349,7 @@ export function generatePathsComment(paths: string[] | undefined): string {
  * This is used for Codex target which concatenates all rules into one section.
  *
  * @param rules - Array of Rule objects to include
- * @param markerPrefix - Prefix for marker comments (e.g., "agent-conf")
+ * @param markerPrefix - Prefix for marker comments (e.g., "agconf")
  * @returns Complete rules section with markers
  */
 export function generateRulesSection(rules: Rule[], markerPrefix: string): string {
@@ -381,7 +381,7 @@ export function generateRulesSection(rules: Rule[], markerPrefix: string): strin
   // Now build the full section with markers and metadata
   const parts: string[] = [];
   parts.push(`<!-- ${markerPrefix}:rules:start -->`);
-  parts.push(`<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf -->`);
+  parts.push(`<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->`);
   parts.push(`<!-- Content hash: ${contentHash} -->`);
   parts.push(`<!-- Rule count: ${rules.length} -->`);
   parts.push("");
@@ -460,11 +460,11 @@ export function updateAgentsMdWithRules(
 
 /**
  * Add managed metadata to a rule file for Claude target.
- * This marks the file as managed by agent-conf and stores a content hash
+ * This marks the file as managed by agconf and stores a content hash
  * for change detection.
  *
  * @param rule - The rule to add metadata to
- * @param metadataPrefix - Prefix for metadata keys (e.g., "agent_conf")
+ * @param metadataPrefix - Prefix for metadata keys (e.g., "agconf")
  * @returns Rule content with metadata frontmatter added
  */
 export function addRuleMetadata(rule: Rule, metadataPrefix: string): string {

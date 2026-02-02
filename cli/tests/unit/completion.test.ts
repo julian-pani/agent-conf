@@ -148,11 +148,11 @@ describe("completion", () => {
         complete: true,
         words: 1,
         point: 11,
-        line: "agent-conf ",
+        line: "agconf ",
         partial: "",
         last: "",
         lastPartial: "",
-        prev: "agent-conf",
+        prev: "agconf",
       });
 
       expect(handleCompletion()).toBe(true);
@@ -172,7 +172,7 @@ describe("completion", () => {
         complete: true,
         words: 2,
         point: 18,
-        line: "agent-conf config ",
+        line: "agconf config ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -194,7 +194,7 @@ describe("completion", () => {
         complete: true,
         words: 2,
         point: 22,
-        line: "agent-conf completion ",
+        line: "agconf completion ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -215,7 +215,7 @@ describe("completion", () => {
         complete: true,
         words: 3,
         point: 25,
-        line: "agent-conf init --target ",
+        line: "agconf init --target ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -231,7 +231,7 @@ describe("completion", () => {
         complete: true,
         words: 3,
         point: 19,
-        line: "agent-conf init -t ",
+        line: "agconf init -t ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -247,7 +247,7 @@ describe("completion", () => {
         complete: true,
         words: 2,
         point: 16,
-        line: "agent-conf init ",
+        line: "agconf init ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -265,7 +265,7 @@ describe("completion", () => {
         complete: true,
         words: 2,
         point: 17,
-        line: "agent-conf check ",
+        line: "agconf check ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -281,7 +281,7 @@ describe("completion", () => {
         complete: true,
         words: 2,
         point: 16,
-        line: "agent-conf sync ",
+        line: "agconf sync ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -299,7 +299,7 @@ describe("completion", () => {
         complete: true,
         words: 2,
         point: 23,
-        line: "agent-conf upgrade-cli ",
+        line: "agconf upgrade-cli ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -315,7 +315,7 @@ describe("completion", () => {
         complete: true,
         words: 2,
         point: 20,
-        line: "agent-conf unknown ",
+        line: "agconf unknown ",
         partial: "",
         last: "",
         lastPartial: "",
@@ -340,7 +340,7 @@ describe("completion", () => {
     it("should return true when tabtab completion file exists for zsh", () => {
       process.env.SHELL = "/bin/zsh";
       vi.mocked(fs.existsSync).mockImplementation((p) => {
-        return p === path.join(home, ".config", "tabtab", "agent-conf.zsh");
+        return p === path.join(home, ".config", "tabtab", "agconf.zsh");
       });
 
       expect(isCompletionInstalled()).toBe(true);
@@ -349,7 +349,7 @@ describe("completion", () => {
     it("should return true when tabtab completion file exists for fish", () => {
       process.env.SHELL = "/bin/fish";
       vi.mocked(fs.existsSync).mockImplementation((p) => {
-        return p === path.join(home, ".config", "tabtab", "agent-conf.fish");
+        return p === path.join(home, ".config", "tabtab", "agconf.fish");
       });
 
       expect(isCompletionInstalled()).toBe(true);
@@ -358,7 +358,7 @@ describe("completion", () => {
     it("should return true when tabtab completion file exists for bash", () => {
       process.env.SHELL = "/bin/bash";
       vi.mocked(fs.existsSync).mockImplementation((p) => {
-        return p === path.join(home, ".config", "tabtab", "agent-conf.bash");
+        return p === path.join(home, ".config", "tabtab", "agconf.bash");
       });
 
       expect(isCompletionInstalled()).toBe(true);
@@ -372,7 +372,7 @@ describe("completion", () => {
         return p === zshrc;
       });
       vi.mocked(fs.readFileSync).mockReturnValue(
-        "# some config\n# tabtab source for agent-conf\nsource ~/.config/tabtab/agent-conf.zsh\n",
+        "# some config\n# tabtab source for agconf\nsource ~/.config/tabtab/agconf.zsh\n",
       );
 
       expect(isCompletionInstalled()).toBe(true);
@@ -387,7 +387,7 @@ describe("completion", () => {
         return p === fishConfig;
       });
       vi.mocked(fs.readFileSync).mockReturnValue(
-        "# some config\n# begin agent-conf\nsource ~/.config/tabtab/agent-conf.fish\n# end agent-conf\n",
+        "# some config\n# begin agconf\nsource ~/.config/tabtab/agconf.fish\n# end agconf\n",
       );
 
       expect(isCompletionInstalled()).toBe(true);

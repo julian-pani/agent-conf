@@ -21,10 +21,10 @@ describe("init integration", () => {
 
   beforeEach(async () => {
     // Create temp directories
-    tempTargetDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-target-"));
-    agentConfDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-source-"));
+    tempTargetDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-target-"));
+    agentConfDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-source-"));
 
-    // Create mock agent-conf repo structure
+    // Create mock agconf repo structure
     await fs.mkdir(path.join(agentConfDir, "instructions"), { recursive: true });
     await fs.mkdir(path.join(agentConfDir, "skills", "test-skill", "references"), {
       recursive: true,
@@ -82,7 +82,7 @@ describe("init integration", () => {
     expect(skillContent).toContain("# Test Skill");
 
     // Check lockfile was created
-    const lockfilePath = path.join(tempTargetDir, ".agent-conf", "lockfile.json");
+    const lockfilePath = path.join(tempTargetDir, ".agconf", "lockfile.json");
     const lockfileExists = await fs
       .access(lockfilePath)
       .then(() => true)
@@ -199,7 +199,7 @@ describe("init integration", () => {
   it("should use custom marker prefix from canonical config", async () => {
     const CUSTOM_PREFIX = "fbagents";
 
-    // Create agent-conf.yaml with custom marker prefix
+    // Create agconf.yaml with custom marker prefix
     const canonicalConfig = {
       version: "1.0.0",
       meta: {
@@ -211,7 +211,7 @@ describe("init integration", () => {
       },
     };
     await fs.writeFile(
-      path.join(agentConfDir, "agent-conf.yaml"),
+      path.join(agentConfDir, "agconf.yaml"),
       yamlStringify(canonicalConfig),
       "utf-8",
     );
@@ -245,8 +245,8 @@ Skill instructions.`,
     expect(agentsMd).toContain(`<!-- ${CUSTOM_PREFIX}:repo:start -->`);
     expect(agentsMd).toContain(`<!-- ${CUSTOM_PREFIX}:repo:end -->`);
     // Should NOT contain default prefix
-    expect(agentsMd).not.toContain("agent-conf:global");
-    expect(agentsMd).not.toContain("agent-conf:repo");
+    expect(agentsMd).not.toContain("agconf:global");
+    expect(agentsMd).not.toContain("agconf:repo");
 
     // Check skill metadata uses custom prefix
     const skillPath = path.join(tempTargetDir, ".claude", "skills", "test-skill", "SKILL.md");

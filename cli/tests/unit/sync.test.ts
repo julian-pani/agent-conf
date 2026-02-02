@@ -135,7 +135,7 @@ description: A test skill
     });
 
     it("skips non-managed skills", async () => {
-      // Create a skill without agent-conf metadata
+      // Create a skill without agconf metadata
       await createSkillFile("orphan-skill", "claude", SAMPLE_SKILL);
 
       const result = await deleteOrphanedSkills(
@@ -352,7 +352,7 @@ description: A test skill
           sourceRulesPath,
           targetDir,
           targets: ["claude"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });
@@ -388,19 +388,19 @@ description: A test skill
           "# Testing\n\n## Unit Tests\n\nWrite comprehensive tests.",
         );
 
-        const agentsMdContent = `<!-- agent-conf:global:start -->
+        const agentsMdContent = `<!-- agconf:global:start -->
 # Global Instructions
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 # Repo Specific
-<!-- agent-conf:repo:end -->`;
+<!-- agconf:repo:end -->`;
 
         const result = await syncRules({
           sourceRulesPath,
           targetDir,
           targets: ["codex"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });
@@ -410,8 +410,8 @@ description: A test skill
 
         // Verify AGENTS.md was updated
         expect(result.updatedAgentsMd).not.toBeNull();
-        expect(result.updatedAgentsMd).toContain("<!-- agent-conf:rules:start -->");
-        expect(result.updatedAgentsMd).toContain("<!-- agent-conf:rules:end -->");
+        expect(result.updatedAgentsMd).toContain("<!-- agconf:rules:start -->");
+        expect(result.updatedAgentsMd).toContain("<!-- agconf:rules:end -->");
         expect(result.updatedAgentsMd).toContain("# Project Rules");
 
         // Verify heading levels were adjusted (+1)
@@ -435,7 +435,7 @@ description: A test skill
           sourceRulesPath: path.join(tempDir, "non-existent-rules"),
           targetDir,
           targets: ["claude"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });
@@ -458,7 +458,7 @@ description: A test skill
           sourceRulesPath,
           targetDir,
           targets: ["claude"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });
@@ -502,7 +502,7 @@ Use secure patterns.`,
           sourceRulesPath,
           targetDir,
           targets: ["codex"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });
@@ -523,7 +523,7 @@ Use secure patterns.`,
           sourceRulesPath,
           targetDir,
           targets: ["claude", "codex"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });
@@ -550,7 +550,7 @@ Use secure patterns.`,
           sourceRulesPath,
           targetDir,
           targets: ["claude", "codex"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });
@@ -573,7 +573,7 @@ Use secure patterns.`,
           sourceRulesPath,
           targetDir,
           targets: ["claude"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });
@@ -593,7 +593,7 @@ Use secure patterns.`,
           sourceRulesPath,
           targetDir,
           targets: ["claude"],
-          markerPrefix: "agent-conf",
+          markerPrefix: "agconf",
           metadataPrefix: "agent_conf",
           agentsMdContent,
         });

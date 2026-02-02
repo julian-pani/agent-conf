@@ -4,10 +4,10 @@ import { parse as parseYaml } from "yaml";
 import { type CanonicalRepoConfig, CanonicalRepoConfigSchema } from "./schema.js";
 
 // Config file names
-const CANONICAL_REPO_CONFIG = "agent-conf.yaml";
+const CANONICAL_REPO_CONFIG = "agconf.yaml";
 
 /**
- * Load canonical repository config (agent-conf.yaml).
+ * Load canonical repository config (agconf.yaml).
  * Returns undefined if file doesn't exist.
  */
 export async function loadCanonicalRepoConfig(

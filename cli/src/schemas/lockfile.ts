@@ -39,7 +39,7 @@ export const ContentSchema = z.object({
   }),
   skills: z.array(z.string()),
   targets: z.array(z.string()).optional(),
-  /** Marker prefix used for managed content (default: "agent-conf") */
+  /** Marker prefix used for managed content (default: "agconf") */
   marker_prefix: z.string().optional(),
   /** Rules content tracking - optional for backward compat */
   rules: RulesContentSchema.optional(),

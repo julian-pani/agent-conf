@@ -22,7 +22,7 @@ body:
       label: Steps to Reproduce
       description: Steps to reproduce the behavior.
       placeholder: |
-        1. Run `agent-conf init ...`
+        1. Run `agconf init ...`
         2. See error
     validations:
       required: true
@@ -46,8 +46,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: agent-conf Version
-      description: Run `agent-conf --version` to get this.
+      label: agconf Version
+      description: Run `agconf --version` to get this.
       placeholder: "1.0.0"
     validations:
       required: true

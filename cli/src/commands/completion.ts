@@ -7,16 +7,16 @@ import tabtab from "tabtab";
 // @ts-expect-error - tabtab internal module not typed
 import tabtabInstaller from "tabtab/lib/installer.js";
 
-const CLI_NAME = "agent-conf";
+const CLI_NAME = "agconf";
 
 // Commands and their options for completion
 const COMMANDS = {
   init: {
-    description: "Initialize or sync agent-conf standards",
+    description: "Initialize or sync agconf standards",
     options: ["-s", "--source", "--local", "-y", "--yes", "--override", "--ref", "-t", "--target"],
   },
   sync: {
-    description: "Sync agent-conf standards",
+    description: "Sync agconf standards",
     options: ["-s", "--source", "--local", "-y", "--yes", "--override", "--ref", "-t", "--target"],
   },
   status: {
@@ -333,7 +333,7 @@ export async function promptCompletionInstall(): Promise<boolean> {
   });
 
   if (prompts.isCancel(shouldInstall) || !shouldInstall) {
-    prompts.log.info(`You can install later with: ${pc.cyan("agent-conf completion install")}`);
+    prompts.log.info(`You can install later with: ${pc.cyan("agconf completion install")}`);
     return false;
   }
 
@@ -347,7 +347,7 @@ export async function promptCompletionInstall(): Promise<boolean> {
     return true;
   } catch (error) {
     prompts.log.warn(`Could not install completions: ${error}`);
-    prompts.log.info(`You can try again with: ${pc.cyan("agent-conf completion install")}`);
+    prompts.log.info(`You can try again with: ${pc.cyan("agconf completion install")}`);
     return false;
   }
 }

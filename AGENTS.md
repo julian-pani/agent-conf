@@ -4,7 +4,7 @@ This file provides guidance to coding agents - such as Claude Code, Codex, etc -
 
 ## Project Overview
 
-**agent-conf** is a CLI utility for managing and syncing AI agent configurations (AGENTS.md, skills, instructions) across repositories from a canonical source. It solves configuration drift for teams using AI coding agents like Claude Code.
+**agconf** is a CLI utility for managing and syncing AI agent configurations (AGENTS.md, skills, instructions) across repositories from a canonical source. It solves configuration drift for teams using AI coding agents like Claude Code.
 
 ## Repository Structure
 
@@ -58,12 +58,12 @@ pnpm install:global       # Build + install globally
 Commands: init, sync, status, check, upgrade-cli, canonical (init, update), config, completion
 
 ### Configuration (`cli/src/config/`)
-- Zod schemas for canonical config (`agent-conf.yaml`) and lockfile validation
+- Zod schemas for canonical config (`agconf.yaml`) and lockfile validation
 
 ## Key Patterns
 
-- **File markers**: HTML comments (`<!-- agent-conf:global:start -->`) separate global vs repo-specific content
-- **Lockfile pinning**: `.agent-conf/lockfile.json` tracks sync state and versions
+- **File markers**: HTML comments (`<!-- agconf:global:start -->`) separate global vs repo-specific content
+- **Lockfile pinning**: `.agconf/lockfile.json` tracks sync state and versions
 - **Merge strategy**: Global content updates while preserving repo-specific sections in AGENTS.md
 - **Plugin architecture**: Targets and providers are extensible
 
@@ -78,11 +78,11 @@ Rules are modular, topic-specific instruction files (e.g., `security/api-auth.md
 - `syncRules(sourceDir, targetDir, options)` - Main entry point for rules sync
 
 **Target-specific behavior:**
-- **Claude**: Copies rule files to `.claude/rules/` preserving directory structure. Adds metadata frontmatter (`agent_conf_managed`, `agent_conf_content_hash`, `agent_conf_source_path`) for change tracking and orphan detection.
+- **Claude**: Copies rule files to `.claude/rules/` preserving directory structure. Adds metadata frontmatter (`agconf_managed`, `agconf_content_hash`, `agconf_source_path`) for change tracking and orphan detection.
 - **Codex**: Concatenates all rules into AGENTS.md under `<!-- {prefix}:rules:start/end -->` markers. Heading levels shift +1 to nest under "# Project Rules". Includes source attribution comments (`<!-- Rule: path/to/rule.md -->`).
 
 **Configuration:**
-- `rules_dir` in canonical `agent-conf.yaml` (optional) - path to rules directory
+- `rules_dir` in canonical `agconf.yaml` (optional) - path to rules directory
 - Rules tracked in lockfile under `content.rules` with file list and content hash
 
 ## Commit Conventions
@@ -126,8 +126,8 @@ When adding or modifying CLI commands, always update the shell completions in `c
 - Write tests that verify: (1) check passes immediately after sync, (2) check fails when content is modified
 
 **Current content types verified by check:**
-- AGENTS.md global block (`<!-- agent-conf:global:start/end -->`)
-- AGENTS.md rules section for Codex (`<!-- agent-conf:rules:start/end -->`)
+- AGENTS.md global block (`<!-- agconf:global:start/end -->`)
+- AGENTS.md rules section for Codex (`<!-- agconf:rules:start/end -->`)
 - Individual skill files (`.claude/skills/*/SKILL.md`) via frontmatter metadata
 - Individual rule files for Claude (`.claude/rules/**/*.md`) via frontmatter metadata
 

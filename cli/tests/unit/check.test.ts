@@ -14,7 +14,7 @@ describe("check command", () => {
   beforeEach(async () => {
     // Create a temporary directory
     tempDir = path.join(process.cwd(), `.test-check-${Date.now()}`);
-    await fs.mkdir(path.join(tempDir, ".agent-conf"), { recursive: true });
+    await fs.mkdir(path.join(tempDir, ".agconf"), { recursive: true });
     await fs.mkdir(path.join(tempDir, ".claude", "skills", "test-skill"), { recursive: true });
 
     // Mock process.cwd
@@ -76,7 +76,7 @@ describe("check command", () => {
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -87,20 +87,20 @@ describe("check command", () => {
       const hash = createHash("sha256").update(globalContent.trim()).digest("hex");
       const contentHash = `sha256:${hash.slice(0, 12)}`;
 
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: ${contentHash} -->
 
 ${globalContent}
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 <!-- Repository-specific instructions below -->
 
 # Repo content
 
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
 
@@ -149,11 +149,11 @@ description: A test skill
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
-      // Create AGENTS.md without agent-conf markers
+      // Create AGENTS.md without agconf markers
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), "# AGENTS.md\n\nSome content");
 
       // Create a managed skill file with a hash that won't match
@@ -161,8 +161,8 @@ description: A test skill
 name: test-skill
 description: A test skill
 metadata:
-  agent_conf_managed: "true"
-  agent_conf_content_hash: "sha256:originalHash"
+  agconf_managed: "true"
+  agconf_content_hash: "sha256:originalHash"
 ---
 
 # Test Skill - MODIFIED
@@ -202,27 +202,27 @@ metadata:
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
       // Create AGENTS.md with modified global block (hash won't match)
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Source: local:/some/path@abc123 -->
 <!-- Last synced: 2024-01-01T00:00:00.000Z -->
 <!-- Content hash: sha256:originalHash -->
 
 # Original content that has been MODIFIED
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 <!-- Repository-specific instructions below -->
 
 # Repo content
 
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
     });
@@ -261,7 +261,7 @@ metadata:
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
     });
@@ -269,7 +269,7 @@ metadata:
     it("should detect modified AGENTS.md with custom prefix markers", async () => {
       // Create AGENTS.md with custom prefix and modified content
       const agentsMd = `<!-- ${CUSTOM_PREFIX}:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:originalHash -->
 
 # Original content that has been MODIFIED
@@ -331,20 +331,20 @@ metadata:
 
     it("should fail when no managed files found with custom prefix", async () => {
       // Create AGENTS.md with DEFAULT prefix markers (not custom)
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:originalHash -->
 
 # Original content
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 <!-- Repository-specific instructions below -->
 
 # Repo content
 
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
 
@@ -353,8 +353,8 @@ metadata:
 name: test-skill
 description: A test skill
 metadata:
-  agent_conf_managed: "true"
-  agent_conf_content_hash: "sha256:originalHash"
+  agconf_managed: "true"
+  agconf_content_hash: "sha256:originalHash"
 ---
 
 # Test Skill
@@ -387,7 +387,7 @@ metadata:
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -425,7 +425,7 @@ description: A test skill
   describe("codex rules section in AGENTS.md", () => {
     it("should detect modified rules section in AGENTS.md for codex target", async () => {
       // For Codex target, rules are concatenated into AGENTS.md between
-      // <!-- agent-conf:rules:start --> and <!-- agent-conf:rules:end --> markers
+      // <!-- agconf:rules:start --> and <!-- agconf:rules:end --> markers
       // The check command should detect if this section has been manually modified
 
       const { createHash } = await import("node:crypto");
@@ -444,7 +444,7 @@ description: A test skill
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -453,16 +453,16 @@ description: A test skill
       const globalContent = "# Global Standards";
       const globalHash = createHash("sha256").update(globalContent.trim()).digest("hex");
 
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:${globalHash.slice(0, 12)} -->
 
 ${globalContent}
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:rules:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf -->
+<!-- agconf:rules:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf
 <!-- Content hash: sha256:originalRulesHash -->
 <!-- Rule count: 1 -->
 
@@ -473,14 +473,14 @@ ${globalContent}
 
 Always validate tokens.
 
-<!-- agent-conf:rules:end -->
+<!-- agconf:rules:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 <!-- Repository-specific instructions below -->
 
 # Repo content
 
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
 
@@ -509,7 +509,7 @@ Always validate tokens.
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -528,29 +528,29 @@ Always validate tokens.`;
       const globalContent = "# Global Standards";
       const globalHash = createHash("sha256").update(globalContent.trim()).digest("hex");
 
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:${globalHash.slice(0, 12)} -->
 
 ${globalContent}
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:rules:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf -->
+<!-- agconf:rules:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf
 <!-- Content hash: sha256:${rulesHash.slice(0, 12)} -->
 <!-- Rule count: 1 -->
 
 ${rulesContent}
 
-<!-- agent-conf:rules:end -->
+<!-- agconf:rules:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 <!-- Repository-specific instructions below -->
 
 # Repo content
 
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
 
@@ -580,7 +580,7 @@ paths:
 Always validate tokens.
 `;
       const rule = parseRule(ruleContent, "security/auth.md");
-      const rulesSection = generateRulesSection([rule], "agent-conf");
+      const rulesSection = generateRulesSection([rule], "agconf");
 
       // Create lockfile with codex target
       const lockfile = {
@@ -596,7 +596,7 @@ Always validate tokens.
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -604,22 +604,22 @@ Always validate tokens.
       const globalContent = "# Global Standards";
       const globalHash = createHash("sha256").update(globalContent.trim()).digest("hex");
 
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:${globalHash.slice(0, 12)} -->
 
 ${globalContent}
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
 ${rulesSection}
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 <!-- Repository-specific instructions below -->
 
 # Repo content
 
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
 
@@ -680,7 +680,7 @@ Always validate tokens before processing requests.
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -694,13 +694,13 @@ Always validate tokens before processing requests.
       const { createHash } = await import("node:crypto");
       const globalContent = "# Global Standards";
       const globalHash = createHash("sha256").update(globalContent.trim()).digest("hex");
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:${globalHash.slice(0, 12)} -->
 
 ${globalContent}
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
 
@@ -728,7 +728,7 @@ ${globalContent}
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -743,9 +743,9 @@ ${globalContent}
 
       const ruleContent = `---
 metadata:
-  agent_conf_managed: "true"
-  agent_conf_content_hash: "${contentHash}"
-  agent_conf_source_path: "test-rule.md"
+  agconf_managed: "true"
+  agconf_content_hash: "${contentHash}"
+  agconf_source_path: "test-rule.md"
 ---
 
 # Test Rule
@@ -757,13 +757,13 @@ Some rule content
       // Create AGENTS.md (required for check to pass)
       const globalContent = "# Global Standards";
       const globalHash = createHash("sha256").update(globalContent.trim()).digest("hex");
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:${globalHash.slice(0, 12)} -->
 
 ${globalContent}
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
 
@@ -790,16 +790,16 @@ ${globalContent}
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
       // Create managed rule file with a hash that won't match (content was modified)
       const ruleContent = `---
 metadata:
-  agent_conf_managed: "true"
-  agent_conf_content_hash: "sha256:originalHash"
-  agent_conf_source_path: "test-rule.md"
+  agconf_managed: "true"
+  agconf_content_hash: "sha256:originalHash"
+  agconf_source_path: "test-rule.md"
 ---
 
 # Test Rule - MODIFIED
@@ -831,7 +831,7 @@ This content has been changed!
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -843,7 +843,7 @@ paths:
 
 # Local Rule
 
-This is a repo-specific rule, not managed by agent-conf.
+This is a repo-specific rule, not managed by agconf.
 `;
       await fs.writeFile(path.join(tempDir, ".claude", "rules", "local-rule.md"), ruleContent);
 
@@ -851,13 +851,13 @@ This is a repo-specific rule, not managed by agent-conf.
       const { createHash } = await import("node:crypto");
       const globalContent = "# Global Standards";
       const globalHash = createHash("sha256").update(globalContent.trim()).digest("hex");
-      const agentsMd = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
+      const agentsMd = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:${globalHash.slice(0, 12)} -->
 
 ${globalContent}
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 `;
       await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMd);
 
@@ -886,16 +886,16 @@ ${globalContent}
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
       // Create managed rule in subdirectory with hash that won't match
       const ruleContent = `---
 metadata:
-  agent_conf_managed: "true"
-  agent_conf_content_hash: "sha256:originalHash"
-  agent_conf_source_path: "security/auth.md"
+  agconf_managed: "true"
+  agconf_content_hash: "sha256:originalHash"
+  agconf_source_path: "security/auth.md"
 ---
 
 # Authentication Rules - MODIFIED
@@ -935,7 +935,7 @@ Modified content
         cli_version: "1.0.0",
       };
       await fs.writeFile(
-        path.join(tempDir, ".agent-conf", "lockfile.json"),
+        path.join(tempDir, ".agconf", "lockfile.json"),
         JSON.stringify(lockfile, null, 2),
       );
 
@@ -944,8 +944,8 @@ Modified content
 name: test-skill
 description: A test skill
 metadata:
-  agent_conf_managed: "true"
-  agent_conf_content_hash: "sha256:originalHash"
+  agconf_managed: "true"
+  agconf_content_hash: "sha256:originalHash"
 ---
 
 # Test Skill - MODIFIED
@@ -958,9 +958,9 @@ metadata:
       // Create managed rule with hash that won't match
       const ruleContent = `---
 metadata:
-  agent_conf_managed: "true"
-  agent_conf_content_hash: "sha256:originalHash"
-  agent_conf_source_path: "test-rule.md"
+  agconf_managed: "true"
+  agconf_content_hash: "sha256:originalHash"
+  agconf_source_path: "test-rule.md"
 ---
 
 # Test Rule - MODIFIED

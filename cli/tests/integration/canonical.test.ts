@@ -12,7 +12,7 @@ describe("canonical init", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-canonical-init-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-canonical-init-"));
   });
 
   afterEach(async () => {
@@ -23,7 +23,7 @@ describe("canonical init", () => {
     await canonicalInitCommand({
       name: "test-standards",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -44,7 +44,7 @@ describe("canonical init", () => {
     expect(workflowsExists).toBe(true);
   });
 
-  it("should create valid agent-conf.yaml with semver version", async () => {
+  it("should create valid agconf.yaml with semver version", async () => {
     await canonicalInitCommand({
       name: "acme-standards",
       org: "ACME Corp",
@@ -54,7 +54,7 @@ describe("canonical init", () => {
       yes: true,
     });
 
-    const configPath = path.join(tempDir, "agent-conf.yaml");
+    const configPath = path.join(tempDir, "agconf.yaml");
     const configContent = await fs.readFile(configPath, "utf-8");
     const config = parseYaml(configContent);
 
@@ -74,7 +74,7 @@ describe("canonical init", () => {
       name: "test-standards",
       org: "Test Organization",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -88,13 +88,13 @@ describe("canonical init", () => {
 
   it("should create AGENTS.md with fallback organization when not provided and not in git", async () => {
     // Create a new directory outside of any git repo to avoid picking up git config
-    const isolatedDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-isolated-"));
+    const isolatedDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-isolated-"));
 
     try {
       await canonicalInitCommand({
         name: "test-standards",
         dir: isolatedDir,
-        markerPrefix: "agent-conf",
+        markerPrefix: "agconf",
         includeExamples: false,
         yes: true,
       });
@@ -114,7 +114,7 @@ describe("canonical init", () => {
     await canonicalInitCommand({
       name: "test-standards",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: true,
       yes: true,
     });
@@ -145,7 +145,7 @@ describe("canonical init", () => {
     await canonicalInitCommand({
       name: "test-standards",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -163,7 +163,7 @@ describe("canonical init", () => {
     await canonicalInitCommand({
       name: "test-standards",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -195,7 +195,7 @@ describe("canonical init", () => {
       yes: true,
     });
 
-    const configPath = path.join(tempDir, "agent-conf.yaml");
+    const configPath = path.join(tempDir, "agconf.yaml");
     const configContent = await fs.readFile(configPath, "utf-8");
     const config = parseYaml(configContent);
 
@@ -208,12 +208,12 @@ describe("canonical init", () => {
     await canonicalInitCommand({
       name: "nested-repo",
       dir: nestedDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: true,
       yes: true,
     });
 
-    const configPath = path.join(nestedDir, "agent-conf.yaml");
+    const configPath = path.join(nestedDir, "agconf.yaml");
     const configExists = await fs
       .access(configPath)
       .then(() => true)
@@ -227,7 +227,7 @@ describe("canonical init - workflow generation", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-workflow-gen-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-workflow-gen-"));
   });
 
   afterEach(async () => {
@@ -238,7 +238,7 @@ describe("canonical init - workflow generation", () => {
     await canonicalInitCommand({
       name: "test-standards",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -261,7 +261,7 @@ describe("canonical init - workflow generation", () => {
       name: "my-standards",
       org: "acme-corp",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -276,7 +276,7 @@ describe("canonical init - workflow generation", () => {
     await canonicalInitCommand({
       name: "my-standards",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -309,7 +309,7 @@ describe("canonical init - smart defaults", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-smart-defaults-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-smart-defaults-"));
   });
 
   afterEach(async () => {
@@ -391,7 +391,7 @@ describe("canonical init - workflow content validation", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-workflow-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-workflow-"));
   });
 
   afterEach(async () => {
@@ -403,7 +403,7 @@ describe("canonical init - workflow content validation", () => {
       name: "test-standards",
       org: "test-org",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -423,7 +423,7 @@ describe("canonical init - workflow content validation", () => {
       name: "test-standards",
       org: "test-org",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -442,7 +442,7 @@ describe("canonical init - workflow content validation", () => {
     await canonicalInitCommand({
       name: "test-standards",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });
@@ -457,7 +457,7 @@ describe("canonical init - workflow content validation", () => {
 
     expect(stepNames).toContain("Checkout");
     expect(stepNames).toContain("Setup Node.js");
-    expect(stepNames).toContain("Install agent-conf CLI");
+    expect(stepNames).toContain("Install agconf CLI");
     expect(stepNames).toContain("Run sync");
     expect(stepNames).toContain("Check for changes");
   });
@@ -466,7 +466,7 @@ describe("canonical init - workflow content validation", () => {
     await canonicalInitCommand({
       name: "test-standards",
       dir: tempDir,
-      markerPrefix: "agent-conf",
+      markerPrefix: "agconf",
       includeExamples: false,
       yes: true,
     });

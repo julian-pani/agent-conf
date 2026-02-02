@@ -5,7 +5,7 @@ import { buildAgentsMd, extractRepoBlockContent, parseAgentsMd } from "./markers
 
 export interface MergeOptions {
   override: boolean;
-  /** Marker prefix to use for managed content (default: "agent-conf") */
+  /** Marker prefix to use for managed content (default: "agconf") */
   markerPrefix?: string;
 }
 

@@ -516,7 +516,7 @@ export function findOrphanedSkills(previousSkills: string[], currentSkills: stri
 
 /** Options for deleting orphaned skills */
 export interface DeleteOrphanedSkillsOptions {
-  /** Metadata prefix to use for checking managed status (default: "agent-conf") */
+  /** Metadata prefix to use for checking managed status (default: "agconf") */
   metadataPrefix?: string;
 }
 

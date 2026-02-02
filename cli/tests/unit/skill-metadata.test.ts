@@ -64,11 +64,11 @@ describe("skill-metadata", () => {
     it("adds metadata to skill without existing metadata", () => {
       const result = addManagedMetadata(SAMPLE_SKILL);
 
-      expect(result).toContain('agent_conf_managed: "true"');
-      expect(result).toContain('agent_conf_content_hash: "sha256:');
+      expect(result).toContain('agconf_managed: "true"');
+      expect(result).toContain('agconf_content_hash: "sha256:');
       // Should NOT contain source or synced_at (those are in lockfile only)
-      expect(result).not.toContain("agent_conf_source");
-      expect(result).not.toContain("agent_conf_synced_at");
+      expect(result).not.toContain("agconf_source");
+      expect(result).not.toContain("agconf_synced_at");
       // Original content should be preserved
       expect(result).toContain("name: test-skill");
       expect(result).toContain("# Test Skill");
@@ -80,9 +80,9 @@ describe("skill-metadata", () => {
       // Should preserve existing metadata
       expect(result).toContain("author: test-author");
       expect(result).toContain("version: 1.0");
-      // Should add agent-conf metadata
-      expect(result).toContain('agent_conf_managed: "true"');
-      expect(result).toContain('agent_conf_content_hash: "sha256:');
+      // Should add agconf metadata
+      expect(result).toContain('agconf_managed: "true"');
+      expect(result).toContain('agconf_content_hash: "sha256:');
     });
 
     it("produces consistent output for same input", () => {
@@ -95,21 +95,21 @@ describe("skill-metadata", () => {
   });
 
   describe("stripManagedMetadata", () => {
-    it("removes agent-conf fields from metadata", () => {
+    it("removes agconf fields from metadata", () => {
       const withMetadata = addManagedMetadata(SAMPLE_SKILL_WITH_METADATA);
       const stripped = stripManagedMetadata(withMetadata);
 
-      expect(stripped).not.toContain("agent_conf_managed");
-      expect(stripped).not.toContain("agent_conf_content_hash");
-      // Should preserve non-agent-conf metadata
+      expect(stripped).not.toContain("agconf_managed");
+      expect(stripped).not.toContain("agconf_content_hash");
+      // Should preserve non-agconf metadata
       expect(stripped).toContain("author: test-author");
     });
 
-    it("removes metadata key entirely if only agent-conf fields", () => {
+    it("removes metadata key entirely if only agconf fields", () => {
       const withMetadata = addManagedMetadata(SAMPLE_SKILL);
       const stripped = stripManagedMetadata(withMetadata);
 
-      // metadata key should be removed since it only contained agent-conf fields
+      // metadata key should be removed since it only contained agconf fields
       expect(stripped).not.toContain("metadata:");
     });
   });
@@ -130,13 +130,13 @@ describe("skill-metadata", () => {
       expect(hash1).not.toBe(hash2);
     });
 
-    it("ignores agent-conf metadata when computing hash", () => {
+    it("ignores agconf metadata when computing hash", () => {
       const withMetadata = addManagedMetadata(SAMPLE_SKILL);
 
       const hashOriginal = computeContentHash(SAMPLE_SKILL);
       const hashWithMetadata = computeContentHash(withMetadata);
 
-      // Hashes should be the same - agent-conf metadata is stripped before hashing
+      // Hashes should be the same - agconf metadata is stripped before hashing
       expect(hashOriginal).toBe(hashWithMetadata);
     });
   });
@@ -186,8 +186,8 @@ describe("skill-metadata", () => {
         expect(result).toContain('fbagents_managed: "true"');
         expect(result).toContain('fbagents_content_hash: "sha256:');
         // Should NOT use default prefix
-        expect(result).not.toContain("agent_conf_managed");
-        expect(result).not.toContain("agent_conf_content_hash");
+        expect(result).not.toContain("agconf_managed");
+        expect(result).not.toContain("agconf_content_hash");
       });
 
       it("preserves existing metadata when using custom prefix", () => {
@@ -250,7 +250,7 @@ describe("skill-metadata", () => {
         });
 
         // Default prefix metadata should still be present since we're stripping custom prefix
-        expect(stripped).toContain("agent_conf_managed");
+        expect(stripped).toContain("agconf_managed");
       });
     });
 

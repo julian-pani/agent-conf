@@ -35,7 +35,7 @@ async function warnIfCliOutdated(): Promise<void> {
           `⚠ CLI is outdated: v${mismatch.currentVersion} installed, but repo was synced with v${mismatch.lockfileVersion}`,
         ),
       );
-      console.log(pc.yellow("  Run: agent-conf upgrade-cli"));
+      console.log(pc.yellow("  Run: agconf upgrade-cli"));
       console.log();
     }
   } catch {
@@ -47,8 +47,8 @@ export function createCli(): Command {
   const program = new Command();
 
   program
-    .name("agent-conf")
-    .description("Sync company engineering standards from agent-conf repository")
+    .name("agconf")
+    .description("Sync company engineering standards from canonical repository")
     .version(getCliVersion())
     .hook("preAction", async () => {
       await warnIfCliOutdated();
@@ -56,7 +56,7 @@ export function createCli(): Command {
 
   program
     .command("init")
-    .description("Initialize or sync agent-conf standards to the current repository")
+    .description("Initialize or sync agconf standards to the current repository")
     .option(
       "-s, --source <repo>",
       "Canonical repository in owner/repo format (e.g., acme/standards)",
@@ -128,7 +128,7 @@ export function createCli(): Command {
 
   program
     .command("upgrade-cli")
-    .description("Upgrade the agent-conf CLI to the latest version")
+    .description("Upgrade the agconf CLI to the latest version")
     .option("-y, --yes", "Non-interactive mode")
     .action(async (options: { yes?: boolean }) => {
       await upgradeCliCommand(options);
@@ -196,7 +196,7 @@ export function createCli(): Command {
     .option("-n, --name <name>", "Name for the canonical repository")
     .option("-o, --org <organization>", "Organization name")
     .option("-d, --dir <directory>", "Target directory (default: current)")
-    .option("--marker-prefix <prefix>", "Marker prefix (default: agent-conf)")
+    .option("--marker-prefix <prefix>", "Marker prefix (default: agconf)")
     .option("--no-examples", "Skip example skill creation")
     .option("--rules-dir <directory>", "Rules directory (e.g., 'rules')")
     .option("-y, --yes", "Non-interactive mode")

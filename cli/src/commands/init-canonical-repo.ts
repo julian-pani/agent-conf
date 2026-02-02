@@ -15,7 +15,7 @@ export interface InitCanonicalRepoOptions {
   org?: string | undefined;
   /** Target directory (default: cwd) */
   dir?: string | undefined;
-  /** Marker prefix (default: "agent-conf") */
+  /** Marker prefix (default: "agconf") */
   markerPrefix?: string | undefined;
   /** Include example skill (default: true) */
   includeExamples?: boolean | undefined;
@@ -32,7 +32,7 @@ interface ResolvedOptions {
 }
 
 /**
- * Generates the agent-conf.yaml configuration file content.
+ * Generates the agconf.yaml configuration file content.
  */
 function generateConfigYaml(options: ResolvedOptions): string {
   const config: Record<string, unknown> = {
@@ -222,11 +222,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install agent-conf CLI
+      - name: Install agconf CLI
         run: npm install -g agconf
 
       - name: Run sync
-        run: agent-conf sync --yes --summary-file /tmp/sync-summary.md --expand-changes
+        run: agconf sync --yes --summary-file /tmp/sync-summary.md --expand-changes
         env:
           GITHUB_TOKEN: \${{ secrets.token }}
 
@@ -234,7 +234,7 @@ jobs:
         id: check-changes
         run: |
           # Check for meaningful changes (excluding lockfile which always updates with synced_at)
-          LOCKFILE_PATH=".agent-conf/lockfile.json"
+          LOCKFILE_PATH=".agconf/lockfile.json"
 
           # Get changed files excluding lockfile
           MEANINGFUL_CHANGES=\$(git status --porcelain | grep -v "^.. \$LOCKFILE_PATH\$" || true)
@@ -385,11 +385,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install agent-conf CLI
+      - name: Install agconf CLI
         run: npm install -g agconf
 
       - name: Check file integrity
-        run: agent-conf check
+        run: agconf check
 `;
 }
 
@@ -397,7 +397,7 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
   const logger = createLogger();
 
   console.log();
-  prompts.intro(pc.bold("agent-conf init-canonical-repo"));
+  prompts.intro(pc.bold("agconf init-canonical-repo"));
 
   // Determine target directory
   const targetDir = options.dir ? path.resolve(options.dir) : process.cwd();
@@ -443,10 +443,10 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
   // Check if directory exists and has content
   const dirExists = await directoryExists(targetDir);
   if (dirExists) {
-    const configExists = await fileExists(path.join(targetDir, "agent-conf.yaml"));
+    const configExists = await fileExists(path.join(targetDir, "agconf.yaml"));
     if (configExists && !options.yes) {
       const shouldContinue = await prompts.confirm({
-        message: "This directory already has an agent-conf.yaml. Overwrite?",
+        message: "This directory already has an agconf.yaml. Overwrite?",
         initialValue: false,
       });
 
@@ -466,7 +466,7 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
       name: options.name ?? defaultName,
       organization: options.org ?? gitOrganization,
       targetDir,
-      markerPrefix: options.markerPrefix ?? "agent-conf",
+      markerPrefix: options.markerPrefix ?? "agconf",
       includeExamples: options.includeExamples !== false,
     };
   } else {
@@ -504,8 +504,8 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
 
     const markerPrefix = await prompts.text({
       message: "Marker prefix for managed content:",
-      placeholder: "agent-conf",
-      defaultValue: options.markerPrefix ?? "agent-conf",
+      placeholder: "agconf",
+      defaultValue: options.markerPrefix ?? "agconf",
       validate: (value) => {
         if (!value.trim()) return "Prefix is required";
         if (!/^[a-z0-9-]+$/.test(value))
@@ -555,8 +555,8 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
     await ensureDir(skillsDir);
     await ensureDir(workflowsDir);
 
-    // Write agent-conf.yaml
-    const configPath = path.join(resolvedOptions.targetDir, "agent-conf.yaml");
+    // Write agconf.yaml
+    const configPath = path.join(resolvedOptions.targetDir, "agconf.yaml");
     await fs.writeFile(configPath, generateConfigYaml(resolvedOptions), "utf-8");
 
     // Write AGENTS.md
@@ -626,7 +626,7 @@ export async function initCanonicalRepoCommand(options: InitCanonicalRepoOptions
     console.log();
     console.log(
       pc.dim(
-        `See https://github.com/julian-pani/agent-conf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md for detailed setup instructions.`,
+        `See https://github.com/julian-pani/agconf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md for detailed setup instructions.`,
       ),
     );
 

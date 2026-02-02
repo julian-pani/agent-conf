@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getMarkers as getMarkersFromConfig } from "../config/schema.js";
 
 // Default marker prefix
-const DEFAULT_MARKER_PREFIX = "agent-conf";
+const DEFAULT_MARKER_PREFIX = "agconf";
 
 /**
  * Marker strings for managed content blocks.
@@ -42,9 +42,9 @@ export interface ParsedGlobalBlockMetadata {
  * Options for marker-based operations.
  */
 export interface MarkerOptions {
-  /** Marker prefix to use (default: "agent-conf") */
+  /** Marker prefix to use (default: "agconf") */
   prefix?: string;
-  /** CLI name for comments (default: "agent-conf") */
+  /** CLI name for comments (default: "agconf") */
   cliName?: string;
 }
 
@@ -97,7 +97,7 @@ export function buildGlobalBlock(
   metadata: GlobalBlockMetadata,
   options: MarkerOptions = {},
 ): string {
-  const { prefix = DEFAULT_MARKER_PREFIX, cliName = "agent-conf" } = options;
+  const { prefix = DEFAULT_MARKER_PREFIX, cliName = "agconf" } = options;
   const markers = getMarkers(prefix);
 
   // Compute hash if not provided
@@ -232,7 +232,7 @@ export function hasGlobalBlockChanges(
 }
 
 /**
- * Check if AGENTS.md is managed by agent-conf.
+ * Check if AGENTS.md is managed by agconf.
  */
 export function isAgentsMdManaged(agentsMdContent: string, options: MarkerOptions = {}): boolean {
   const parsed = parseAgentsMd(agentsMdContent, options);

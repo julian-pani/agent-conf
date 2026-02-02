@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Local install script for agent-conf CLI
-# Run from the root of a cloned agent-conf (CLI) repo:
-#   git clone --depth 1 git@github.com:your-org/agent-conf.git /tmp/agent-conf
-#   /tmp/agent-conf/cli/scripts/install_local.sh
+# Local install script for agconf CLI
+# Run from the root of a cloned agconf (CLI) repo:
+#   git clone --depth 1 git@github.com:your-org/agconf.git /tmp/agconf
+#   /tmp/agconf/cli/scripts/install_local.sh
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CLI_DIR="$(dirname "$SCRIPT_DIR")"
 REPO_DIR="$(dirname "$CLI_DIR")"
 
-echo "Installing agent-conf CLI..."
+echo "Installing agconf CLI..."
 
 cd "$CLI_DIR"
 
@@ -34,10 +34,10 @@ echo "Removing cloned repo $REPO_DIR..."
 rm -rf "$REPO_DIR"
 
 echo ""
-echo "agent-conf CLI installed successfully!"
+echo "agconf CLI installed successfully!"
 echo ""
 echo "Get started:"
 echo "  cd your-project"
-echo "  agent-conf init --source <owner/content-repo>"
+echo "  agconf init --source <owner/content-repo>"
 echo ""
-echo "Run 'agent-conf --help' for more options."
+echo "Run 'agconf --help' for more options."

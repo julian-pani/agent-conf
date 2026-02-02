@@ -1,10 +1,10 @@
 #!/bin/bash
-# agent-conf pre-commit hook
+# agconf pre-commit hook
 # Prevents committing changes to managed files (skills and AGENTS.md global block)
 #
 # Installation:
 #   Copy this file to .git/hooks/pre-commit
-#   Or run: agent-conf hooks install
+#   Or run: agconf hooks install
 
 set -e
 
@@ -16,8 +16,8 @@ NC='\033[0m' # No Color
 # Get the repository root
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
-# Check if agent-conf has been synced
-if [ ! -f "$REPO_ROOT/.agent-conf/lockfile.json" ]; then
+# Check if agconf has been synced
+if [ ! -f "$REPO_ROOT/.agconf/lockfile.json" ]; then
     # Not synced, nothing to check
     exit 0
 fi
@@ -27,11 +27,11 @@ BLOCKED_FILES=""
 # Check for staged AGENTS.md changes to the global block
 if git diff --cached --name-only --diff-filter=M | grep -q '^AGENTS\.md$'; then
     # Check if the global block markers are present (indicating it's managed)
-    if grep -q '<!-- agent-conf:global:start -->' "$REPO_ROOT/AGENTS.md" 2>/dev/null; then
+    if grep -q '<!-- agconf:global:start -->' "$REPO_ROOT/AGENTS.md" 2>/dev/null; then
         # Get the diff for AGENTS.md and check if it touches the global block
         # We check if the diff includes lines within the global block
         DIFF=$(git diff --cached "$REPO_ROOT/AGENTS.md" 2>/dev/null || true)
-        if echo "$DIFF" | grep -q '<!-- agent-conf:global:'; then
+        if echo "$DIFF" | grep -q '<!-- agconf:global:'; then
             BLOCKED_FILES="$BLOCKED_FILES\n  - AGENTS.md (global block)"
         fi
     fi
@@ -44,18 +44,18 @@ STAGED_SKILL_FILES=$(git diff --cached --name-only --diff-filter=M | grep -E '^\
 for file in $STAGED_SKILL_FILES; do
     full_path="$REPO_ROOT/$file"
 
-    # Check if file contains agent_conf_managed: "true"
-    if grep -q 'agent_conf_managed:.*"true"' "$full_path" 2>/dev/null; then
+    # Check if file contains agconf_managed: "true"
+    if grep -q 'agconf_managed:.*"true"' "$full_path" 2>/dev/null; then
         BLOCKED_FILES="$BLOCKED_FILES\n  - $file"
     fi
 done
 
 if [ -n "$BLOCKED_FILES" ]; then
-    echo -e "${RED}Error: Cannot commit changes to agent-conf-managed files${NC}"
-    echo -e "${YELLOW}The following files are managed by agent-conf and should not be modified:${NC}"
+    echo -e "${RED}Error: Cannot commit changes to agconf-managed files${NC}"
+    echo -e "${YELLOW}The following files are managed by agconf and should not be modified:${NC}"
     echo -e "$BLOCKED_FILES"
     echo ""
-    echo "These files will be overwritten on the next 'agent-conf sync'."
+    echo "These files will be overwritten on the next 'agconf sync'."
     echo ""
     echo "Options:"
     echo "  1. Discard your changes: git checkout -- <file>"

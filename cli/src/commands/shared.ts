@@ -202,10 +202,10 @@ export async function resolveSource(
       logger.error(`No canonical source specified.
 
 Specify a source using one of these methods:
-  1. CLI flag: agent-conf init --source acme/engineering-standards
-  2. Config file: Add 'source.repository' to .agent-conf.yaml
+  1. CLI flag: agconf init --source acme/engineering-standards
+  2. Config file: Add 'source.repository' to .agconf.yaml
 
-Example .agent-conf.yaml:
+Example .agconf.yaml:
   source:
     type: github
     repository: acme/engineering-standards`);
@@ -234,7 +234,7 @@ export async function promptMergeOrOverride(
 ): Promise<boolean> {
   let shouldOverride = options.override ?? false;
 
-  // If the repo has already been synced, the AGENTS.md was created by agent-conf,
+  // If the repo has already been synced, the AGENTS.md was created by agconf,
   // so we don't need to ask - just merge by default (unless --override is specified)
   if (status.hasSynced) {
     return shouldOverride;
@@ -693,9 +693,9 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
     }
 
     // Lockfile status
-    const lockfilePath = formatPath(path.join(targetDir, ".agent-conf", "agent-conf.lock"));
+    const lockfilePath = formatPath(path.join(targetDir, ".agconf", "agconf.lock"));
     console.log(`  ${pc.green("+")} ${lockfilePath}`);
-    summaryLines.push("- `.agent-conf/lockfile.json` (updated)");
+    summaryLines.push("- `.agconf/lockfile.json` (updated)");
 
     // Git hook status
     const hookPath = formatPath(path.join(targetDir, ".git/hooks/pre-commit"));

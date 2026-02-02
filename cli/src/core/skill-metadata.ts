@@ -14,13 +14,13 @@ import {
 } from "./markers.js";
 
 // Default metadata prefix
-const DEFAULT_METADATA_PREFIX = "agent-conf";
+const DEFAULT_METADATA_PREFIX = "agconf";
 
 /**
  * Options for metadata operations.
  */
 export interface MetadataOptions extends MarkerOptions {
-  /** Prefix for metadata keys (default: "agent-conf") */
+  /** Prefix for metadata keys (default: "agconf") */
   metadataPrefix?: string;
 }
 
@@ -309,7 +309,7 @@ export function hasManualChanges(content: string, options: MetadataOptions = {})
 }
 
 /**
- * Check if a file is managed by agent-conf.
+ * Check if a file is managed by agconf.
  */
 export function isManaged(content: string, options: MetadataOptions = {}): boolean {
   const { metadataPrefix = DEFAULT_METADATA_PREFIX } = options;
@@ -332,7 +332,7 @@ export interface SkillFileCheckResult {
   path: string;
   /** Skill name (directory name) */
   skillName: string;
-  /** Whether the file is managed by agent-conf */
+  /** Whether the file is managed by agconf */
   isManaged: boolean;
   /** Whether the file has been manually modified */
   hasChanges: boolean;
@@ -443,7 +443,7 @@ export async function checkRuleFiles(
         // Extract rulePath from metadata if available
         const { frontmatter } = parseFrontmatter(content);
         const metadata = frontmatter.metadata as Record<string, string> | undefined;
-        const keyPrefix = (options.metadataPrefix || "agent-conf").replace(/-/g, "_");
+        const keyPrefix = (options.metadataPrefix || "agconf").replace(/-/g, "_");
         const rulePath = metadata?.[`${keyPrefix}_source_path`] || ruleFile;
 
         results.push({
@@ -486,7 +486,7 @@ export interface ManagedFileCheckResult {
   skillName?: string;
   /** Rule source path if type is rule (e.g., "security/auth.md") */
   rulePath?: string;
-  /** Whether the file is managed by agent-conf */
+  /** Whether the file is managed by agconf */
   isManaged: boolean;
   /** Whether the file has been manually modified */
   hasChanges: boolean;
@@ -504,7 +504,7 @@ export interface RuleFileCheckResult {
   path: string;
   /** Original rule path (e.g., "security/auth.md") */
   rulePath: string;
-  /** Whether the file is managed by agent-conf */
+  /** Whether the file is managed by agconf */
   isManaged: boolean;
   /** Whether the file has been manually modified */
   hasChanges: boolean;
@@ -557,9 +557,9 @@ export async function checkAgentsMd(
 
 /** Options for checking managed files */
 export interface CheckManagedFilesOptions {
-  /** Marker prefix for AGENTS.md (default: "agent-conf") */
+  /** Marker prefix for AGENTS.md (default: "agconf") */
   markerPrefix?: string;
-  /** Metadata prefix for skill files (default: "agent-conf") */
+  /** Metadata prefix for skill files (default: "agconf") */
   metadataPrefix?: string;
 }
 

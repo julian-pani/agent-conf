@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // =============================================================================
-// Canonical Repository Configuration Schema (agent-conf.yaml)
+// Canonical Repository Configuration Schema (agconf.yaml)
 // =============================================================================
 // This is the config file that lives in the canonical repository (the source of
 // skills and standards). It defines metadata about the canonical content, marker prefix,
@@ -40,9 +40,9 @@ export const MarkersConfigSchema = z.object({
   /**
    * Prefix for marker comments in managed files.
    * Generates markers like: <!-- {prefix}:global:start -->
-   * Default: "agent-conf"
+   * Default: "agconf"
    */
-  prefix: z.string().default("agent-conf"),
+  prefix: z.string().default("agconf"),
 });
 
 export const MergeConfigSchema = z.object({
@@ -51,7 +51,7 @@ export const MergeConfigSchema = z.object({
 });
 
 /**
- * Configuration schema for canonical repositories (agent-conf.yaml).
+ * Configuration schema for canonical repositories (agconf.yaml).
  * This file lives in the canonical source repo (e.g., acme-agent-standards).
  */
 export const CanonicalRepoConfigSchema = z.object({
@@ -72,7 +72,7 @@ export type MergeConfig = z.infer<typeof MergeConfigSchema>;
 export type CanonicalRepoConfig = z.infer<typeof CanonicalRepoConfigSchema>;
 
 // =============================================================================
-// Downstream Repository Configuration Schema (.agent-conf.yaml)
+// Downstream Repository Configuration Schema (.agconf.yaml)
 // =============================================================================
 // This is the config file that lives in downstream repositories (the consumers
 // of skills and standards). It defines which sources to sync from.
@@ -89,7 +89,7 @@ export const SourceConfigSchema = z.object({
 });
 
 /**
- * Configuration schema for downstream repositories (.agent-conf.yaml).
+ * Configuration schema for downstream repositories (.agconf.yaml).
  * This file lives in repos that consume content from canonical repos.
  */
 export const DownstreamConfigSchema = z.object({
@@ -129,9 +129,9 @@ export const ResolvedConfigSchema = z.object({
   /** Whether to preserve repo-specific content during merge */
   preserveRepoContent: z.boolean(),
   /** CLI name for hooks and workflows */
-  cliName: z.string().default("agent-conf"),
-  /** Directory name for lockfile and config (e.g., ".agent-conf") */
-  configDir: z.string().default(".agent-conf"),
+  cliName: z.string().default("agconf"),
+  /** Directory name for lockfile and config (e.g., ".agconf") */
+  configDir: z.string().default(".agconf"),
   /** Lockfile name */
   lockfileName: z.string().default("lockfile.json"),
 });
@@ -143,14 +143,14 @@ export type ResolvedConfig = z.infer<typeof ResolvedConfigSchema>;
 // =============================================================================
 
 export const DEFAULT_CONFIG: ResolvedConfig = {
-  name: "agent-conf",
+  name: "agconf",
   instructionsPath: "instructions/AGENTS.md",
   skillsDir: "skills",
-  markerPrefix: "agent-conf",
+  markerPrefix: "agconf",
   targets: ["claude"],
   preserveRepoContent: true,
-  cliName: "agent-conf",
-  configDir: ".agent-conf",
+  cliName: "agconf",
+  configDir: ".agconf",
   lockfileName: "lockfile.json",
 };
 

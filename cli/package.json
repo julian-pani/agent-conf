@@ -5,8 +5,7 @@
   "author": "Julian Pani",
   "type": "module",
   "bin": {
-    "agconf": "./dist/index.js",
-    "agent-conf": "./dist/index.js"
+    "agconf": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -74,12 +73,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/julian-pani/agent-conf.git",
+    "url": "git+https://github.com/julian-pani/agconf.git",
     "directory": "cli"
   },
-  "homepage": "https://github.com/julian-pani/agent-conf#readme",
+  "homepage": "https://github.com/julian-pani/agconf#readme",
   "bugs": {
-    "url": "https://github.com/julian-pani/agent-conf/issues"
+    "url": "https://github.com/julian-pani/agconf/issues"
   },
   "license": "MIT",
   "publishConfig": {

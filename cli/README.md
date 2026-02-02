@@ -1,10 +1,10 @@
 ---
 layout: default
-title: agent-conf cli
+title: agconf cli
 nav_order: 8
 ---
 
-# agent-conf
+# agconf
 
 [![npm version](https://img.shields.io/npm/v/agconf.svg)](https://www.npmjs.com/package/agconf)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -15,7 +15,7 @@ CLI to sync AI agent configurations across repositories.
 
 Full documentation, setup guides, and FAQ available on GitHub:
 
-**https://github.com/julian-pani/agent-conf**
+**https://github.com/julian-pani/agconf**
 
 ## Commands
 
@@ -39,7 +39,7 @@ Full documentation, setup guides, and FAQ available on GitHub:
 ```bash
 mkdir engineering-standards && cd engineering-standards
 git init
-agent-conf canonical init --name my-standards --org "My Org"
+agconf canonical init --name my-standards --org "My Org"
 ```
 
 This scaffolds the structure for your standards. Edit `instructions/AGENTS.md` to add your engineering guidelines, then commit and push to GitHub.
@@ -48,7 +48,7 @@ This scaffolds the structure for your standards. Edit `instructions/AGENTS.md` t
 
 ```bash
 cd your-project
-agent-conf init --source your-org/engineering-standards
+agconf init --source your-org/engineering-standards
 ```
 
 ## Rules
@@ -57,7 +57,7 @@ Rules are modular, topic-specific project instructions that live in `.claude/rul
 
 ### Configuration
 
-Add `rules_dir` to your canonical `agent-conf.yaml`:
+Add `rules_dir` to your canonical `agconf.yaml`:
 
 ```yaml
 version: "1.0.0"
@@ -74,7 +74,7 @@ Rules support arbitrary subdirectory nesting:
 
 ```
 canonical-repo/
-├── agent-conf.yaml
+├── agconf.yaml
 ├── instructions/
 │   └── AGENTS.md
 ├── skills/
@@ -105,7 +105,7 @@ downstream-repo/
 **Codex**: Rules are concatenated into AGENTS.md under a `# Project Rules` section. Heading levels are automatically adjusted (h1 becomes h2, etc.) to nest under the section header.
 
 ```markdown
-<!-- agent-conf:rules:start -->
+<!-- agconf:rules:start -->
 # Project Rules
 
 <!-- Rule: code-style.md -->
@@ -115,7 +115,7 @@ downstream-repo/
 <!-- Rule: security/api-auth.md -->
 ## API Authentication
 ...
-<!-- agent-conf:rules:end -->
+<!-- agconf:rules:end -->
 ```
 
 ### Path-Specific Rules

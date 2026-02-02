@@ -1,12 +1,12 @@
-# agent-conf
+# agconf
 
-[![npm version](https://img.shields.io/npm/v/agent-conf.svg)](https://www.npmjs.com/package/agent-conf)
-[![CI](https://github.com/julian-pani/agent-conf/actions/workflows/ci.yml/badge.svg)](https://github.com/julian-pani/agent-conf/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/agconf.svg)](https://www.npmjs.com/package/agconf)
+[![CI](https://github.com/julian-pani/agconf/actions/workflows/ci.yml/badge.svg)](https://github.com/julian-pani/agconf/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 CLI utility to manage and sync AI agent configurations across repositories.
 
-## Why agent-conf?
+## Why agconf?
 
 When you're using AI coding agents like Claude Code across multiple repositories, you quickly run into problems:
 
@@ -14,7 +14,7 @@ When you're using AI coding agents like Claude Code across multiple repositories
 - **No single source of truth** — Updates to your engineering standards require manual changes across every repo
 - **No version control for agent config** — You can't pin, audit, or roll back changes to your agent setup
 
-**agent-conf solves this** by letting you maintain a canonical repository of standards and skills, then sync them to all your downstream repos with version pinning, integrity checks, and automated updates.
+**agconf solves this** by letting you maintain a canonical repository of standards and skills, then sync them to all your downstream repos with version pinning, integrity checks, and automated updates.
 
 ## How It Works
 
@@ -25,19 +25,19 @@ When you're using AI coding agents like Claude Code across multiple repositories
               │  └── skills/                    │
               └───────────────┬─────────────────┘
                               │
-                              │ agent-conf sync
+                              │ agconf sync
                     ┌─────────┴─────────┐
                     ▼                   ▼
 ┌─────────────────────────┐   ┌─────────────────────────┐
 │  your-org/my-app        │   │  your-org/second-app    │
 │  ├── AGENTS.md          │   │  ├── AGENTS.md          │  ← Downstream
 │  ├── .claude/skills/    │   │  ├── .claude/skills/    │    repos
-│  └── .agent-conf/       │   │  └── .agent-conf/       │
+│  └── .agconf/       │   │  └── .agconf/       │
 └─────────────────────────┘   └─────────────────────────┘
 ```
 
 1. You maintain standards in one **canonical repository**
-2. Run `agent-conf sync` in any downstream repo to pull the latest
+2. Run `agconf sync` in any downstream repo to pull the latest
 3. Each repo gets pinned to a specific version with integrity checks
 
 **Everything is managed in git.** No database. No infrastructure. Just repositories and a CLI.
@@ -51,15 +51,15 @@ npm install -g agconf
 ### From source (SSH)
 
 ```bash
-git clone --depth 1 git@github.com:your-org/agent-conf.git /tmp/agent-conf \
-  && /tmp/agent-conf/cli/scripts/install_local.sh
+git clone --depth 1 git@github.com:your-org/agconf.git /tmp/agconf \
+  && /tmp/agconf/cli/scripts/install_local.sh
 ```
 
 To install a specific CLI version:
 
 ```bash
-git clone --depth 1 --branch v1.2.0 git@github.com:your-org/agent-conf.git /tmp/agent-conf \
-  && /tmp/agent-conf/cli/scripts/install_local.sh
+git clone --depth 1 --branch v1.2.0 git@github.com:your-org/agconf.git /tmp/agconf \
+  && /tmp/agconf/cli/scripts/install_local.sh
 ```
 
 ### Using GitHub CLI
@@ -67,8 +67,8 @@ git clone --depth 1 --branch v1.2.0 git@github.com:your-org/agent-conf.git /tmp/
 If you have `gh` CLI authenticated:
 
 ```bash
-gh repo clone your-org/agent-conf /tmp/agent-conf -- --depth 1 \
-  && /tmp/agent-conf/cli/scripts/install_local.sh
+gh repo clone your-org/agconf /tmp/agconf -- --depth 1 \
+  && /tmp/agconf/cli/scripts/install_local.sh
 ```
 
 ## Quick Start
@@ -78,7 +78,7 @@ gh repo clone your-org/agent-conf /tmp/agent-conf -- --depth 1 \
 ```bash
 mkdir engineering-standards && cd engineering-standards
 git init
-agent-conf canonical init --name my-standards --org "My Org"
+agconf canonical init --name my-standards --org "My Org"
 ```
 
 This scaffolds the structure for your standards. Edit `instructions/AGENTS.md` to add your engineering guidelines, then commit and push to GitHub.
@@ -87,7 +87,7 @@ This scaffolds the structure for your standards. Edit `instructions/AGENTS.md` t
 
 ```bash
 cd your-project
-agent-conf init --source your-org/engineering-standards
+agconf init --source your-org/engineering-standards
 ```
 
 This will:
@@ -114,134 +114,134 @@ GitHub Actions workflows are created automatically to keep downstream repos in s
 | `canonical update` | Update CLI version in workflow files |
 | `config` | Manage global CLI configuration |
 
-### `agent-conf init`
+### `agconf init`
 
 Initialize a repository with standards from a canonical repository.
 
 ```bash
 # Initialize from a canonical repository (required for first-time setup)
-agent-conf init --source your-org/engineering-standards
+agconf init --source your-org/engineering-standards
 
 # Use a specific version
-agent-conf init --source your-org/engineering-standards --ref v1.2.0
+agconf init --source your-org/engineering-standards --ref v1.2.0
 
 # Use a branch (for testing)
-agent-conf init --source your-org/engineering-standards --ref develop
+agconf init --source your-org/engineering-standards --ref develop
 
 # Use a local canonical repository (development mode)
-agent-conf init --local /path/to/canonical-repo
+agconf init --local /path/to/canonical-repo
 ```
 
-### `agent-conf sync`
+### `agconf sync`
 
 Sync content from the canonical repository. By default, fetches the latest release and applies it.
 
 ```bash
 # Sync to latest release (default)
-agent-conf sync
+agconf sync
 
 # Use pinned version from lockfile (no network fetch)
-agent-conf sync --pinned
+agconf sync --pinned
 
 # Sync to a specific version
-agent-conf sync --ref v1.3.0
+agconf sync --ref v1.3.0
 
 # Switch to a different canonical repository
-agent-conf sync --source different-org/standards
+agconf sync --source different-org/standards
 
 # Use a local canonical repository (development mode)
-agent-conf sync --local /path/to/canonical-repo
+agconf sync --local /path/to/canonical-repo
 
 # Non-interactive mode
-agent-conf sync --yes
+agconf sync --yes
 
 # Write sync summary to file (markdown format, useful for CI)
-agent-conf sync --summary-file sync-report.md
+agconf sync --summary-file sync-report.md
 
 # Show all changed items in output (default shows first 5)
-agent-conf sync --expand-changes
+agconf sync --expand-changes
 ```
 
-### `agent-conf status`
+### `agconf status`
 
 Show current sync status.
 
 ```bash
-agent-conf status                  # Show status
-agent-conf status --check          # Also check for modified files
+agconf status                  # Show status
+agconf status --check          # Also check for modified files
 ```
 
-### `agent-conf check`
+### `agconf check`
 
 Check if managed files have been modified.
 
 ```bash
-agent-conf check                   # Show detailed check results
-agent-conf check --quiet           # Exit code only (for scripts/CI)
+agconf check                   # Show detailed check results
+agconf check --quiet           # Exit code only (for scripts/CI)
 ```
 
 Exit codes:
 - `0` - All managed files unchanged (or not synced)
 - `1` - One or more managed files have been modified
 
-This command is used by the pre-commit hook and CI workflows to detect unauthorized modifications to agent-conf-managed files.
+This command is used by the pre-commit hook and CI workflows to detect unauthorized modifications to agconf-managed files.
 
-### `agent-conf upgrade-cli`
+### `agconf upgrade-cli`
 
 Upgrade the CLI itself to the latest version from npm.
 
 ```bash
 # Upgrade to latest version
-agent-conf upgrade-cli
+agconf upgrade-cli
 
 # Non-interactive mode (skip confirmation)
-agent-conf upgrade-cli --yes
+agconf upgrade-cli --yes
 ```
 
-### `agent-conf canonical init`
+### `agconf canonical init`
 
 Scaffold a new canonical repository structure.
 
 ```bash
 # Interactive mode
-agent-conf canonical init
+agconf canonical init
 
 # With options
-agent-conf canonical init --name acme-standards --org "ACME Corp"
+agconf canonical init --name acme-standards --org "ACME Corp"
 
 # Non-interactive with all defaults
-agent-conf canonical init -y
+agconf canonical init -y
 
 # Skip example skill
-agent-conf canonical init --no-examples
+agconf canonical init --no-examples
 
 # Custom marker prefix
-agent-conf canonical init --marker-prefix my-org
+agconf canonical init --marker-prefix my-org
 
 # Pin specific CLI version in workflows
-agent-conf canonical init --cli-version 1.2.0
+agconf canonical init --cli-version 1.2.0
 ```
 
-### `agent-conf canonical update`
+### `agconf canonical update`
 
 Update CLI version in workflow files of a canonical repository.
 
 ```bash
 # Update to current CLI version
-agent-conf canonical update
+agconf canonical update
 
 # Update to specific version
-agent-conf canonical update --cli-version 2.0.0
+agconf canonical update --cli-version 2.0.0
 
 # Non-interactive mode
-agent-conf canonical update -y
+agconf canonical update -y
 ```
 
 This creates the standard canonical repository structure:
 
 ```
 <target>/
-├── agent-conf.yaml          # Repository configuration
+├── agconf.yaml          # Repository configuration
 ├── instructions/
 │   └── AGENTS.md            # Global engineering standards
 ├── skills/
@@ -254,15 +254,15 @@ This creates the standard canonical repository structure:
         └── check-reusable.yml
 ```
 
-### `agent-conf config`
+### `agconf config`
 
 Manage global CLI configuration.
 
 ```bash
-agent-conf config                  # Show all config values
-agent-conf config show             # Same as above
-agent-conf config get cli-repo     # Get specific value
-agent-conf config set cli-repo your-org/agent-conf  # Set value
+agconf config                  # Show all config values
+agconf config show             # Same as above
+agconf config get cli-repo     # Get specific value
+agconf config set cli-repo your-org/agconf  # Set value
 ```
 
 **Available config keys:**
@@ -270,12 +270,12 @@ agent-conf config set cli-repo your-org/agent-conf  # Set value
 
 ## Versioning
 
-agent-conf tracks **canonical content versions** independently from CLI versions:
+agconf tracks **canonical content versions** independently from CLI versions:
 
 | Component | Version Location | Updated By |
 |-----------|------------------|------------|
 | CLI | Installed binary | Reinstall from CLI repo |
-| Canonical Content | `.agent-conf/lockfile.json` | `agent-conf sync` |
+| Canonical Content | `.agconf/lockfile.json` | `agconf sync` |
 | Workflows | `.github/workflows/*.yml` | Automatically with canonical content |
 
 **See [cli/docs/VERSIONING.md](cli/docs/VERSIONING.md) for detailed versioning documentation.**
@@ -284,37 +284,37 @@ agent-conf tracks **canonical content versions** independently from CLI versions
 
 | Strategy | Command | Use Case |
 |----------|---------|----------|
-| Pin to latest | `agent-conf init --source org/repo` | Initial setup |
-| Update to latest | `agent-conf sync` | Routine updates |
-| Re-sync pinned version | `agent-conf sync --pinned` | Restore modified files |
-| Pin specific version | `agent-conf sync --ref v1.2.0` | Production stability |
-| Development mode | `agent-conf init --local` | Testing changes |
+| Pin to latest | `agconf init --source org/repo` | Initial setup |
+| Update to latest | `agconf sync` | Routine updates |
+| Re-sync pinned version | `agconf sync --pinned` | Restore modified files |
+| Pin specific version | `agconf sync --ref v1.2.0` | Production stability |
+| Development mode | `agconf init --local` | Testing changes |
 
 ## Files Created in Downstream Repos
 
-When you run `agent-conf init` or `agent-conf sync` in a downstream repository:
+When you run `agconf init` or `agconf sync` in a downstream repository:
 
 | File | Purpose |
 |------|---------|
 | `AGENTS.md` | Global + repo-specific standards |
 | `.claude/CLAUDE.md` | Reference to AGENTS.md |
 | `.claude/skills/` | Skill definitions |
-| `.agent-conf/lockfile.json` | Sync metadata |
-| `.github/workflows/agent-conf-sync.yml` | Auto-sync workflow (calls canonical's `sync-reusable.yml`) |
-| `.github/workflows/agent-conf-check.yml` | File integrity check (calls canonical's `check-reusable.yml`) |
+| `.agconf/lockfile.json` | Sync metadata |
+| `.github/workflows/agconf-sync.yml` | Auto-sync workflow (calls canonical's `sync-reusable.yml`) |
+| `.github/workflows/agconf-check.yml` | File integrity check (calls canonical's `check-reusable.yml`) |
 
 ## AGENTS.md Structure
 
 The CLI manages `AGENTS.md` with marked sections:
 
 ```markdown
-<!-- agent-conf:global:start -->
+<!-- agconf:global:start -->
 [... global standards - DO NOT EDIT ...]
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 [... your repo-specific content ...]
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 ```
 
 - **Global block**: Automatically updated on each sync
@@ -322,14 +322,14 @@ The CLI manages `AGENTS.md` with marked sections:
 
 ## Git Hook Integration
 
-The CLI automatically installs a pre-commit hook that prevents committing changes to agent-conf-managed files.
+The CLI automatically installs a pre-commit hook that prevents committing changes to agconf-managed files.
 
 ### Pre-commit Hook
 
-When you run `agent-conf init` or `agent-conf sync`, a pre-commit hook is installed at `.git/hooks/pre-commit`. This hook:
+When you run `agconf init` or `agconf sync`, a pre-commit hook is installed at `.git/hooks/pre-commit`. This hook:
 
-1. Checks if the repository has been synced with agent-conf
-2. Runs `agent-conf check --quiet` to detect modified managed files
+1. Checks if the repository has been synced with agconf
+2. Runs `agconf check --quiet` to detect modified managed files
 3. Blocks the commit if modifications are detected
 
 **If the hook blocks your commit:**
@@ -342,10 +342,10 @@ git checkout -- <file>
 git commit --no-verify
 
 # Option 3: Restore managed files to expected state
-agent-conf sync
+agconf sync
 ```
 
-**Note:** The hook only runs if the `agent-conf` CLI is installed and the repository has been synced. It will not interfere if either condition is not met.
+**Note:** The hook only runs if the `agconf` CLI is installed and the repository has been synced. It will not interfere if either condition is not met.
 
 **See [cli/docs/CHECK_FILE_INTEGRITY.md](cli/docs/CHECK_FILE_INTEGRITY.md) for detailed documentation on file integrity checking.**
 
@@ -358,10 +358,10 @@ The architecture uses GitHub's reusable workflows:
 - `check-reusable.yml` - Reusable workflow for checking
 
 **Downstream repositories** (created by `init` or `sync`):
-- `agent-conf-sync.yml` - Scheduled sync (calls canonical's reusable workflow)
-- `agent-conf-check.yml` - Checks for modified managed files on PRs
+- `agconf-sync.yml` - Scheduled sync (calls canonical's reusable workflow)
+- `agconf-check.yml` - Checks for modified managed files on PRs
 
-Both downstream workflows use the `agent-conf check` command to verify file integrity. Workflows reference the same version as your lockfile, ensuring consistency.
+Both downstream workflows use the `agconf check` command to verify file integrity. Workflows reference the same version as your lockfile, ensuring consistency.
 
 **For detailed setup instructions including GitHub App configuration for cross-repository access, see [cli/docs/CANONICAL_REPOSITORY_SETUP.md](cli/docs/CANONICAL_REPOSITORY_SETUP.md).**
 
@@ -400,7 +400,7 @@ User-level instructions work for personal preferences, but fall short for team/o
 2. **Easy to override by mistake** — A stray edit or tool update can wipe your config
 3. **No separation between user and company standards** — Personal preferences get mixed with org policies, making it hard to enforce consistency
 
-agent-conf keeps company standards in the repo (git tracked, reviewable) while letting users keep their personal config separate.
+agconf keeps company standards in the repo (git tracked, reviewable) while letting users keep their personal config separate.
 
 ### Why not just use Claude Code plugins/extensions?
 
@@ -411,7 +411,7 @@ Plugins are great for adding capabilities, but don't solve the standards distrib
 3. **No tracking** — You can't see who uses which plugin, what version, or ensure everyone is up to date
 4. **Hidden from view** — Plugin context is invisible; you can't see all the instructions the agent receives in one place
 
-agent-conf makes all agent context explicit, version-controlled, and visible.
+agconf makes all agent context explicit, version-controlled, and visible.
 
 ### Why not use a simple script?
 
@@ -425,7 +425,7 @@ But as you scale, you'll likely run into:
 - Different scripts for different tools (Claude, Codex, etc.)
 - No CI integration to catch drift
 
-agent-conf is what you graduate to when the simple script becomes a maintenance burden.
+agconf is what you graduate to when the simple script becomes a maintenance burden.
 
 ## Development
 

@@ -1,5 +1,5 @@
 /**
- * Version resolution and management for agent-conf releases.
+ * Version resolution and management for agconf releases.
  *
  * Handles fetching release information from GitHub, parsing version strings,
  * and determining the appropriate version to use.
@@ -36,7 +36,7 @@ function getGitHubToken(): string {
   }
 
   throw new Error(
-    `GitHub authentication required to access agent-conf releases.
+    `GitHub authentication required to access agconf releases.
 
 To fix this, do one of the following:
 
@@ -60,7 +60,7 @@ function getGitHubHeaders(): Record<string, string> {
   const token = getGitHubToken();
   return {
     Accept: "application/vnd.github.v3+json",
-    "User-Agent": "agent-conf-cli",
+    "User-Agent": "agconf-cli",
     Authorization: `token ${token}`,
   };
 }
@@ -85,7 +85,7 @@ export async function getLatestRelease(repo: string): Promise<ReleaseInfo> {
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error("No releases found for agent-conf repository");
+      throw new Error("No releases found for agconf repository");
     }
     throw new Error(`Failed to fetch latest release: ${response.statusText}`);
   }

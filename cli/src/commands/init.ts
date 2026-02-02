@@ -20,7 +20,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
   const logger = createLogger();
 
   console.log();
-  prompts.intro(pc.bold("agent-conf init"));
+  prompts.intro(pc.bold("agconf init"));
 
   // Resolve target directory to git root
   const targetDir = await resolveTargetDirectory();

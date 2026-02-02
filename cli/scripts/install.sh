@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# agent-conf CLI installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/org/agent-conf/master/cli/scripts/install.sh | bash
+# agconf CLI installer
+# Usage: curl -fsSL https://raw.githubusercontent.com/org/agconf/master/cli/scripts/install.sh | bash
 #
 # Environment variables:
-#   AGENT_CONF_VERSION - Version to install (default: latest)
+#   AGCONF_VERSION - Version to install (default: latest)
 #                        Examples: "latest", "v1.2.0", "1.2.0", "master"
 
-REPO="org/agent-conf"
+REPO="org/agconf"
 REPO_URL="https://github.com/${REPO}.git"
-CLI_NAME="agent-conf"
-VERSION="${AGENT_CONF_VERSION:-latest}"
+CLI_NAME="agconf"
+VERSION="${AGCONF_VERSION:-latest}"
 
 # Colors (disable if not a terminal or NO_COLOR is set)
 if [[ -t 1 ]] && [[ -z "${NO_COLOR:-}" ]]; then
@@ -156,7 +156,7 @@ resolve_version() {
             echo "     export GITHUB_TOKEN=<your-personal-access-token>"
             echo ""
             echo "  3. Install a specific version directly:"
-            echo "     AGENT_CONF_VERSION=v0.0.1 bash -c '\$(curl -fsSL ...)'"
+            echo "     AGCONF_VERSION=v0.0.1 bash -c '\$(curl -fsSL ...)'"
             echo ""
             exit 1
         fi
@@ -179,7 +179,7 @@ install_from_source() {
     log_info "Cloning ${REPO}@${ref}..."
 
     # Create temp directory (works on both macOS and Linux)
-    temp_dir=$(mktemp -d 2>/dev/null || mktemp -d -t 'agent-conf')
+    temp_dir=$(mktemp -d 2>/dev/null || mktemp -d -t 'agconf')
     trap 'rm -rf "$temp_dir"' EXIT
 
     git clone --depth 1 --branch "$ref" "$REPO_URL" "$temp_dir"
@@ -231,7 +231,7 @@ post_install_message() {
     echo "Get started:"
     echo ""
     echo "  cd your-project"
-    echo "  agent-conf init --source <owner/content-repo>"
+    echo "  agconf init --source <owner/content-repo>"
     echo ""
     echo "Replace <owner/content-repo> with your organization's content repository"
     echo "(e.g., acme/engineering-standards)"
@@ -241,7 +241,7 @@ post_install_message() {
 # Main
 main() {
     echo ""
-    echo "agent-conf CLI installer"
+    echo "agconf CLI installer"
     echo ""
 
     check_requirements

@@ -1,5 +1,5 @@
 /**
- * GitHub workflow file management for agent-conf.
+ * GitHub workflow file management for agconf.
  *
  * Handles creating, reading, and updating workflow files in downstream repositories.
  * These workflow files call the reusable workflows in the canonical repository.
@@ -11,7 +11,7 @@ import type { ResolvedConfig } from "../config/schema.js";
 import { formatTag } from "./version.js";
 
 // Default values
-const DEFAULT_CLI_NAME = "agent-conf";
+const DEFAULT_CLI_NAME = "agconf";
 const WORKFLOWS_DIR = ".github/workflows";
 
 /**
@@ -24,7 +24,7 @@ export interface WorkflowConfig {
   cliName: string;
   /** GitHub secret name for the token */
   secretName: string;
-  /** Workflow filename prefix (e.g., "agent-conf" -> "agent-conf-sync.yml") */
+  /** Workflow filename prefix (e.g., "agconf" -> "agconf-sync.yml") */
   workflowPrefix: string;
 }
 
@@ -37,7 +37,7 @@ export function getWorkflowConfig(
   config?: Partial<ResolvedConfig>,
 ): WorkflowConfig {
   const name = config?.name ?? DEFAULT_CLI_NAME;
-  // Convert name to uppercase for secret name (e.g., "agent-conf" -> "AGENT_CONF")
+  // Convert name to uppercase for secret name (e.g., "agconf" -> "AGCONF")
   const secretName = `${name.toUpperCase().replace(/-/g, "_")}_TOKEN`;
 
   return {

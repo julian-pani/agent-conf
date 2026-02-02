@@ -14,13 +14,13 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
   const status = await getSyncStatus(targetDir);
 
   console.log();
-  console.log(pc.bold("agent-conf sync status"));
+  console.log(pc.bold("agconf sync status"));
   console.log();
 
   if (!status.hasSynced) {
     console.log(pc.yellow("Not synced"));
     console.log();
-    console.log(pc.dim("Run `agent-conf init` to sync engineering standards to this repository."));
+    console.log(pc.dim("Run `agconf init` to sync engineering standards to this repository."));
     console.log();
     return;
   }
@@ -69,13 +69,13 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
       }
       console.log();
       console.log(pc.dim("  These files will be overwritten on next sync. To preserve changes,"));
-      console.log(pc.dim("  copy them elsewhere before running `agent-conf sync`."));
+      console.log(pc.dim("  copy them elsewhere before running `agconf sync`."));
     }
     console.log();
   }
 
   // Lockfile location
-  const lockfilePath = formatPath(path.join(targetDir, ".agent-conf", "agent-conf.lock"));
+  const lockfilePath = formatPath(path.join(targetDir, ".agconf", "agconf.lock"));
   console.log(pc.dim(`Lock file: ${lockfilePath}`));
   console.log(pc.dim(`CLI version: ${lockfile.cli_version}`));
   console.log();

@@ -51,8 +51,8 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
       console.log();
       console.log(pc.yellow("Not synced"));
       console.log();
-      console.log(pc.dim("This repository has not been synced with agent-conf."));
-      console.log(pc.dim("Run `agent-conf init` to sync engineering standards."));
+      console.log(pc.dim("This repository has not been synced with agconf."));
+      console.log(pc.dim("Run `agconf init` to sync engineering standards."));
       console.log();
     }
     // Exit 0 - not synced is not an error for the check command
@@ -182,7 +182,7 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
       process.exit(1);
     }
     console.log();
-    console.log(pc.bold("agent-conf check"));
+    console.log(pc.bold("agconf check"));
     console.log();
     console.log(`${pc.red("✗")} No managed files found`);
     console.log();
@@ -190,7 +190,7 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
     if (markerPrefix) {
       console.log(pc.dim(`Expected marker prefix: ${markerPrefix}`));
     }
-    console.log(pc.dim("Run 'agent-conf sync' to restore the managed files."));
+    console.log(pc.dim("Run 'agconf sync' to restore the managed files."));
     console.log();
     process.exit(1);
   }
@@ -205,7 +205,7 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
   }
 
   console.log();
-  console.log(pc.bold("agent-conf check"));
+  console.log(pc.bold("agconf check"));
   console.log();
   console.log("Checking managed files...");
   console.log();
@@ -235,8 +235,8 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
     console.log();
   }
 
-  console.log(pc.dim("These files are managed by agent-conf and should not be modified manually."));
-  console.log(pc.dim("Run 'agent-conf sync' to restore them to the expected state."));
+  console.log(pc.dim("These files are managed by agconf and should not be modified manually."));
+  console.log(pc.dim("Run 'agconf sync' to restore them to the expected state."));
   console.log();
 
   process.exit(1);

@@ -6,14 +6,14 @@ export type ConfigOptions = Record<string, never>;
 
 export async function configShowCommand(): Promise<void> {
   console.log();
-  prompts.intro(pc.bold("agent-conf config"));
+  prompts.intro(pc.bold("agconf config"));
 
   console.log();
   console.log(pc.bold("Global Configuration:"));
   console.log();
   console.log(pc.dim("  No configuration options available."));
   console.log();
-  console.log(pc.dim("Config location: ~/.agent-conf/config.json"));
+  console.log(pc.dim("Config location: ~/.agconf/config.json"));
 
   prompts.outro("");
 }

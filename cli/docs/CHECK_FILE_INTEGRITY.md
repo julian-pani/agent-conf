@@ -6,15 +6,15 @@ nav_order: 4
 
 # File Integrity Checking
 
-This document explains how agent-conf detects and prevents unauthorized modifications to managed files.
+This document explains how agconf detects and prevents unauthorized modifications to managed files.
 
 ## Overview
 
-agent-conf manages certain files in your repository:
+agconf manages certain files in your repository:
 - **AGENTS.md** (global block) - Company-wide engineering standards
 - **Skill files** (`.claude/skills/*/SKILL.md`) - Synced skill definitions
 
-These files should not be manually edited because changes will be overwritten on the next sync. agent-conf provides multiple layers of protection:
+These files should not be manually edited because changes will be overwritten on the next sync. agconf provides multiple layers of protection:
 
 1. **Content hashing** - Detects modifications by comparing hashes
 2. **Pre-commit hook** - Prevents committing modified files locally
@@ -24,11 +24,11 @@ These files should not be manually edited because changes will be overwritten on
 
 ### Content Hashing
 
-Each managed file stores a content hash that allows agent-conf to detect modifications:
+Each managed file stores a content hash that allows agconf to detect modifications:
 
 **For skill files** (`SKILL.md`):
 - Hash is stored in YAML frontmatter as `agent_conf_content_hash`
-- Hash is computed from content excluding agent-conf metadata
+- Hash is computed from content excluding agconf metadata
 - Example: `agent_conf_content_hash: "sha256:abc123def456"`
 
 **For AGENTS.md** (global block):
@@ -45,21 +45,21 @@ When checking for modifications:
 
 ## The `check` Command
 
-The `agent-conf check` command verifies all managed files:
+The `agconf check` command verifies all managed files:
 
 ```bash
 # Show detailed results
-agent-conf check
+agconf check
 
 # Exit code only (for scripts/CI)
-agent-conf check --quiet
+agconf check --quiet
 ```
 
 ### Output Format
 
 When modifications are detected:
 ```
-agent-conf check
+agconf check
 
 Checking managed files...
 
@@ -73,13 +73,13 @@ Checking managed files...
     Expected hash: sha256:111222333444
     Current hash:  sha256:555666777888
 
-These files are managed by agent-conf and should not be modified manually.
-Run 'agent-conf sync' to restore them to the expected state.
+These files are managed by agconf and should not be modified manually.
+Run 'agconf sync' to restore them to the expected state.
 ```
 
 When all files are unchanged:
 ```
-agent-conf check
+agconf check
 
 Checking managed files...
 
@@ -101,21 +101,21 @@ The CLI automatically installs a git pre-commit hook at `.git/hooks/pre-commit`.
 
 1. Hook runs before each commit
 2. Checks if repository has been synced (lockfile exists)
-3. Checks if `agent-conf` CLI is available
-4. Runs `agent-conf check --quiet`
+3. Checks if `agconf` CLI is available
+4. Runs `agconf check --quiet`
 5. Blocks commit if modifications detected
 
 ### When Hook Blocks a Commit
 
 ```
-Error: Cannot commit changes to agent-conf-managed files
+Error: Cannot commit changes to agconf-managed files
 
-To see details, run: agent-conf check
+To see details, run: agconf check
 
 Options:
   1. Discard your changes: git checkout -- <file>
   2. Skip this check: git commit --no-verify
-  3. Restore managed files: agent-conf sync
+  3. Restore managed files: agconf sync
   4. For AGENTS.md: edit only the repo-specific block (between repo:start and repo:end)
   5. For skills: create a new custom skill instead
 ```
@@ -128,30 +128,30 @@ In rare cases where you need to commit despite the warning:
 git commit --no-verify -m "Your message"
 ```
 
-**Note:** This should only be used when you understand why the files differ and have a valid reason (e.g., you're updating the agent-conf repository itself).
+**Note:** This should only be used when you understand why the files differ and have a valid reason (e.g., you're updating the agconf repository itself).
 
 ### Hook Installation
 
-The hook is installed automatically during `agent-conf init` or `agent-conf sync`. If you need to reinstall:
+The hook is installed automatically during `agconf init` or `agconf sync`. If you need to reinstall:
 
 ```bash
 # Re-run sync to reinstall the hook
-agent-conf sync
+agconf sync
 ```
 
-The CLI will not overwrite existing custom pre-commit hooks. If you have a custom hook, you'll need to integrate the agent-conf check manually.
+The CLI will not overwrite existing custom pre-commit hooks. If you have a custom hook, you'll need to integrate the agconf check manually.
 
 ## CI Workflow Integration
 
-The `check-reusable.yml` workflow runs `agent-conf check` in CI to catch modifications in pull requests.
+The `check-reusable.yml` workflow runs `agconf check` in CI to catch modifications in pull requests.
 
 ### Usage in Downstream Repos
 
-The CLI automatically creates this workflow file when you run `agent-conf init` or `agent-conf sync`. The workflow references reusable workflows in your **content repository**:
+The CLI automatically creates this workflow file when you run `agconf init` or `agconf sync`. The workflow references reusable workflows in your **content repository**:
 
 ```yaml
-# .github/workflows/agent-conf-check.yml (auto-generated)
-name: agent-conf Check
+# .github/workflows/agconf-check.yml (auto-generated)
+name: agconf Check
 
 on:
   pull_request:
@@ -165,14 +165,14 @@ jobs:
     uses: your-org/your-content-repo/.github/workflows/check-reusable.yml@v1.0.0
 ```
 
-**Note:** The repository path and version are automatically set based on the source you specified during `agent-conf init --source <owner/repo>`.
+**Note:** The repository path and version are automatically set based on the source you specified during `agconf init --source <owner/repo>`.
 
 ### Workflow Outputs
 
 | Output | Description |
 |--------|-------------|
 | `has_modifications` | `true` if any files modified, `false` otherwise |
-| `check_output` | Full output from `agent-conf check` |
+| `check_output` | Full output from `agconf check` |
 
 ## Resolving Modifications
 
@@ -188,7 +188,7 @@ git checkout -- AGENTS.md
 git checkout -- .claude/skills/skill-name/SKILL.md
 
 # Or restore all managed files
-agent-conf sync
+agconf sync
 ```
 
 ### Option 2: Re-sync
@@ -196,7 +196,7 @@ agent-conf sync
 If files are out of sync for any reason:
 
 ```bash
-agent-conf sync
+agconf sync
 ```
 
 This will restore all managed files to their expected state.
@@ -206,7 +206,7 @@ This will restore all managed files to their expected state.
 If you need custom content:
 
 **For AGENTS.md:**
-- Edit only the repo-specific block (between `<!-- agent-conf:repo:start -->` and `<!-- agent-conf:repo:end -->`)
+- Edit only the repo-specific block (between `<!-- agconf:repo:start -->` and `<!-- agconf:repo:end -->`)
 - The global block should never be edited manually
 
 **For skills:**
@@ -217,19 +217,19 @@ If you need custom content:
 
 ### "Not synced" Message
 
-If `agent-conf check` shows "Not synced":
-- The repository hasn't been initialized with agent-conf
-- Run `agent-conf init` to set up
+If `agconf check` shows "Not synced":
+- The repository hasn't been initialized with agconf
+- Run `agconf init` to set up
 
 ### False Positives
 
 If files are flagged as modified but you haven't changed them:
 - Line ending differences (CRLF vs LF) can cause hash mismatches
-- Run `agent-conf sync` to normalize the files
+- Run `agconf sync` to normalize the files
 
 ### Hook Not Running
 
 If the pre-commit hook doesn't run:
 - Check if `.git/hooks/pre-commit` exists and is executable
-- Check if `agent-conf` CLI is in your PATH
-- Run `agent-conf sync` to reinstall the hook
+- Check if `agconf` CLI is in your PATH
+- Run `agconf sync` to reinstall the hook

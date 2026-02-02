@@ -1,5 +1,5 @@
 /**
- * Schema versioning utilities for agent-conf.
+ * Schema versioning utilities for agconf.
  *
  * Schema versioning strategy:
  * - Schema version determines compatibility, not CLI version
@@ -55,7 +55,7 @@ export function checkSchemaCompatibility(contentVersion: string): SchemaCompatib
   if (contentMajor < supportedMajor) {
     return {
       compatible: false,
-      error: `Schema version ${contentVersion} is outdated and no longer supported. This content was created with an older version of agent-conf.`,
+      error: `Schema version ${contentVersion} is outdated and no longer supported. This content was created with an older version of agconf.`,
     };
   }
 

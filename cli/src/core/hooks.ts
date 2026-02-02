@@ -3,20 +3,20 @@ import * as path from "node:path";
 import type { ResolvedConfig } from "../config/schema.js";
 
 // Default values for hook configuration
-const DEFAULT_CLI_NAME = "agent-conf";
-const DEFAULT_CONFIG_DIR = ".agent-conf";
+const DEFAULT_CLI_NAME = "agconf";
+const DEFAULT_CONFIG_DIR = ".agconf";
 const DEFAULT_LOCKFILE_NAME = "lockfile.json";
 
 // Hook identifier for detecting managed hooks
-const HOOK_IDENTIFIER = "# agent-conf pre-commit hook";
+const HOOK_IDENTIFIER = "# agconf pre-commit hook";
 
 /**
  * Configuration for hook generation.
  */
 export interface HookConfig {
-  /** CLI command name (e.g., "agent-conf") */
+  /** CLI command name (e.g., "agconf") */
   cliName: string;
-  /** Config directory name (e.g., ".agent-conf") */
+  /** Config directory name (e.g., ".agconf") */
   configDir: string;
   /** Lockfile name (e.g., "lockfile.json") */
   lockfileName: string;
@@ -99,7 +99,7 @@ export interface HookInstallResult {
 
 /**
  * Install the pre-commit hook in a git repository.
- * If a pre-commit hook already exists and is not from agent-conf, it will not be overwritten.
+ * If a pre-commit hook already exists and is not from agconf, it will not be overwritten.
  */
 export async function installPreCommitHook(
   targetDir: string,

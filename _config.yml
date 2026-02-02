@@ -1,4 +1,4 @@
-title: agent-conf
+title: agconf
 description: CLI utility to manage and sync AI agent configurations across repositories
 remote_theme: just-the-docs/just-the-docs@v0.10.0
 plugins:
@@ -10,7 +10,7 @@ color_scheme: light
 # Aux links in header
 aux_links:
   "GitHub":
-    - "https://github.com/julian-pani/agent-conf"
+    - "https://github.com/julian-pani/agconf"
   "npm":
     - "https://www.npmjs.com/package/agconf"
 

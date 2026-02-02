@@ -21,7 +21,7 @@ body:
     attributes:
       label: Proposed Solution
       description: Describe the solution you'd like.
-      placeholder: I would like agent-conf to...
+      placeholder: I would like agconf to...
     validations:
       required: true
 
@@ -35,7 +35,7 @@ body:
     id: scope
     attributes:
       label: Scope
-      description: What part of agent-conf does this affect?
+      description: What part of agconf does this affect?
       options:
         - CLI Commands
         - Configuration

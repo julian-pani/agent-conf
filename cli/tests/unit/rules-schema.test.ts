@@ -62,7 +62,7 @@ describe("rules-schema", () => {
         name: "test-config",
         instructionsPath: "instructions/AGENTS.md",
         skillsDir: "skills",
-        markerPrefix: "agent-conf",
+        markerPrefix: "agconf",
         targets: ["claude"],
         preserveRepoContent: true,
       };
@@ -77,7 +77,7 @@ describe("rules-schema", () => {
         instructionsPath: "instructions/AGENTS.md",
         skillsDir: "skills",
         rulesDir: "rules",
-        markerPrefix: "agent-conf",
+        markerPrefix: "agconf",
         targets: ["claude"],
         preserveRepoContent: true,
       };
@@ -98,10 +98,10 @@ describe("rules-schema", () => {
 
   describe("getRulesMarkers", () => {
     it("should generate correct markers with default prefix", () => {
-      const markers = getRulesMarkers("agent-conf");
+      const markers = getRulesMarkers("agconf");
 
-      expect(markers.rulesStart).toBe("<!-- agent-conf:rules:start -->");
-      expect(markers.rulesEnd).toBe("<!-- agent-conf:rules:end -->");
+      expect(markers.rulesStart).toBe("<!-- agconf:rules:start -->");
+      expect(markers.rulesEnd).toBe("<!-- agconf:rules:end -->");
     });
 
     it("should generate correct markers with custom prefix", () => {
@@ -219,7 +219,7 @@ describe("rules-schema", () => {
         synced_at: "2026-01-27T15:30:00.000Z",
         source: {
           type: "github" as const,
-          repository: "org/agent-conf",
+          repository: "org/agconf",
           commit_sha: "abc1234567890",
           ref: "master",
         },
@@ -247,7 +247,7 @@ describe("rules-schema", () => {
         synced_at: "2026-01-27T15:30:00.000Z",
         source: {
           type: "local" as const,
-          path: "/path/to/agent-conf",
+          path: "/path/to/agconf",
         },
         content: {
           agents_md: {

@@ -24,7 +24,7 @@ export async function directoryExists(dirPath: string): Promise<boolean> {
   }
 }
 
-export async function createTempDir(prefix: string = "agent-conf-"): Promise<string> {
+export async function createTempDir(prefix: string = "agconf-"): Promise<string> {
   const tmpDir = os.tmpdir();
   return fs.mkdtemp(path.join(tmpDir, prefix));
 }

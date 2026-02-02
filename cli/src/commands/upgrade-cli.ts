@@ -30,7 +30,7 @@ export async function upgradeCliCommand(options: UpgradeCliOptions): Promise<voi
   const currentVersion = getCliVersion();
 
   console.log();
-  prompts.intro(pc.bold("agent-conf upgrade-cli"));
+  prompts.intro(pc.bold("agconf upgrade-cli"));
 
   // Check for updates
   const spinner = logger.spinner("Checking for CLI updates...");

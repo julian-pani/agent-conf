@@ -20,7 +20,7 @@ export async function syncCommand(options: SyncOptions): Promise<void> {
   const logger = createLogger();
 
   console.log();
-  prompts.intro(pc.bold("agent-conf sync"));
+  prompts.intro(pc.bold("agconf sync"));
 
   // Validate mutually exclusive flags
   if (options.pinned && options.ref) {
@@ -54,9 +54,7 @@ export async function syncCommand(options: SyncOptions): Promise<void> {
   }
 
   if (!status.hasSynced) {
-    logger.warn(
-      "This repository has not been synced yet. Consider running 'agent-conf init' first.",
-    );
+    logger.warn("This repository has not been synced yet. Consider running 'agconf init' first.");
   }
 
   // For sync command, try to get source from:

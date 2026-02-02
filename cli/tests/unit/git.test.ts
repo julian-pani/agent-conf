@@ -15,7 +15,7 @@ describe("git utilities", () => {
   let realTempDir: string; // Resolved path (handles macOS /var -> /private/var symlink)
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-conf-git-test-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agconf-git-test-"));
     realTempDir = await fs.realpath(tempDir);
   });
 

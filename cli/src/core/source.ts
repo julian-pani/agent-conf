@@ -15,7 +15,7 @@ export interface ResolvedSource {
   skillsPath: string;
   /** Path to rules directory (null if no rules_dir configured) */
   rulesPath: string | null;
-  /** Marker prefix from canonical config (default: "agent-conf") */
+  /** Marker prefix from canonical config (default: "agconf") */
   markerPrefix: string;
 }
 
@@ -55,7 +55,7 @@ export async function resolveLocalSource(
 
   // Load canonical config to get marker prefix and rules_dir
   const canonicalConfig = await loadCanonicalRepoConfig(basePath);
-  const markerPrefix = canonicalConfig?.markers.prefix ?? "agent-conf";
+  const markerPrefix = canonicalConfig?.markers.prefix ?? "agconf";
   const rulesDir = canonicalConfig?.content.rules_dir;
 
   const source: Source = {
@@ -88,7 +88,7 @@ export async function resolveGithubSource(
 
   // Load canonical config to get marker prefix and rules_dir
   const canonicalConfig = await loadCanonicalRepoConfig(tempDir);
-  const markerPrefix = canonicalConfig?.markers.prefix ?? "agent-conf";
+  const markerPrefix = canonicalConfig?.markers.prefix ?? "agconf";
   const rulesDir = canonicalConfig?.content.rules_dir;
 
   const source: Source = {
@@ -150,7 +150,7 @@ async function findCanonicalRepo(startDir: string): Promise<string> {
   let currentDir = path.resolve(startDir);
   const root = path.parse(currentDir).root;
 
-  // First, check if we're already inside the agent-conf repo
+  // First, check if we're already inside the agconf repo
   let checkDir = currentDir;
   while (checkDir !== root) {
     if (await isCanonicalRepo(checkDir)) {
@@ -159,11 +159,11 @@ async function findCanonicalRepo(startDir: string): Promise<string> {
     checkDir = path.dirname(checkDir);
   }
 
-  // Otherwise, look for a sibling "agent-conf" directory
+  // Otherwise, look for a sibling "agconf" directory
   currentDir = path.resolve(startDir);
   while (currentDir !== root) {
     const parentDir = path.dirname(currentDir);
-    const siblingCanonicalRepo = path.join(parentDir, "agent-conf");
+    const siblingCanonicalRepo = path.join(parentDir, "agconf");
 
     if (await isCanonicalRepo(siblingCanonicalRepo)) {
       return siblingCanonicalRepo;
@@ -185,7 +185,7 @@ async function isCanonicalRepo(dir: string): Promise<boolean> {
       return false;
     }
 
-    // Check for agent-conf structure
+    // Check for agconf structure
     const instructionsPath = path.join(dir, "instructions", "AGENTS.md");
     const skillsPath = path.join(dir, "skills");
 
@@ -204,12 +204,12 @@ async function isCanonicalRepo(dir: string): Promise<boolean> {
       return false;
     }
 
-    // Optionally verify git remote contains "agent-conf"
+    // Optionally verify git remote contains "agconf"
     try {
       const git: SimpleGit = simpleGit(dir);
       const remotes = await git.getRemotes(true);
       const hasMatchingRemote = remotes.some(
-        (r) => r.refs.fetch?.includes("agent-conf") || r.refs.push?.includes("agent-conf"),
+        (r) => r.refs.fetch?.includes("agconf") || r.refs.push?.includes("agconf"),
       );
       if (hasMatchingRemote) {
         return true;

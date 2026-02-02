@@ -28,7 +28,7 @@ describe("hooks", () => {
       // Verify the file exists
       const hookPath = path.join(tempDir, ".git", "hooks", "pre-commit");
       const content = await fs.readFile(hookPath, "utf-8");
-      expect(content).toContain("# agent-conf pre-commit hook");
+      expect(content).toContain("# agconf pre-commit hook");
     });
 
     it("should not overwrite a custom pre-commit hook", async () => {
@@ -47,9 +47,9 @@ describe("hooks", () => {
       expect(content).toBe(customContent);
     });
 
-    it("should update an outdated agent-conf hook", async () => {
+    it("should update an outdated agconf hook", async () => {
       const hookPath = path.join(tempDir, ".git", "hooks", "pre-commit");
-      const outdatedContent = "#!/bin/bash\n# agent-conf pre-commit hook\n# Old version";
+      const outdatedContent = "#!/bin/bash\n# agconf pre-commit hook\n# Old version";
       await fs.writeFile(hookPath, outdatedContent);
 
       const result = await installPreCommitHook(tempDir);
@@ -61,10 +61,10 @@ describe("hooks", () => {
       // Verify hook was updated
       const content = await fs.readFile(hookPath, "utf-8");
       expect(content).not.toBe(outdatedContent);
-      expect(content).toContain("# agent-conf pre-commit hook");
+      expect(content).toContain("# agconf pre-commit hook");
     });
 
-    it("should report unchanged for up-to-date agent-conf hook", async () => {
+    it("should report unchanged for up-to-date agconf hook", async () => {
       // First install
       await installPreCommitHook(tempDir);
 

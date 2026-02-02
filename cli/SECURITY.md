@@ -24,7 +24,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 Instead, please report them via email to the maintainers or through GitHub's private vulnerability reporting feature:
 
-1. Go to the [Security tab](https://github.com/julian-pani/agent-conf/security) of the repository
+1. Go to the [Security tab](https://github.com/julian-pani/agconf/security) of the repository
 2. Click "Report a vulnerability"
 3. Fill out the form with details about the vulnerability
 
@@ -55,7 +55,7 @@ When reporting a vulnerability, please include:
 
 ## Security Best Practices for Users
 
-When using agent-conf:
+When using agconf:
 
 1. **Keep Updated**: Always use the latest version of the CLI
 2. **Review Sources**: Only sync from canonical repositories you trust
@@ -67,8 +67,8 @@ When using agent-conf:
 
 The following are in scope for security reports:
 
-- The agent-conf CLI tool
-- GitHub Actions workflows provided by agent-conf
+- The agconf CLI tool
+- GitHub Actions workflows provided by agconf
 - Documentation that could lead to insecure configurations
 
 The following are out of scope:
@@ -77,4 +77,4 @@ The following are out of scope:
 - Social engineering attacks
 - Denial of service attacks
 
-Thank you for helping keep agent-conf secure!
+Thank you for helping keep agconf secure!

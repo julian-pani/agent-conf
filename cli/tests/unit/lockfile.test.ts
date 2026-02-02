@@ -13,7 +13,7 @@ describe("lockfile", () => {
         synced_at: "2026-01-27T15:30:00.000Z",
         source: {
           type: "github" as const,
-          repository: "org/agent-conf",
+          repository: "org/agconf",
           commit_sha: "abc1234567890",
           ref: "master",
         },
@@ -37,7 +37,7 @@ describe("lockfile", () => {
         synced_at: "2026-01-27T15:30:00.000Z",
         source: {
           type: "local" as const,
-          path: "/path/to/agent-conf",
+          path: "/path/to/agconf",
           commit_sha: "abc1234567890",
         },
         content: {
@@ -60,7 +60,7 @@ describe("lockfile", () => {
         synced_at: "2026-01-27T15:30:00.000Z",
         source: {
           type: "local" as const,
-          path: "/path/to/agent-conf",
+          path: "/path/to/agconf",
         },
         content: {
           agents_md: {
@@ -81,7 +81,7 @@ describe("lockfile", () => {
         synced_at: "2026-01-27T15:30:00.000Z",
         source: {
           type: "github" as const,
-          repository: "org/agent-conf",
+          repository: "org/agconf",
           commit_sha: "abc1234567890",
           ref: "master",
         },
@@ -104,7 +104,7 @@ describe("lockfile", () => {
         synced_at: "2026-01-27T15:30:00.000Z",
         source: {
           type: "github",
-          repository: "org/agent-conf",
+          repository: "org/agconf",
           commit_sha: "abc1234567890",
           ref: "master",
         },
@@ -127,7 +127,7 @@ describe("lockfile", () => {
         synced_at: "not-a-date",
         source: {
           type: "github",
-          repository: "org/agent-conf",
+          repository: "org/agconf",
           commit_sha: "abc1234567890",
           ref: "master",
         },

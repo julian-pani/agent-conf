@@ -6,7 +6,7 @@ nav_order: 3
 
 # Canonical Repository Setup Guide
 
-This guide explains how to set up a canonical repository after scaffolding it with `agent-conf canonical init`.
+This guide explains how to set up a canonical repository after scaffolding it with `agconf canonical init`.
 
 ## Overview
 
@@ -20,7 +20,7 @@ mkdir my-standards && cd my-standards
 git init
 
 # 2. Scaffold the canonical repository structure
-agent-conf canonical init
+agconf canonical init
 
 # 3. Edit the generated files (see sections below)
 
@@ -36,7 +36,7 @@ After running `canonical init`, you'll have:
 
 ```
 my-standards/
-├── agent-conf.yaml              # Repository configuration
+├── agconf.yaml              # Repository configuration
 ├── instructions/
 │   └── AGENTS.md                # Global engineering standards
 ├── skills/
@@ -51,7 +51,7 @@ my-standards/
 
 ## Configuration Files
 
-### `agent-conf.yaml`
+### `agconf.yaml`
 
 This is the main configuration file for your canonical repository:
 
@@ -66,7 +66,7 @@ content:
 targets:
   - claude                     # Supported AI agents
 markers:
-  prefix: agent-conf           # Marker prefix for managed content
+  prefix: agconf           # Marker prefix for managed content
 merge:
   preserve_repo_content: true  # Preserve downstream repo-specific content
 ```
@@ -78,7 +78,7 @@ merge:
 | `meta.name` | Unique identifier for your standards | Directory name |
 | `meta.organization` | Display name for your org | (none) |
 | `targets` | AI agent platforms to support | `["claude"]` |
-| `markers.prefix` | Prefix for content markers | `agent-conf` |
+| `markers.prefix` | Prefix for content markers | `agconf` |
 
 ### `instructions/AGENTS.md`
 
@@ -161,23 +161,23 @@ The scaffolded workflows in `.github/workflows/` are **reusable workflows** that
 
 ### CLI Installation
 
-The generated workflow files install the `agent-conf` CLI with a pinned version:
+The generated workflow files install the `agconf` CLI with a pinned version:
 
 ```yaml
-- name: Install agent-conf CLI
+- name: Install agconf CLI
   run: npm install -g agconf@1.2.0
 ```
 
-The version is automatically set to the CLI version used when running `agent-conf canonical init`. This ensures consistent behavior between local development and CI.
+The version is automatically set to the CLI version used when running `agconf canonical init`. This ensures consistent behavior between local development and CI.
 
 To update the CLI version in your workflows after upgrading:
 
 ```bash
 # Update to your current CLI version
-agent-conf canonical update
+agconf canonical update
 
 # Or specify a version explicitly
-agent-conf canonical update --cli-version 2.0.0
+agconf canonical update --cli-version 2.0.0
 ```
 
 ### How Reusable Workflows Work
@@ -185,7 +185,7 @@ agent-conf canonical update --cli-version 2.0.0
 1. Your canonical repository hosts the reusable workflows
 2. Downstream repositories reference them with `uses: org/repo/.github/workflows/file.yml@ref`
 3. When downstream repos run CI, they call your workflows
-4. Your workflows run the `agent-conf` CLI commands
+4. Your workflows run the `agconf` CLI commands
 
 ### Workflow Customization
 
@@ -236,14 +236,14 @@ Without this, downstream repos will see: `error parsing called workflow: workflo
 In each downstream repository:
 
 ```bash
-agent-conf init --source my-org/engineering-standards
+agconf init --source my-org/engineering-standards
 ```
 
 ## Cross-Repository Authentication
 
 For the sync workflows to function, downstream repositories need read access to the canonical repository, and optionally the canonical repository may need write access to downstream repos to push updates.
 
-**Note:** The `check` workflow (`agent-conf-check.yml`) does **not** require any tokens or secrets. It only runs `agent-conf check` to verify file integrity within the repository.
+**Note:** The `check` workflow (`agconf-check.yml`) does **not** require any tokens or secrets. It only runs `agconf check` to verify file integrity within the repository.
 
 There are two authentication methods:
 1. **GitHub App** (recommended) - More secure, granular permissions, higher rate limits
@@ -261,7 +261,7 @@ A GitHub App provides better security and granular permissions. The app is insta
 2. Click **"New GitHub App"**
 
 3. Configure the app:
-   - **GitHub App name**: `agent-conf-sync` (or your preferred name)
+   - **GitHub App name**: `agconf-sync` (or your preferred name)
    - **Homepage URL**: Your organization URL or repo URL
    - **Webhook**: Uncheck "Active" (not needed for this use case)
 
@@ -341,7 +341,7 @@ A PAT is simpler to set up but is tied to a user account. Use fine-grained PATs 
 1. Go to: `https://github.com/settings/tokens?type=beta`
 2. Click **"Generate new token"**
 3. Configure:
-   - **Token name**: `agent-conf-sync`
+   - **Token name**: `agconf-sync`
    - **Expiration**: Choose an appropriate duration (90 days recommended)
    - **Repository access**: Select repositories that need access
      - Include your canonical repository
@@ -431,7 +431,7 @@ jobs:
 1. Edit files in your canonical repository
 2. Commit and push changes
 3. Create a new release tag
-4. Downstream repos can update with `agent-conf sync`
+4. Downstream repos can update with `agconf sync`
 
 ### Adding New Skills
 
@@ -455,15 +455,15 @@ Your canonical repository is private and hasn't been configured to share workflo
 ### Skills not appearing in downstream repos
 
 1. Verify the skill has valid frontmatter (`name` and `description` required)
-2. Check that `skills_dir` in `agent-conf.yaml` matches your directory structure
-3. Run `agent-conf sync` in the downstream repo
+2. Check that `skills_dir` in `agconf.yaml` matches your directory structure
+3. Run `agconf sync` in the downstream repo
 
 ### Workflow files not being created in downstream repos
 
 Workflow files are only created when syncing from a GitHub source (not `--local` mode). Use:
 
 ```bash
-agent-conf init --source my-org/engineering-standards
+agconf init --source my-org/engineering-standards
 ```
 
 ## Next Steps

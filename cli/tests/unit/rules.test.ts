@@ -83,30 +83,30 @@ const SAMPLE_RULE_WITH_ALL_HEADING_LEVELS = `# h1 heading
 Text content.
 `;
 
-const SAMPLE_AGENTS_MD_WITH_MARKERS = `<!-- agent-conf:global:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf -->
+const SAMPLE_AGENTS_MD_WITH_MARKERS = `<!-- agconf:global:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 
 # Global Instructions
 
 Some global content here.
 
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 
 # Repository Specific
 
 Local content here.
 
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
 
-const SAMPLE_AGENTS_MD_WITH_RULES_SECTION = `<!-- agent-conf:global:start -->
+const SAMPLE_AGENTS_MD_WITH_RULES_SECTION = `<!-- agconf:global:start -->
 # Global Instructions
-<!-- agent-conf:global:end -->
+<!-- agconf:global:end -->
 
-<!-- agent-conf:rules:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf -->
+<!-- agconf:rules:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:oldhashabcdef -->
 <!-- Rule count: 1 -->
 
@@ -116,11 +116,11 @@ const SAMPLE_AGENTS_MD_WITH_RULES_SECTION = `<!-- agent-conf:global:start -->
 
 ## Old Rule Content
 
-<!-- agent-conf:rules:end -->
+<!-- agconf:rules:end -->
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 # Repo Content
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
 
 // =============================================================================
@@ -290,12 +290,12 @@ describe("generateRulesSection", () => {
       body: SAMPLE_RULE_WITHOUT_FRONTMATTER,
     };
 
-    const result = generateRulesSection([rule], "agent-conf");
+    const result = generateRulesSection([rule], "agconf");
 
     // Check markers
-    expect(result).toContain("<!-- agent-conf:rules:start -->");
-    expect(result).toContain("<!-- agent-conf:rules:end -->");
-    expect(result).toContain("<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf -->");
+    expect(result).toContain("<!-- agconf:rules:start -->");
+    expect(result).toContain("<!-- agconf:rules:end -->");
+    expect(result).toContain("<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->");
     expect(result).toContain("<!-- Content hash: sha256:");
     expect(result).toContain("<!-- Rule count: 1 -->");
 
@@ -332,7 +332,7 @@ describe("generateRulesSection", () => {
       },
     ];
 
-    const result = generateRulesSection(rules, "agent-conf");
+    const result = generateRulesSection(rules, "agconf");
 
     // Check alphabetical order by finding positions
     const aPos = result.indexOf("<!-- Rule: a-first.md -->");
@@ -347,7 +347,7 @@ describe("generateRulesSection", () => {
   it("includes paths comment for rules with paths frontmatter", () => {
     const rule: Rule = parseRule(SAMPLE_RULE_WITH_PATHS, "security/api-auth.md");
 
-    const result = generateRulesSection([rule], "agent-conf");
+    const result = generateRulesSection([rule], "agconf");
 
     expect(result).toContain("<!-- Rule: security/api-auth.md -->");
     expect(result).toContain("<!-- Applies to:");
@@ -358,7 +358,7 @@ describe("generateRulesSection", () => {
   it("does not include paths comment for rules without paths", () => {
     const rule: Rule = parseRule(SAMPLE_RULE_WITHOUT_FRONTMATTER, "code-style.md");
 
-    const result = generateRulesSection([rule], "agent-conf");
+    const result = generateRulesSection([rule], "agconf");
 
     expect(result).not.toContain("<!-- Applies to:");
   });
@@ -371,8 +371,8 @@ describe("generateRulesSection", () => {
       body: "# Test\n\nContent.",
     };
 
-    const result1 = generateRulesSection([rule], "agent-conf");
-    const result2 = generateRulesSection([rule], "agent-conf");
+    const result1 = generateRulesSection([rule], "agconf");
+    const result2 = generateRulesSection([rule], "agconf");
 
     // Extract hash from both
     const hashMatch1 = result1.match(/Content hash: (sha256:[a-f0-9]+)/);
@@ -396,12 +396,12 @@ describe("generateRulesSection", () => {
   });
 
   it("handles empty rules array", () => {
-    const result = generateRulesSection([], "agent-conf");
+    const result = generateRulesSection([], "agconf");
 
-    expect(result).toContain("<!-- agent-conf:rules:start -->");
+    expect(result).toContain("<!-- agconf:rules:start -->");
     expect(result).toContain("<!-- Rule count: 0 -->");
     expect(result).toContain("# Project Rules");
-    expect(result).toContain("<!-- agent-conf:rules:end -->");
+    expect(result).toContain("<!-- agconf:rules:end -->");
   });
 });
 
@@ -410,8 +410,8 @@ describe("generateRulesSection", () => {
 // =============================================================================
 
 describe("updateAgentsMdWithRules", () => {
-  const sampleRulesSection = `<!-- agent-conf:rules:start -->
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf -->
+  const sampleRulesSection = `<!-- agconf:rules:start -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf -->
 <!-- Content hash: sha256:newhash12345 -->
 <!-- Rule count: 2 -->
 
@@ -421,13 +421,13 @@ describe("updateAgentsMdWithRules", () => {
 
 ## New Rule Content
 
-<!-- agent-conf:rules:end -->`;
+<!-- agconf:rules:end -->`;
 
   it("replaces existing rules section", () => {
     const result = updateAgentsMdWithRules(
       SAMPLE_AGENTS_MD_WITH_RULES_SECTION,
       sampleRulesSection,
-      "agent-conf",
+      "agconf",
     );
 
     // Old content should be gone
@@ -441,27 +441,27 @@ describe("updateAgentsMdWithRules", () => {
     expect(result).toContain("new-rule.md");
 
     // Global and repo sections should be preserved
-    expect(result).toContain("<!-- agent-conf:global:start -->");
-    expect(result).toContain("<!-- agent-conf:repo:start -->");
+    expect(result).toContain("<!-- agconf:global:start -->");
+    expect(result).toContain("<!-- agconf:repo:start -->");
   });
 
   it("inserts after global:end when no rules markers exist", () => {
     const result = updateAgentsMdWithRules(
       SAMPLE_AGENTS_MD_WITH_MARKERS,
       sampleRulesSection,
-      "agent-conf",
+      "agconf",
     );
 
     // Rules should be inserted
-    expect(result).toContain("<!-- agent-conf:rules:start -->");
+    expect(result).toContain("<!-- agconf:rules:start -->");
 
     // Should be after global:end
-    const globalEndPos = result.indexOf("<!-- agent-conf:global:end -->");
-    const rulesStartPos = result.indexOf("<!-- agent-conf:rules:start -->");
+    const globalEndPos = result.indexOf("<!-- agconf:global:end -->");
+    const rulesStartPos = result.indexOf("<!-- agconf:rules:start -->");
     expect(rulesStartPos).toBeGreaterThan(globalEndPos);
 
     // Should be before repo:start
-    const repoStartPos = result.indexOf("<!-- agent-conf:repo:start -->");
+    const repoStartPos = result.indexOf("<!-- agconf:repo:start -->");
     expect(rulesStartPos).toBeLessThan(repoStartPos);
 
     // Original content should be preserved
@@ -472,16 +472,16 @@ describe("updateAgentsMdWithRules", () => {
   it("inserts before repo:start when no global markers", () => {
     const contentWithRepoOnly = `# Some Content
 
-<!-- agent-conf:repo:start -->
+<!-- agconf:repo:start -->
 # Repo Specific Content
-<!-- agent-conf:repo:end -->
+<!-- agconf:repo:end -->
 `;
 
-    const result = updateAgentsMdWithRules(contentWithRepoOnly, sampleRulesSection, "agent-conf");
+    const result = updateAgentsMdWithRules(contentWithRepoOnly, sampleRulesSection, "agconf");
 
     // Rules should be before repo section
-    const rulesEndPos = result.indexOf("<!-- agent-conf:rules:end -->");
-    const repoStartPos = result.indexOf("<!-- agent-conf:repo:start -->");
+    const rulesEndPos = result.indexOf("<!-- agconf:rules:end -->");
+    const repoStartPos = result.indexOf("<!-- agconf:repo:start -->");
     expect(rulesEndPos).toBeLessThan(repoStartPos);
 
     // Original content preserved
@@ -492,32 +492,32 @@ describe("updateAgentsMdWithRules", () => {
   it("appends at end when no markers at all", () => {
     const plainContent = "# Plain AGENTS.md\n\nJust content, no markers.";
 
-    const result = updateAgentsMdWithRules(plainContent, sampleRulesSection, "agent-conf");
+    const result = updateAgentsMdWithRules(plainContent, sampleRulesSection, "agconf");
 
     // Original content should come first
     expect(result.indexOf("# Plain AGENTS.md")).toBeLessThan(
-      result.indexOf("<!-- agent-conf:rules:start -->"),
+      result.indexOf("<!-- agconf:rules:start -->"),
     );
 
     // Rules should be at end
-    expect(result).toContain("<!-- agent-conf:rules:start -->");
-    expect(result).toContain("<!-- agent-conf:rules:end -->");
+    expect(result).toContain("<!-- agconf:rules:start -->");
+    expect(result).toContain("<!-- agconf:rules:end -->");
   });
 
   it("preserves global and repo sections", () => {
     const result = updateAgentsMdWithRules(
       SAMPLE_AGENTS_MD_WITH_MARKERS,
       sampleRulesSection,
-      "agent-conf",
+      "agconf",
     );
 
     // All sections should be present
-    expect(result).toContain("<!-- agent-conf:global:start -->");
-    expect(result).toContain("<!-- agent-conf:global:end -->");
-    expect(result).toContain("<!-- agent-conf:rules:start -->");
-    expect(result).toContain("<!-- agent-conf:rules:end -->");
-    expect(result).toContain("<!-- agent-conf:repo:start -->");
-    expect(result).toContain("<!-- agent-conf:repo:end -->");
+    expect(result).toContain("<!-- agconf:global:start -->");
+    expect(result).toContain("<!-- agconf:global:end -->");
+    expect(result).toContain("<!-- agconf:rules:start -->");
+    expect(result).toContain("<!-- agconf:rules:end -->");
+    expect(result).toContain("<!-- agconf:repo:start -->");
+    expect(result).toContain("<!-- agconf:repo:end -->");
 
     // Content should be preserved
     expect(result).toContain("Some global content here.");

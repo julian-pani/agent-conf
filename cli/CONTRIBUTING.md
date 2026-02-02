@@ -4,9 +4,9 @@ title: Contributing
 nav_order: 5
 ---
 
-# Contributing to agent-conf
+# Contributing to agconf
 
-Thank you for your interest in contributing to agent-conf! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to agconf! This document provides guidelines and instructions for contributing.
 
 ## Table of Contents
 
@@ -44,8 +44,8 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 
 ```bash
 # Clone the repository
-git clone https://github.com/julian-pani/agent-conf.git
-cd agent-conf/cli
+git clone https://github.com/julian-pani/agconf.git
+cd agconf/cli
 
 # Install dependencies
 pnpm install
@@ -128,7 +128,7 @@ pnpm test:coverage
 
 **Critical:** When adding new content types to sync or modifying sync behavior, you MUST ensure the `check` command can verify the integrity of all synced content.
 
-The `check` command (`agent-conf check`) verifies that managed files haven't been manually modified. This is essential for CI pipelines and maintaining sync integrity.
+The `check` command (`agconf check`) verifies that managed files haven't been manually modified. This is essential for CI pipelines and maintaining sync integrity.
 
 **Requirements:**
 
@@ -178,7 +178,7 @@ it("should detect modified content", async () => {
 ```typescript
 // For skill/rule file frontmatter metadata
 import { computeContentHash } from "../core/skill-metadata.js";
-const hash = computeContentHash(content, { metadataPrefix: "agent-conf" });
+const hash = computeContentHash(content, { metadataPrefix: "agconf" });
 
 // For AGENTS.md global block
 import { computeGlobalBlockHash } from "../core/markers.js";
@@ -343,7 +343,7 @@ When requesting features, please include:
 
 If you have questions, feel free to:
 
-- Open a [GitHub Discussion](https://github.com/julian-pani/agent-conf/discussions)
+- Open a [GitHub Discussion](https://github.com/julian-pani/agconf/discussions)
 - Check existing issues and discussions
 
 Thank you for contributing!

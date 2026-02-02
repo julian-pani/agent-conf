@@ -24,8 +24,8 @@ describe("markers", () => {
   describe("parseAgentsMd", () => {
     it("should parse content with both blocks", () => {
       const content = `${GLOBAL_START_MARKER}
-<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
-<!-- Source: github:org/agent-conf@abc123 -->
+<!-- DO NOT EDIT THIS SECTION - Managed by agconf CLI -->
+<!-- Source: github:org/agconf@abc123 -->
 <!-- Last synced: 2026-01-27T15:30:00.000Z -->
 
 # Global Standards
@@ -131,7 +131,7 @@ ${GLOBAL_END_MARKER}
       const globalContent = "# Global Standards";
       const repoContent = "# Repo Instructions";
       const metadata = {
-        source: "local:/path/to/agent-conf",
+        source: "local:/path/to/agconf",
         syncedAt: "2026-01-27T15:30:00.000Z",
       };
 
@@ -148,8 +148,8 @@ ${GLOBAL_END_MARKER}
 
   describe("stripMetadataComments", () => {
     it("should strip metadata comments from global block", () => {
-      const globalBlock = `<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
-<!-- Source: github:org/agent-conf@abc123 -->
+      const globalBlock = `<!-- DO NOT EDIT THIS SECTION - Managed by agconf CLI -->
+<!-- Source: github:org/agconf@abc123 -->
 <!-- Last synced: 2026-01-27T15:30:00.000Z -->
 
 # Global Standards
@@ -211,7 +211,7 @@ ${REPO_END_MARKER}
       const globalContent = "# Global Standards";
       const repoContent = "# My Repo Instructions";
       const metadata = {
-        source: "local:/path/to/agent-conf",
+        source: "local:/path/to/agconf",
         syncedAt: "2026-01-27T15:30:00.000Z",
       };
 
@@ -253,8 +253,8 @@ ${REPO_END_MARKER}
 
   describe("parseGlobalBlockMetadata", () => {
     it("should parse all metadata fields", () => {
-      const globalBlock = `<!-- DO NOT EDIT THIS SECTION - Managed by agent-conf CLI -->
-<!-- Source: github:org/agent-conf@abc123 -->
+      const globalBlock = `<!-- DO NOT EDIT THIS SECTION - Managed by agconf CLI -->
+<!-- Source: github:org/agconf@abc123 -->
 <!-- Last synced: 2026-01-27T15:30:00.000Z -->
 <!-- Content hash: sha256:abc123def456 -->
 
@@ -262,7 +262,7 @@ ${REPO_END_MARKER}
 
       const metadata = parseGlobalBlockMetadata(globalBlock);
 
-      expect(metadata.source).toBe("github:org/agent-conf@abc123");
+      expect(metadata.source).toBe("github:org/agconf@abc123");
       expect(metadata.syncedAt).toBe("2026-01-27T15:30:00.000Z");
       expect(metadata.contentHash).toBe("sha256:abc123def456");
     });
@@ -281,7 +281,7 @@ ${REPO_END_MARKER}
     it("should return false for unmodified AGENTS.md", () => {
       const globalContent = "# Standards\nSome content";
       const metadata = {
-        source: "github:org/agent-conf@abc1234",
+        source: "github:org/agconf@abc1234",
         syncedAt: "2026-01-27T15:30:00.000Z",
       };
 
@@ -292,7 +292,7 @@ ${REPO_END_MARKER}
     it("should return true when global block content is modified", () => {
       const globalContent = "# Standards\nSome content";
       const metadata = {
-        source: "github:org/agent-conf@abc1234",
+        source: "github:org/agconf@abc1234",
         syncedAt: "2026-01-27T15:30:00.000Z",
       };
 
@@ -306,7 +306,7 @@ ${REPO_END_MARKER}
 
     it("should return false for content without hash (old format)", () => {
       const agentsMd = `${GLOBAL_START_MARKER}
-<!-- Source: github:org/agent-conf@abc123 -->
+<!-- Source: github:org/agconf@abc123 -->
 <!-- Last synced: 2026-01-27T15:30:00.000Z -->
 
 # Standards
@@ -344,7 +344,7 @@ ${GLOBAL_END_MARKER}`;
 
         expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:global:start -->`);
         expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:global:end -->`);
-        expect(result).not.toContain("agent-conf:global");
+        expect(result).not.toContain("agconf:global");
       });
     });
 
@@ -354,7 +354,7 @@ ${GLOBAL_END_MARKER}`;
 
         expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:repo:start -->`);
         expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:repo:end -->`);
-        expect(result).not.toContain("agent-conf:repo");
+        expect(result).not.toContain("agconf:repo");
       });
     });
 
@@ -372,7 +372,7 @@ ${GLOBAL_END_MARKER}`;
         expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:global:end -->`);
         expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:repo:start -->`);
         expect(result).toContain(`<!-- ${CUSTOM_PREFIX}:repo:end -->`);
-        expect(result).not.toContain("agent-conf:");
+        expect(result).not.toContain("agconf:");
       });
     });
 
