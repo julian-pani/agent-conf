@@ -1,3 +1,9 @@
+## [0.4.1](https://github.com/julian-pani/agconf/compare/v0.4.0...v0.4.1) (2026-02-03)
+
+### Bug Fixes
+
+* **cli:** hash mismatch for rules without frontmatter ([d776656](https://github.com/julian-pani/agconf/commit/d77665646cc7ba89d181bcefb936ad83ed012c23))
+
 ## [0.4.0](https://github.com/julian-pani/agconf/compare/v0.3.5...v0.4.0) (2026-02-03)
 
 ### Features
