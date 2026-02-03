@@ -1,3 +1,9 @@
+## [0.4.3](https://github.com/julian-pani/agconf/compare/v0.4.2...v0.4.3) (2026-02-03)
+
+### Bug Fixes
+
+* **cli:** stabilize rules order in lockfile ([d106937](https://github.com/julian-pani/agconf/commit/d106937675876e1265ee5ec4274bca944eeed4c9))
+
 ## [0.4.2](https://github.com/julian-pani/agconf/compare/v0.4.1...v0.4.2) (2026-02-03)
 
 ### Bug Fixes
