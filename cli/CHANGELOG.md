@@ -1,3 +1,9 @@
+## [0.4.2](https://github.com/julian-pani/agconf/compare/v0.4.1...v0.4.2) (2026-02-03)
+
+### Bug Fixes
+
+* fix package.json install command for dev ([99a0279](https://github.com/julian-pani/agconf/commit/99a02799f6e858a49766857bcf2b988ffa699062))
+
 ## [0.4.1](https://github.com/julian-pani/agconf/compare/v0.4.0...v0.4.1) (2026-02-03)
 
 ### Bug Fixes
