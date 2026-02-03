@@ -43,7 +43,7 @@ pnpm install:global       # Build + install globally
 - `sync.ts` - Main sync logic between canonical and downstream repos
 - `lockfile.ts` - Version pinning and metadata tracking
 - `markers.ts` - HTML comment markers for section separation in managed files
-- `merge.ts` - AGENTS.md merge logic (preserves repo-specific content)
+- `merge.ts` - AGENTS.md merge logic (preserves repo-specific content). Also handles CLAUDE.md consolidation: merges content from both root and .claude/ locations into AGENTS.md, then keeps only .claude/CLAUDE.md with @../AGENTS.md reference
 - `source.ts` - Resolves canonical repos (git or local paths)
 - `workflows.ts` - GitHub Actions workflow generation
 - `hooks.ts` - Pre-commit hook installation

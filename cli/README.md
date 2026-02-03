@@ -40,6 +40,21 @@ This scaffolds the structure for your standards. Edit `instructions/AGENTS.md` t
 
 ### 2. Sync to your projects
 
+## CLAUDE.md Handling
+
+During sync, agconf consolidates any existing `CLAUDE.md` files:
+
+1. **Both locations checked**: Root `CLAUDE.md` and `.claude/CLAUDE.md`
+2. **Content merged**: Content from both files (after stripping `@AGENTS.md` references) is merged into the AGENTS.md repo block
+3. **Files consolidated**: Root `CLAUDE.md` is deleted, `.claude/CLAUDE.md` is created/updated with `@../AGENTS.md` reference
+
+This happens regardless of target (Claude or Codex), ensuring:
+- Existing CLAUDE.md instructions become available in AGENTS.md (which Codex reads directly)
+- The repo is prepared for Claude usage (which reads `.claude/CLAUDE.md` and follows the reference)
+- Single source of truth for all agent instructions
+
+### Sync to your projects
+
 ```bash
 cd your-project
 agconf init --source your-org/engineering-standards

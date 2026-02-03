@@ -91,9 +91,9 @@ describe("init integration", () => {
 
     // Check result summary
     expect(result.agentsMd.merged).toBe(false);
+    expect(result.claudeMd.created).toBe(true);
     expect(result.targets).toHaveLength(1);
     expect(result.targets[0]?.target).toBe("claude");
-    expect(result.targets[0]?.instructionsMd.created).toBe(true);
     expect(result.skills.synced).toContain("test-skill");
     expect(result.skills.totalCopied).toBeGreaterThan(0);
   });
@@ -194,6 +194,105 @@ describe("init integration", () => {
     expect(result.targets).toHaveLength(2);
     expect(result.targets.map((t) => t.target)).toContain("claude");
     expect(result.targets.map((t) => t.target)).toContain("codex");
+  });
+
+  it("should consolidate root CLAUDE.md into AGENTS.md and delete root", async () => {
+    // Create a root CLAUDE.md with content
+    const rootClaudeMdPath = path.join(tempTargetDir, "CLAUDE.md");
+    await fs.writeFile(rootClaudeMdPath, "# My Root CLAUDE Content\nSome instructions", "utf-8");
+
+    const resolvedSource = await resolveLocalSource({ path: agentConfDir });
+    const result = await sync(tempTargetDir, resolvedSource, {
+      override: false,
+      targets: ["claude"],
+    });
+
+    // Root CLAUDE.md should be deleted
+    const rootExists = await fs
+      .access(rootClaudeMdPath)
+      .then(() => true)
+      .catch(() => false);
+    expect(rootExists).toBe(false);
+
+    // .claude/CLAUDE.md should exist with reference
+    const dotClaudeMdPath = path.join(tempTargetDir, ".claude", "CLAUDE.md");
+    const dotClaudeMd = await fs.readFile(dotClaudeMdPath, "utf-8");
+    expect(dotClaudeMd).toContain("@../AGENTS.md");
+
+    // Content should be merged into AGENTS.md
+    const agentsMdPath = path.join(tempTargetDir, "AGENTS.md");
+    const agentsMd = await fs.readFile(agentsMdPath, "utf-8");
+    expect(agentsMd).toContain("# My Root CLAUDE Content");
+
+    // Check result
+    expect(result.claudeMd.created).toBe(true);
+    expect(result.claudeMd.deletedRootClaudeMd).toBe(true);
+  });
+
+  it("should consolidate CLAUDE.md even when only Codex is target", async () => {
+    // Create a root CLAUDE.md with content
+    const rootClaudeMdPath = path.join(tempTargetDir, "CLAUDE.md");
+    await fs.writeFile(rootClaudeMdPath, "# Codex-only test\nSome instructions", "utf-8");
+
+    const resolvedSource = await resolveLocalSource({ path: agentConfDir });
+    const result = await sync(tempTargetDir, resolvedSource, {
+      override: false,
+      targets: ["codex"], // Only Codex target
+    });
+
+    // Root CLAUDE.md should still be deleted (consolidation happens regardless of target)
+    const rootExists = await fs
+      .access(rootClaudeMdPath)
+      .then(() => true)
+      .catch(() => false);
+    expect(rootExists).toBe(false);
+
+    // .claude/CLAUDE.md should exist with reference (prepared for future Claude usage)
+    const dotClaudeMdPath = path.join(tempTargetDir, ".claude", "CLAUDE.md");
+    const dotClaudeMd = await fs.readFile(dotClaudeMdPath, "utf-8");
+    expect(dotClaudeMd).toContain("@../AGENTS.md");
+
+    // Content should be merged into AGENTS.md (available to Codex)
+    const agentsMdPath = path.join(tempTargetDir, "AGENTS.md");
+    const agentsMd = await fs.readFile(agentsMdPath, "utf-8");
+    expect(agentsMd).toContain("# Codex-only test");
+
+    expect(result.claudeMd.deletedRootClaudeMd).toBe(true);
+  });
+
+  it("should merge content from both CLAUDE.md files during sync", async () => {
+    // Create both CLAUDE.md files with different content
+    const rootClaudeMdPath = path.join(tempTargetDir, "CLAUDE.md");
+    await fs.writeFile(rootClaudeMdPath, "# Root content\nFrom root file", "utf-8");
+
+    await fs.mkdir(path.join(tempTargetDir, ".claude"), { recursive: true });
+    const dotClaudeMdPath = path.join(tempTargetDir, ".claude", "CLAUDE.md");
+    await fs.writeFile(dotClaudeMdPath, "# Dotclaude content\nFrom .claude file", "utf-8");
+
+    const resolvedSource = await resolveLocalSource({ path: agentConfDir });
+    const result = await sync(tempTargetDir, resolvedSource, {
+      override: false,
+      targets: ["claude"],
+    });
+
+    // Both contents should be merged into AGENTS.md
+    const agentsMdPath = path.join(tempTargetDir, "AGENTS.md");
+    const agentsMd = await fs.readFile(agentsMdPath, "utf-8");
+    expect(agentsMd).toContain("# Root content");
+    expect(agentsMd).toContain("# Dotclaude content");
+
+    // Root should be deleted
+    const rootExists = await fs
+      .access(rootClaudeMdPath)
+      .then(() => true)
+      .catch(() => false);
+    expect(rootExists).toBe(false);
+
+    // .claude/CLAUDE.md should have reference
+    const dotClaudeMd = await fs.readFile(dotClaudeMdPath, "utf-8");
+    expect(dotClaudeMd).toContain("@../AGENTS.md");
+
+    expect(result.claudeMd.deletedRootClaudeMd).toBe(true);
   });
 
   it("should use custom marker prefix from canonical config", async () => {

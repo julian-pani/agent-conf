@@ -463,36 +463,38 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
       summaryLines.push("- `AGENTS.md` (created)");
     }
 
+    // .claude/CLAUDE.md status (consolidation result, shown once regardless of targets)
+    {
+      const claudeMdPath = formatPath(path.join(targetDir, ".claude", "CLAUDE.md"));
+      const claudeMdRelPath = ".claude/CLAUDE.md";
+
+      if (result.claudeMd.created) {
+        console.log(`  ${pc.green("+")} ${claudeMdPath} ${pc.dim("(created)")}`);
+        summaryLines.push(`- \`${claudeMdRelPath}\` (created)`);
+      } else if (result.claudeMd.updated) {
+        const hint = result.claudeMd.deletedRootClaudeMd
+          ? "(content merged into AGENTS.md, reference added)"
+          : "(reference added)";
+        console.log(`  ${pc.yellow("~")} ${claudeMdPath} ${pc.dim(hint)}`);
+        summaryLines.push(`- \`${claudeMdRelPath}\` ${hint}`);
+      } else {
+        console.log(`  ${pc.dim("-")} ${claudeMdPath} ${pc.dim("(unchanged)")}`);
+        summaryLines.push(`- \`${claudeMdRelPath}\` (unchanged)`);
+      }
+
+      // Show deleted root CLAUDE.md
+      if (result.claudeMd.deletedRootClaudeMd) {
+        const rootClaudeMdPath = formatPath(path.join(targetDir, "CLAUDE.md"));
+        console.log(
+          `  ${pc.red("-")} ${rootClaudeMdPath} ${pc.dim("(deleted, content merged into AGENTS.md)")}`,
+        );
+        summaryLines.push("- `CLAUDE.md` (deleted, content merged into AGENTS.md)");
+      }
+    }
+
     // Per-target results
     for (const targetResult of result.targets) {
       const config = getTargetConfig(targetResult.target);
-
-      // Instructions file status (only for targets that use one, like Claude)
-      if (config.instructionsFile) {
-        const instructionsPath =
-          targetResult.instructionsMd.location === "root"
-            ? formatPath(path.join(targetDir, config.instructionsFile))
-            : formatPath(path.join(targetDir, config.dir, config.instructionsFile));
-
-        const instructionsRelPath =
-          targetResult.instructionsMd.location === "root"
-            ? config.instructionsFile
-            : `${config.dir}/${config.instructionsFile}`;
-
-        if (targetResult.instructionsMd.created) {
-          console.log(`  ${pc.green("+")} ${instructionsPath} ${pc.dim("(created)")}`);
-          summaryLines.push(`- \`${instructionsRelPath}\` (created)`);
-        } else if (targetResult.instructionsMd.updated) {
-          const hint = targetResult.instructionsMd.contentMerged
-            ? "(content merged into AGENTS.md, reference added)"
-            : "(reference added)";
-          console.log(`  ${pc.yellow("~")} ${instructionsPath} ${pc.dim(hint)}`);
-          summaryLines.push(`- \`${instructionsRelPath}\` ${hint}`);
-        } else {
-          console.log(`  ${pc.dim("-")} ${instructionsPath} ${pc.dim("(unchanged)")}`);
-          summaryLines.push(`- \`${instructionsRelPath}\` (unchanged)`);
-        }
-      }
 
       // Skills status for this target
       const skillsPath = formatPath(path.join(targetDir, config.dir, "skills"));

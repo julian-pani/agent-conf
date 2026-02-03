@@ -4,7 +4,7 @@ import * as path from "node:path";
 import fg from "fast-glob";
 import type { Lockfile } from "../schemas/lockfile.js";
 import { readLockfile, writeLockfile } from "./lockfile.js";
-import { ensureClaudeMd, mergeAgentsMd, writeAgentsMd } from "./merge.js";
+import { consolidateClaudeMd, mergeAgentsMd, writeAgentsMd } from "./merge.js";
 import {
   addRuleMetadata,
   generateRulesSection,
@@ -157,12 +157,6 @@ export async function syncRules(options: RulesSyncOptions): Promise<RulesSyncRes
 
 export interface TargetResult {
   target: Target;
-  instructionsMd: {
-    created: boolean;
-    updated: boolean;
-    location: "root" | "dotdir" | null;
-    contentMerged: boolean;
-  };
   skills: {
     copied: number;
   };
@@ -173,6 +167,11 @@ export interface SyncResult {
   agentsMd: {
     merged: boolean;
     preservedRepoContent: boolean;
+  };
+  claudeMd: {
+    created: boolean;
+    updated: boolean;
+    deletedRootClaudeMd: boolean;
   };
   targets: TargetResult[];
   skills: {
@@ -207,6 +206,10 @@ export async function sync(
     markerPrefix,
   });
   await writeAgentsMd(targetDir, mergeResult.content);
+
+  // Consolidate CLAUDE.md files (regardless of target)
+  // This merges content into AGENTS.md and creates .claude/CLAUDE.md reference
+  const consolidateResult = await consolidateClaudeMd(targetDir, mergeResult.hadRootClaudeMd);
 
   // Find all skill directories once
   const skillDirs = await fg("*/", {
@@ -252,27 +255,8 @@ export async function sync(
       allModifiedSkills.add(skill);
     }
 
-    // Only Claude needs an instructions file with @AGENTS.md reference
-    // Other targets (codex, etc.) read AGENTS.md directly
-    let instructionsResult: TargetResult["instructionsMd"];
-    if (config.instructionsFile) {
-      instructionsResult = await ensureInstructionsMd(
-        targetDir,
-        config,
-        target === "claude" ? mergeResult.claudeMdLocation : null,
-      );
-    } else {
-      instructionsResult = {
-        created: false,
-        updated: false,
-        location: null,
-        contentMerged: false,
-      };
-    }
-
     targetResults.push({
       target,
-      instructionsMd: instructionsResult,
       skills: { copied: skillsResult.copied },
     });
   }
@@ -322,6 +306,11 @@ export async function sync(
     agentsMd: {
       merged: mergeResult.merged,
       preservedRepoContent: mergeResult.preservedRepoContent,
+    },
+    claudeMd: {
+      created: consolidateResult.created,
+      updated: consolidateResult.updated,
+      deletedRootClaudeMd: consolidateResult.deletedRootClaudeMd,
     },
     targets: targetResults,
     skills: {
@@ -443,31 +432,6 @@ async function copySkillDirectory(
   }
 
   return { copied, modified };
-}
-
-async function ensureInstructionsMd(
-  targetDir: string,
-  config: TargetConfig,
-  existingLocation: "root" | "dotclaude" | null,
-): Promise<{
-  created: boolean;
-  updated: boolean;
-  location: "root" | "dotdir" | null;
-  contentMerged: boolean;
-}> {
-  // Only Claude needs an instructions file
-  if (!config.instructionsFile) {
-    return { created: false, updated: false, location: null, contentMerged: false };
-  }
-
-  // Use the existing ensureClaudeMd logic for Claude
-  const result = await ensureClaudeMd(targetDir, existingLocation);
-  return {
-    created: result.created,
-    updated: result.updated,
-    location: result.location === "dotclaude" ? "dotdir" : result.location,
-    contentMerged: result.contentMerged,
-  };
 }
 
 export interface SyncStatus {

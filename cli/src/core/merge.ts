@@ -15,17 +15,16 @@ export interface MergeResult {
   preservedRepoContent: boolean;
 }
 
-export interface ClaudeMdResult {
+export interface ConsolidateClaudeMdResult {
   created: boolean;
   updated: boolean;
-  location: "root" | "dotclaude" | null;
-  contentMerged: boolean;
+  deletedRootClaudeMd: boolean;
 }
 
 interface ExistingContent {
   agentsMd: string | null;
-  claudeMd: string | null;
-  claudeMdLocation: "root" | "dotclaude" | null;
+  rootClaudeMd: string | null;
+  dotClaudeClaudeMd: string | null;
 }
 
 async function readFileIfExists(filePath: string): Promise<string | null> {
@@ -40,24 +39,12 @@ async function readFileIfExists(filePath: string): Promise<string | null> {
 }
 
 async function gatherExistingContent(targetDir: string): Promise<ExistingContent> {
-  const agentsMdPath = path.join(targetDir, "AGENTS.md");
-  const rootClaudeMdPath = path.join(targetDir, "CLAUDE.md");
-  const dotClaudeClaudeMdPath = path.join(targetDir, ".claude", "CLAUDE.md");
-
-  const agentsMd = await readFileIfExists(agentsMdPath);
-
-  // Check root CLAUDE.md first, then .claude/CLAUDE.md
-  const rootClaudeMd = await readFileIfExists(rootClaudeMdPath);
-  if (rootClaudeMd !== null) {
-    return { agentsMd, claudeMd: rootClaudeMd, claudeMdLocation: "root" };
-  }
-
-  const dotClaudeClaudeMd = await readFileIfExists(dotClaudeClaudeMdPath);
-  if (dotClaudeClaudeMd !== null) {
-    return { agentsMd, claudeMd: dotClaudeClaudeMd, claudeMdLocation: "dotclaude" };
-  }
-
-  return { agentsMd, claudeMd: null, claudeMdLocation: null };
+  const [agentsMd, rootClaudeMd, dotClaudeClaudeMd] = await Promise.all([
+    readFileIfExists(path.join(targetDir, "AGENTS.md")),
+    readFileIfExists(path.join(targetDir, "CLAUDE.md")),
+    readFileIfExists(path.join(targetDir, ".claude", "CLAUDE.md")),
+  ]);
+  return { agentsMd, rootClaudeMd, dotClaudeClaudeMd };
 }
 
 function stripAgentsReference(content: string): string {
@@ -79,8 +66,9 @@ export async function mergeAgentsMd(
   options: MergeOptions = { override: false },
 ): Promise<
   MergeResult & {
-    existingClaudeMdContent: string | null;
-    claudeMdLocation: "root" | "dotclaude" | null;
+    mergedClaudeMdContent: string | null;
+    hadRootClaudeMd: boolean;
+    hadDotClaudeClaudeMd: boolean;
   }
 > {
   const existing = await gatherExistingContent(targetDir);
@@ -105,28 +93,47 @@ export async function mergeAgentsMd(
   }
 
   // Handle existing CLAUDE.md content (merge into repo block)
-  let claudeMdContentForMerge: string | null = null;
-  if (existing.claudeMd !== null && !options.override) {
-    const strippedContent = stripAgentsReference(existing.claudeMd);
-    if (strippedContent) {
-      claudeMdContentForMerge = strippedContent;
-      contentToMerge.push(strippedContent);
+  // Collect content from both locations, deduplicating identical content
+  const claudeMdContents: string[] = [];
+
+  // Process root CLAUDE.md
+  if (existing.rootClaudeMd !== null && !options.override) {
+    const stripped = stripAgentsReference(existing.rootClaudeMd);
+    if (stripped) {
+      claudeMdContents.push(stripped);
     }
+  }
+
+  // Process .claude/CLAUDE.md (deduplicate if same content)
+  if (existing.dotClaudeClaudeMd !== null && !options.override) {
+    const stripped = stripAgentsReference(existing.dotClaudeClaudeMd);
+    if (stripped && !claudeMdContents.includes(stripped)) {
+      claudeMdContents.push(stripped);
+    }
+  }
+
+  // Add CLAUDE.md contents to merge
+  for (const content of claudeMdContents) {
+    contentToMerge.push(content);
   }
 
   // Build final repo content
   const repoContent = contentToMerge.length > 0 ? contentToMerge.join("\n\n") : null;
   const content = buildAgentsMd(globalContent, repoContent, {}, markerOptions);
 
-  const merged = !options.override && (existing.agentsMd !== null || existing.claudeMd !== null);
+  const hadRootClaudeMd = existing.rootClaudeMd !== null;
+  const hadDotClaudeClaudeMd = existing.dotClaudeClaudeMd !== null;
+  const merged =
+    !options.override && (existing.agentsMd !== null || hadRootClaudeMd || hadDotClaudeClaudeMd);
   const preservedRepoContent = contentToMerge.length > 0;
 
   return {
     content,
     merged,
     preservedRepoContent,
-    existingClaudeMdContent: claudeMdContentForMerge,
-    claudeMdLocation: existing.claudeMdLocation,
+    mergedClaudeMdContent: claudeMdContents.length > 0 ? claudeMdContents.join("\n\n") : null,
+    hadRootClaudeMd,
+    hadDotClaudeClaudeMd,
   };
 }
 
@@ -135,49 +142,47 @@ export async function writeAgentsMd(targetDir: string, content: string): Promise
   await fs.writeFile(agentsMdPath, content, "utf-8");
 }
 
-export async function ensureClaudeMd(
+/**
+ * Consolidate CLAUDE.md files to a single .claude/CLAUDE.md with @../AGENTS.md reference.
+ * Content from any existing CLAUDE.md files should already be merged into AGENTS.md.
+ * This function:
+ * 1. Creates/updates .claude/CLAUDE.md with @../AGENTS.md reference
+ * 2. Deletes root CLAUDE.md if it existed
+ */
+export async function consolidateClaudeMd(
   targetDir: string,
-  existingLocation: "root" | "dotclaude" | null,
-): Promise<ClaudeMdResult> {
-  // Determine where CLAUDE.md should be and what reference to use
-  // If there's an existing one, update it in place; otherwise create in .claude/
+  hadRootClaudeMd: boolean,
+): Promise<ConsolidateClaudeMdResult> {
   const rootPath = path.join(targetDir, "CLAUDE.md");
   const dotClaudePath = path.join(targetDir, ".claude", "CLAUDE.md");
+  const reference = "@../AGENTS.md";
 
-  // Reference paths (AGENTS.md is in root)
-  const rootReference = "@AGENTS.md";
-  const dotClaudeReference = "@../AGENTS.md";
-
-  if (existingLocation === "root") {
-    // Update root CLAUDE.md
-    const existingContent = await readFileIfExists(rootPath);
-    if (existingContent !== null) {
-      // Check if reference already exists
-      if (existingContent.includes(rootReference)) {
-        return { created: false, updated: false, location: "root", contentMerged: false };
-      }
-      // Content was already merged into AGENTS.md, just add the reference
-      await fs.writeFile(rootPath, `${rootReference}\n`, "utf-8");
-      return { created: false, updated: true, location: "root", contentMerged: true };
-    }
-  }
-
-  if (existingLocation === "dotclaude") {
-    // Update .claude/CLAUDE.md
-    const existingContent = await readFileIfExists(dotClaudePath);
-    if (existingContent !== null) {
-      // Check if reference already exists
-      if (existingContent.includes(dotClaudeReference)) {
-        return { created: false, updated: false, location: "dotclaude", contentMerged: false };
-      }
-      // Content was already merged into AGENTS.md, just add the reference
-      await fs.writeFile(dotClaudePath, `${dotClaudeReference}\n`, "utf-8");
-      return { created: false, updated: true, location: "dotclaude", contentMerged: true };
-    }
-  }
-
-  // No existing CLAUDE.md - create in .claude/
+  // Ensure .claude directory exists
   await fs.mkdir(path.dirname(dotClaudePath), { recursive: true });
-  await fs.writeFile(dotClaudePath, `${dotClaudeReference}\n`, "utf-8");
-  return { created: true, updated: false, location: "dotclaude", contentMerged: false };
+
+  // Create or update .claude/CLAUDE.md
+  const existing = await readFileIfExists(dotClaudePath);
+  let created = false;
+  let updated = false;
+
+  if (existing === null) {
+    await fs.writeFile(dotClaudePath, `${reference}\n`, "utf-8");
+    created = true;
+  } else if (!existing.includes(reference)) {
+    await fs.writeFile(dotClaudePath, `${reference}\n`, "utf-8");
+    updated = true;
+  }
+
+  // Delete root CLAUDE.md if it existed
+  let deletedRootClaudeMd = false;
+  if (hadRootClaudeMd) {
+    try {
+      await fs.unlink(rootPath);
+      deletedRootClaudeMd = true;
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+    }
+  }
+
+  return { created, updated, deletedRootClaudeMd };
 }
