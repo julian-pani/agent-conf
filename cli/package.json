@@ -27,7 +27,7 @@
     "check:fix": "biome check --fix",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build",
-    "install:global": "pnpm install && pnpm build && pnpm link --global",
+    "install:global": "npm uninstall -g agconf && pnpm install && pnpm build && pnpm link --global",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run"
   },
