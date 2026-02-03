@@ -1,3 +1,9 @@
+## [0.3.5](https://github.com/julian-pani/agconf/compare/v0.3.4...v0.3.5) (2026-02-03)
+
+### Bug Fixes
+
+* **cli:** use markerPrefix for workflow filenames and names ([1cc042a](https://github.com/julian-pani/agconf/commit/1cc042a420bad350e9b7bb5930e866177bca6ff4))
+
 ## [0.3.4](https://github.com/julian-pani/agconf/compare/v0.3.3...v0.3.4) (2026-02-02)
 
 ### Bug Fixes
