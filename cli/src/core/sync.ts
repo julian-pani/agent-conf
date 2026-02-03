@@ -71,6 +71,9 @@ async function discoverRules(rulesDir: string): Promise<Rule[]> {
     rules.push(parseRule(content, relativePath));
   }
 
+  // Sort by path for deterministic order in lockfile and outputs
+  rules.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+
   return rules;
 }
 
