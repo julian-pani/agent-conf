@@ -1,3 +1,9 @@
+## [0.4.4](https://github.com/julian-pani/agconf/compare/v0.4.3...v0.4.4) (2026-02-04)
+
+### Bug Fixes
+
+* **cli:** prevent duplicate check workflow runs on PRs ([11108b5](https://github.com/julian-pani/agconf/commit/11108b59799939b79ba02f95512264ef0e0f0db7))
+
 ## [0.4.3](https://github.com/julian-pani/agconf/compare/v0.4.2...v0.4.3) (2026-02-03)
 
 ### Bug Fixes
