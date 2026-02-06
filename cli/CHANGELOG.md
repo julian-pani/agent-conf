@@ -1,3 +1,9 @@
+## [0.5.0](https://github.com/julian-pani/agconf/compare/v0.4.4...v0.5.0) (2026-02-06)
+
+### Features
+
+* **cli:** add per-downstream-repo workflow configuration ([6537599](https://github.com/julian-pani/agconf/commit/653759953501e8643e03abcb9e4a179693db763f))
+
 ## [0.4.4](https://github.com/julian-pani/agconf/compare/v0.4.3...v0.4.4) (2026-02-04)
 
 ### Bug Fixes
