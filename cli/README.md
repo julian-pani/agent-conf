@@ -39,6 +39,12 @@ This scaffolds the structure for your standards. Edit `instructions/AGENTS.md` t
 
 ### 2. Sync to your projects
 
+```bash
+cd your-project
+agconf init --source your-org/engineering-standards
+```
+
+
 ## CLAUDE.md Handling
 
 During sync, agconf consolidates any existing `CLAUDE.md` files:
@@ -52,12 +58,6 @@ This happens regardless of target (Claude or Codex), ensuring:
 - The repo is prepared for Claude usage (which reads `.claude/CLAUDE.md` and follows the reference)
 - Single source of truth for all agent instructions
 
-### Sync to your projects
-
-```bash
-cd your-project
-agconf init --source your-org/engineering-standards
-```
 
 ## Rules
 
