@@ -55,3 +55,4 @@ coverage/
 
 # Custom
 .local/
+.worktrees/
