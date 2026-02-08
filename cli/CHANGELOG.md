@@ -1,3 +1,13 @@
+## [0.8.0](https://github.com/julian-pani/agconf/compare/v0.7.2...v0.8.0) (2026-02-08)
+
+### Features
+
+* add plan-review skill for pre-implementation plan review ([53affe4](https://github.com/julian-pani/agconf/commit/53affe4858b52d962bea67c53499c2fa9b03f47b))
+
+### Bug Fixes
+
+* remove context:fork and fix doc-planner subagent invocation ([b346ede](https://github.com/julian-pani/agconf/commit/b346ede17cdadaaefb712549784561b5c0ecce50))
+
 ## [0.7.2](https://github.com/julian-pani/agconf/compare/v0.7.1...v0.7.2) (2026-02-08)
 
 ### Bug Fixes
