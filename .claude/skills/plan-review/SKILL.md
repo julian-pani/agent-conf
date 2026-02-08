@@ -1,8 +1,8 @@
 ---
 name: plan-review
 description: Review a detailed implementation plan before code is written. Checks for conceptual drift, unnecessary abstractions, documentation impact, and other issues that are much cheaper to catch at planning time. Use after creating a plan and before starting implementation.
-context: fork
 model: opus
+argument-hint: "[plan-file-path]"
 ---
 
 # Plan Review
@@ -97,7 +97,7 @@ Evaluate whether the plan maintains conceptual integrity with the existing codeb
 
 ### Review 2: Documentation Impact
 
-Use the **doc-planner** agent (via Task tool with `subagent_type: "general-purpose"`) to assess the documentation impact of the plan.
+Use the **doc-planner** agent (via Task tool with `subagent_type: "doc-planner"`) to assess the documentation impact of the plan.
 
 Provide the doc-planner agent with:
 - The implementation plan
