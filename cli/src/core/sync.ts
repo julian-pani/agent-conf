@@ -21,9 +21,11 @@ import {
 } from "./rules.js";
 import {
   addManagedMetadata,
+  hasManualChanges,
+  isManaged,
   type SkillValidationError,
   validateSkillFrontmatter,
-} from "./skill-metadata.js";
+} from "./managed-content.js";
 import type { ResolvedSource } from "./source.js";
 import { getTargetConfig, type Target, type TargetConfig } from "./targets.js";
 
@@ -330,7 +332,6 @@ export async function deleteOrphanedAgents(
     // Check if the agent is managed before deleting
     try {
       const content = await fs.readFile(fullPath, "utf-8");
-      const { isManaged, hasManualChanges } = await import("./skill-metadata.js");
 
       if (!isManaged(content, metadataOptions)) {
         // Not managed, skip deletion
@@ -787,7 +788,6 @@ export async function deleteOrphanedSkills(
       const skillMdPath = path.join(skillDir, "SKILL.md");
       try {
         const content = await fs.readFile(skillMdPath, "utf-8");
-        const { isManaged, hasManualChanges } = await import("./skill-metadata.js");
 
         if (!isManaged(content, metadataOptions)) {
           // Not managed, skip deletion
