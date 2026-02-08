@@ -1,3 +1,9 @@
+## [0.7.1](https://github.com/julian-pani/agconf/compare/v0.7.0...v0.7.1) (2026-02-08)
+
+### Bug Fixes
+
+* add worktrees to gitignore ([b1d919d](https://github.com/julian-pani/agconf/commit/b1d919d5c9976ebee277e0262773a9e9e271f5df))
+
 ## [0.7.0](https://github.com/julian-pani/agconf/compare/v0.6.2...v0.7.0) (2026-02-08)
 
 ### Features
