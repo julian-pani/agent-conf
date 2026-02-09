@@ -167,7 +167,10 @@ function generateSyncWorkflow(repoFullName: string, prefix: string): string {
 # Downstream repos will reference this workflow like:
 #   uses: ${repoFullName}/.github/workflows/sync-reusable.yml@v1.0.0
 #
-# TOKEN: Requires a token with read access to the canonical repository.
+# AUTHENTICATION (one of the following):
+#   Option 1 - PAT: Pass a \`token\` secret with read access to the canonical repository.
+#   Option 2 - GitHub App: Pass \`app_id\` and \`app_private_key\` secrets.
+#
 # The default GITHUB_TOKEN is used for operations on the downstream repo.
 
 name: Sync Reusable
@@ -206,8 +209,14 @@ on:
         type: string
     secrets:
       token:
-        description: 'GitHub token with read access to the canonical repository'
-        required: true
+        description: 'GitHub token with read access to the canonical repository (option 1: PAT)'
+        required: false
+      app_id:
+        description: 'GitHub App ID (option 2: GitHub App)'
+        required: false
+      app_private_key:
+        description: 'GitHub App private key (option 2: GitHub App)'
+        required: false
     outputs:
       changes_detected:
         description: 'Whether changes were detected after sync'
@@ -230,6 +239,21 @@ jobs:
       pr_number: \${{ steps.create-pr.outputs.pr_number }}
       pr_url: \${{ steps.create-pr.outputs.pr_url }}
     steps:
+      - name: Validate auth inputs
+        run: |
+          if [ -z "\${{ secrets.token }}" ] && { [ -z "\${{ secrets.app_id }}" ] || [ -z "\${{ secrets.app_private_key }}" ]; }; then
+            echo "::error::Either 'token' or both 'app_id' and 'app_private_key' secrets must be provided."
+            exit 1
+          fi
+
+      - name: Generate GitHub App token
+        id: app-token
+        if: \${{ secrets.token == '' }}
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: \${{ secrets.app_id }}
+          private-key: \${{ secrets.app_private_key }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -246,7 +270,7 @@ jobs:
       - name: Run sync
         run: agconf sync --yes --summary-file /tmp/sync-summary.md --expand-changes
         env:
-          GITHUB_TOKEN: \${{ secrets.token }}
+          GITHUB_TOKEN: \${{ steps.app-token.outputs.token || secrets.token }}
 
       - name: Check for changes
         id: check-changes

@@ -85,7 +85,7 @@ workflow:
 
 ## Generated Workflow Output
 
-The settings are embedded in the generated sync workflow's `with:` block:
+The settings are embedded in the generated sync workflow's `with:` and `secrets:` blocks:
 
 ```yaml
 jobs:
@@ -98,7 +98,11 @@ jobs:
       reviewers: ${{ vars.AGCONF_REVIEWERS || '' }}
     secrets:
       token: ${{ secrets.AGCONF_TOKEN }}
+      app_id: ${{ secrets.AGCONF_APP_ID }}
+      app_private_key: ${{ secrets.AGCONF_APP_PRIVATE_KEY }}
 ```
+
+All three secrets are passed through, but you only need to configure **one** authentication method (PAT or GitHub App). See [Cross-Repository Authentication](./CANONICAL_REPOSITORY_SETUP.md#cross-repository-authentication) for setup details.
 
 ## Defaults and Backwards Compatibility
 

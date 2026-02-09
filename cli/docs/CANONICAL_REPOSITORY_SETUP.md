@@ -420,13 +420,24 @@ Each downstream repository can optionally customize sync behavior (commit strate
 
 ## Cross-Repository Authentication
 
-For the sync workflows to function, downstream repositories need read access to the canonical repository, and optionally the canonical repository may need write access to downstream repos to push updates.
+For the sync workflows to function, downstream repositories need read access to the canonical repository. The generated `sync-reusable.yml` workflow supports two authentication methods out of the box:
 
-**Note:** The `check` workflow (`agconf-check.yml`) does **not** require any tokens or secrets. It only runs `agconf check` to verify file integrity within the repository. The workflow is triggered when changes are detected in `AGENTS.md`, `.claude/**`, or `.codex/**`.
-
-There are two authentication methods:
 1. **GitHub App** (recommended) - More secure, granular permissions, higher rate limits
 2. **Personal Access Token (PAT)** - Simpler setup, but tied to a user account
+
+You only need to configure **one** of these. The reusable workflow validates that either a PAT or both GitHub App secrets are provided, and automatically generates an ephemeral token when using the App method.
+
+**Note:** The `check` workflow (`agconf-check.yml`) does **not** require any tokens or secrets. It only runs `agconf check` to verify file integrity within the repository.
+
+### Secret Naming Convention
+
+Secret names are derived from the marker prefix in your `agconf.yaml`. The prefix is uppercased with dashes converted to underscores:
+
+| Marker Prefix | PAT Secret | App ID Secret | App Private Key Secret |
+|---------------|------------|---------------|------------------------|
+| `agconf` | `AGCONF_TOKEN` | `AGCONF_APP_ID` | `AGCONF_APP_PRIVATE_KEY` |
+| `fbagents` | `FBAGENTS_TOKEN` | `FBAGENTS_APP_ID` | `FBAGENTS_APP_PRIVATE_KEY` |
+| `my-prefix` | `MY_PREFIX_TOKEN` | `MY_PREFIX_APP_ID` | `MY_PREFIX_APP_PRIVATE_KEY` |
 
 ### Option 1: GitHub App (Recommended)
 
@@ -445,9 +456,7 @@ A GitHub App provides better security and granular permissions. The app is insta
    - **Webhook**: Uncheck "Active" (not needed for this use case)
 
 4. Set **Repository permissions**:
-   - **Contents**: Read and write (to read canonical repo, write sync PRs)
-   - **Pull requests**: Read and write (to create sync PRs)
-   - **Workflows**: Read and write (if you want to update workflow files)
+   - **Contents**: Read-only (to read canonical repo)
    - **Metadata**: Read-only (required, auto-selected)
 
 5. Under **"Where can this GitHub App be installed?"**:
@@ -462,54 +471,37 @@ A GitHub App provides better security and granular permissions. The app is insta
 2. Click **"Generate a private key"**
 3. A `.pem` file will download - **keep this secure**
 
-#### Step 3: Note the App ID and Installation ID
+#### Step 3: Note the App ID
 
-1. **App ID**: Found at the top of the app settings page
-2. **Installation ID**:
-   - Go to your app's installations: Click "Install App" in the sidebar
-   - Install the app on your organization/repos
-   - After installation, the URL will contain the installation ID:
-     `https://github.com/organizations/YOUR-ORG/settings/installations/12345678`
-     The number (12345678) is your Installation ID
+The **App ID** is found at the top of the app settings page.
 
-#### Step 4: Add Secrets to Repositories
+#### Step 4: Install the App
 
-Add these secrets to your **downstream repositories** (or at the organization level):
+1. Go to your app's page and click **"Install App"** in the sidebar
+2. Install it on your organization (or select specific repositories)
+3. Grant access to the canonical repository
+
+#### Step 5: Add Secrets to Downstream Repositories
+
+Add these secrets to your **downstream repositories** (or at the organization level for convenience):
 
 | Secret Name | Value |
 |-------------|-------|
-| `AGENT_CONF_APP_ID` | Your GitHub App ID |
-| `AGENT_CONF_APP_PRIVATE_KEY` | Contents of the `.pem` private key file |
-| `AGENT_CONF_APP_INSTALLATION_ID` | Your Installation ID |
+| `{PREFIX}_APP_ID` | Your GitHub App ID (e.g., `123456`) |
+| `{PREFIX}_APP_PRIVATE_KEY` | Contents of the `.pem` private key file |
+
+For example, with the default `agconf` prefix:
+
+| Secret Name | Value |
+|-------------|-------|
+| `AGCONF_APP_ID` | Your GitHub App ID |
+| `AGCONF_APP_PRIVATE_KEY` | Contents of the `.pem` private key file |
 
 To add at organization level:
 1. Go to **Organization Settings** → **Secrets and variables** → **Actions**
 2. Add each secret with **"All repositories"** or **"Selected repositories"**
 
-#### Step 5: Update Workflow to Use GitHub App
-
-Modify your reusable workflows to generate a token from the GitHub App. Update `.github/workflows/sync-reusable.yml`:
-
-```yaml
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate GitHub App Token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.AGENT_CONF_APP_ID }}
-          private-key: ${{ secrets.AGENT_CONF_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-
-      - name: Checkout downstream repo
-        uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-
-      # ... rest of workflow
-```
+No workflow modification is needed - the generated `sync-reusable.yml` already handles GitHub App token generation using `actions/create-github-app-token@v1`.
 
 ### Option 2: Personal Access Token (PAT)
 
@@ -522,14 +514,10 @@ A PAT is simpler to set up but is tied to a user account. Use fine-grained PATs 
 3. Configure:
    - **Token name**: `agconf-sync`
    - **Expiration**: Choose an appropriate duration (90 days recommended)
-   - **Repository access**: Select repositories that need access
-     - Include your canonical repository
-     - Include downstream repositories (for PR creation)
+   - **Repository access**: Select your canonical repository
 
 4. Set **Repository permissions**:
-   - **Contents**: Read and write
-   - **Pull requests**: Read and write
-   - **Workflows**: Read and write (if updating workflow files)
+   - **Contents**: Read-only
 
 5. Click **"Generate token"** and copy the token
 
@@ -539,14 +527,29 @@ Add the token to your downstream repositories:
 
 1. Go to each downstream repo → **Settings** → **Secrets and variables** → **Actions**
 2. Click **"New repository secret"**
-3. Name: `AGENT_CONF_TOKEN`
+3. Name: `{PREFIX}_TOKEN` (e.g., `AGCONF_TOKEN`)
 4. Value: Paste your PAT
 
 Or add at organization level for all repos.
 
-#### Step 3: Verify Workflow Configuration
+### How Authentication Works in the Workflow
 
-The default workflow files use `secrets.AGENT_CONF_TOKEN`. No changes needed if you used that secret name.
+The generated `sync-reusable.yml` handles both methods automatically:
+
+1. **Validation**: Fails early if neither a PAT nor both App secrets are provided
+2. **Token generation**: If no PAT is provided, uses `actions/create-github-app-token@v1` to generate an ephemeral token from the GitHub App credentials
+3. **Token usage**: The sync step uses `steps.app-token.outputs.token || secrets.token` to pick the right credential
+
+The downstream workflow passes all three secrets through to the reusable workflow:
+
+```yaml
+secrets:
+  token: ${{ secrets.AGCONF_TOKEN }}
+  app_id: ${{ secrets.AGCONF_APP_ID }}
+  app_private_key: ${{ secrets.AGCONF_APP_PRIVATE_KEY }}
+```
+
+Only the secrets you've actually configured will have values - the others will be empty, and the reusable workflow handles this gracefully.
 
 ### Pushing Changes from Canonical to Downstream
 
@@ -578,8 +581,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ secrets.AGENT_CONF_APP_ID }}
-          private-key: ${{ secrets.AGENT_CONF_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.AGCONF_APP_ID }}
+          private-key: ${{ secrets.AGCONF_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ matrix.repo }}
 
@@ -589,10 +592,10 @@ jobs:
             -H "Authorization: token ${{ steps.app-token.outputs.token }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ matrix.repo }}/dispatches \
-            -d '{"event_type": "agent_conf-release", "client_payload": {"version": "${{ github.event.release.tag_name }}"}}'
+            -d '{"event_type": "agconf-release", "client_payload": {"version": "${{ github.event.release.tag_name }}"}}'
 ```
 
-2. The downstream repos' sync workflow already listens for `repository_dispatch` events with type `agent_conf-release`.
+2. The downstream repos' sync workflow already listens for `repository_dispatch` events with type `{prefix}-release` (with dashes replaced by underscores, e.g., `agconf_release`).
 
 ### Security Best Practices
 
