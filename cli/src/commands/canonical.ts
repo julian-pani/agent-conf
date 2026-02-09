@@ -240,15 +240,21 @@ jobs:
       pr_url: \${{ steps.create-pr.outputs.pr_url }}
     steps:
       - name: Validate auth inputs
+        id: auth-check
         run: |
           if [ -z "\${{ secrets.token }}" ] && { [ -z "\${{ secrets.app_id }}" ] || [ -z "\${{ secrets.app_private_key }}" ]; }; then
             echo "::error::Either 'token' or both 'app_id' and 'app_private_key' secrets must be provided."
             exit 1
           fi
+          if [ -z "\${{ secrets.token }}" ]; then
+            echo "use_app=true" >> \$GITHUB_OUTPUT
+          else
+            echo "use_app=false" >> \$GITHUB_OUTPUT
+          fi
 
       - name: Generate GitHub App token
         id: app-token
-        if: \${{ secrets.token == '' }}
+        if: steps.auth-check.outputs.use_app == 'true'
         uses: actions/create-github-app-token@v1
         with:
           app-id: \${{ secrets.app_id }}
