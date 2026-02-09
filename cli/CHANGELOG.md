@@ -1,3 +1,9 @@
+## [0.10.2](https://github.com/julian-pani/agconf/compare/v0.10.1...v0.10.2) (2026-02-09)
+
+### Bug Fixes
+
+* only show AGENTS.md as updated when content actually changed ([a96a42b](https://github.com/julian-pani/agconf/commit/a96a42b89a2ddf1324d7e4cdebc9976c51cde8db))
+
 ## [0.10.1](https://github.com/julian-pani/agconf/compare/v0.10.0...v0.10.1) (2026-02-09)
 
 ### Bug Fixes
