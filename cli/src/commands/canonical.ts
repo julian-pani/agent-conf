@@ -503,7 +503,7 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
       name: options.name ?? defaultName,
       organization: options.org ?? gitOrganization,
       targetDir,
-      markerPrefix: options.markerPrefix ?? "agconf",
+      markerPrefix: options.markerPrefix ?? defaultName,
       includeExamples: options.includeExamples !== false,
       rulesDir: options.rulesDir || undefined,
     };
@@ -542,8 +542,8 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
 
     const markerPrefix = await prompts.text({
       message: "Marker prefix for managed content:",
-      placeholder: "agconf",
-      defaultValue: options.markerPrefix ?? "agconf",
+      placeholder: name as string,
+      defaultValue: options.markerPrefix ?? (name as string),
       validate: (value) => {
         if (!value.trim()) return "Prefix is required";
         if (!/^[a-z0-9-]+$/.test(value))
@@ -639,9 +639,14 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
     const configPath = path.join(resolvedOptions.targetDir, "agconf.yaml");
     await fs.writeFile(configPath, generateConfigYaml(resolvedOptions), "utf-8");
 
-    // Write AGENTS.md
+    // Write AGENTS.md (only if it doesn't already exist)
     const agentsMdPath = path.join(instructionsDir, "AGENTS.md");
-    await fs.writeFile(agentsMdPath, generateAgentsMd(resolvedOptions), "utf-8");
+    const agentsMdExists = await fileExists(agentsMdPath);
+    if (agentsMdExists) {
+      logger.info(`${formatPath(agentsMdPath)} already exists, skipping`);
+    } else {
+      await fs.writeFile(agentsMdPath, generateAgentsMd(resolvedOptions), "utf-8");
+    }
 
     // Write example skill if requested
     if (resolvedOptions.includeExamples) {
@@ -682,7 +687,13 @@ export async function canonicalInitCommand(options: CanonicalInitOptions): Promi
     console.log();
     console.log(pc.bold("Created:"));
     console.log(`  ${pc.green("+")} ${formatPath(configPath)}`);
-    console.log(`  ${pc.green("+")} ${formatPath(agentsMdPath)}`);
+    if (agentsMdExists) {
+      console.log(
+        `  ${pc.dim("=")} ${formatPath(agentsMdPath)} ${pc.dim("(already exists, kept)")}`,
+      );
+    } else {
+      console.log(`  ${pc.green("+")} ${formatPath(agentsMdPath)}`);
+    }
     if (resolvedOptions.includeExamples) {
       console.log(
         `  ${pc.green("+")} ${formatPath(path.join(skillsDir, "example-skill/SKILL.md"))}`,
