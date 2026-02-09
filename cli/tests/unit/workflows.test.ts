@@ -110,28 +110,28 @@ jobs:
   });
 
   describe("getWorkflowConfig", () => {
-    it("uses default secretName when no config provided", () => {
+    it("uses default secretPrefix when no config provided", () => {
       const config = getWorkflowConfig(SOURCE_REPO);
-      expect(config.secretName).toBe("AGCONF_TOKEN");
+      expect(config.secretPrefix).toBe("AGCONF");
     });
 
-    it("derives secretName from markerPrefix", () => {
+    it("derives secretPrefix from markerPrefix", () => {
       const config = getWorkflowConfig(SOURCE_REPO, { markerPrefix: "fbagents" });
-      expect(config.secretName).toBe("FBAGENTS_TOKEN");
+      expect(config.secretPrefix).toBe("FBAGENTS");
     });
 
-    it("converts markerPrefix dashes to underscores in secretName", () => {
+    it("converts markerPrefix dashes to underscores in secretPrefix", () => {
       const config = getWorkflowConfig(SOURCE_REPO, { markerPrefix: "my-custom-prefix" });
-      expect(config.secretName).toBe("MY_CUSTOM_PREFIX_TOKEN");
+      expect(config.secretPrefix).toBe("MY_CUSTOM_PREFIX");
     });
 
-    it("uses markerPrefix for secretName independent of name", () => {
-      // Even if 'name' is provided, secretName should use markerPrefix
+    it("uses markerPrefix for secretPrefix independent of name", () => {
+      // Even if 'name' is provided, secretPrefix should use markerPrefix
       const config = getWorkflowConfig(SOURCE_REPO, {
         name: "acme-standards",
         markerPrefix: "acme",
       });
-      expect(config.secretName).toBe("ACME_TOKEN");
+      expect(config.secretPrefix).toBe("ACME");
     });
 
     it("derives workflowPrefix from markerPrefix", () => {

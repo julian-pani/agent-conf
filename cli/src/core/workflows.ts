@@ -55,8 +55,8 @@ export interface WorkflowConfig {
   sourceRepo: string;
   /** CLI command name */
   cliName: string;
-  /** GitHub secret name for the token */
-  secretName: string;
+  /** Uppercase prefix for GitHub secret names (e.g., "AGCONF" -> AGCONF_TOKEN, AGCONF_APP_ID) */
+  secretPrefix: string;
   /** Workflow filename prefix (e.g., "agconf" -> "agconf-sync.yml") */
   workflowPrefix: string;
 }
@@ -70,13 +70,13 @@ export function getWorkflowConfig(
   config?: Partial<ResolvedConfig>,
 ): WorkflowConfig {
   const markerPrefix = config?.markerPrefix ?? DEFAULT_CLI_NAME;
-  // Convert markerPrefix to uppercase for secret name (e.g., "agconf" -> "AGCONF")
-  const secretName = `${markerPrefix.toUpperCase().replace(/-/g, "_")}_TOKEN`;
+  // Convert markerPrefix to uppercase for secret prefix (e.g., "agconf" -> "AGCONF")
+  const secretPrefix = markerPrefix.toUpperCase().replace(/-/g, "_");
 
   return {
     sourceRepo,
     cliName: config?.cliName ?? DEFAULT_CLI_NAME,
-    secretName,
+    secretPrefix,
     workflowPrefix: markerPrefix,
   };
 }
@@ -194,7 +194,7 @@ export function generateSyncWorkflow(
   config: WorkflowConfig,
   settings?: WorkflowSettings,
 ): string {
-  const { sourceRepo, cliName, secretName, workflowPrefix } = config;
+  const { sourceRepo, cliName, secretPrefix, workflowPrefix } = config;
 
   // Build the 'with' section lines
   const withLines: string[] = [`      force: \${{ inputs.force || false }}`];
@@ -217,9 +217,7 @@ export function generateSyncWorkflow(
   if (settings?.reviewers) {
     withLines.push(`      reviewers: '${settings.reviewers}'`);
   } else {
-    withLines.push(
-      `      reviewers: \${{ vars.${secretName.replace(/_TOKEN$/, "_REVIEWERS")} || '' }}`,
-    );
+    withLines.push(`      reviewers: \${{ vars.${secretPrefix}_REVIEWERS || '' }}`);
   }
 
   return `# ${workflowPrefix} Auto-Sync Workflow
@@ -228,10 +226,12 @@ export function generateSyncWorkflow(
 # This workflow syncs standards from the central repository.
 # Version changes should be made using: ${cliName} sync --ref <version>
 #
-# TOKEN: Requires a PAT with read access to the source repository.
-# Create a fine-grained PAT at https://github.com/settings/tokens?type=beta
-# with read access to ${sourceRepo}, then add it as ${secretName} secret.
-# Alternatively, set up a github app. See https://github.com/julian-pani/agconf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md#cross-repository-authentication for more details
+# AUTHENTICATION (one of the following):
+#   Option 1 - PAT: Add a ${secretPrefix}_TOKEN secret with read access to ${sourceRepo}.
+#     Create a fine-grained PAT at https://github.com/settings/tokens?type=beta
+#   Option 2 - GitHub App: Add ${secretPrefix}_APP_ID and ${secretPrefix}_APP_PRIVATE_KEY secrets.
+#
+# See https://github.com/julian-pani/agconf/blob/master/cli/docs/CANONICAL_REPOSITORY_SETUP.md#cross-repository-authentication for more details
 
 name: ${workflowPrefix} Sync
 
@@ -260,7 +260,9 @@ jobs:
     with:
 ${withLines.join("\n")}
     secrets:
-      token: \${{ secrets.${secretName} }}
+      token: \${{ secrets.${secretPrefix}_TOKEN }}
+      app_id: \${{ secrets.${secretPrefix}_APP_ID }}
+      app_private_key: \${{ secrets.${secretPrefix}_APP_PRIVATE_KEY }}
 `;
 }
 
