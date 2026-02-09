@@ -337,7 +337,7 @@ jobs:
           git checkout -B "\$BRANCH_NAME"
 
           git add -A
-          git commit -m "\${{ inputs.pr_title }}" || echo "No changes to commit"
+          git commit --no-verify -m "\${{ inputs.pr_title }}" || echo "No changes to commit"
 
           # Force push to overwrite any existing remote branch
           # This ensures the PR only contains changes from the current sync run
@@ -395,7 +395,7 @@ jobs:
         if: steps.check-changes.outputs.changes_detected == 'true' && inputs.commit_strategy == 'direct'
         run: |
           git add -A
-          git commit -m "\${{ inputs.commit_message }}"
+          git commit --no-verify -m "\${{ inputs.commit_message }}"
           git push
           echo "Changes committed directly to \$(git branch --show-current)"
 `;
