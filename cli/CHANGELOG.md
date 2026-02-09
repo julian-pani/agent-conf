@@ -1,3 +1,9 @@
+## [0.11.0](https://github.com/julian-pani/agconf/compare/v0.10.2...v0.11.0) (2026-02-09)
+
+### Features
+
+* **cli:** append agconf hook to existing pre-commit hooks ([#30](https://github.com/julian-pani/agconf/issues/30)) ([9d52614](https://github.com/julian-pani/agconf/commit/9d526145fc0055bb26044e66a4f9b3de04d693f7))
+
 ## [0.10.2](https://github.com/julian-pani/agconf/compare/v0.10.1...v0.10.2) (2026-02-09)
 
 ### Bug Fixes
