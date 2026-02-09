@@ -461,13 +461,16 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
 
     // AGENTS.md status
     const agentsMdPath = formatPath(path.join(targetDir, "AGENTS.md"));
-    if (result.agentsMd.merged) {
+    if (!result.agentsMd.merged) {
+      console.log(`  ${pc.green("+")} ${agentsMdPath} ${pc.dim("(created)")}`);
+      summaryLines.push("- `AGENTS.md` (created)");
+    } else if (result.agentsMd.changed) {
       const label = context.commandName === "sync" ? "(updated)" : "(merged)";
       console.log(`  ${pc.green("+")} ${agentsMdPath} ${pc.dim(label)}`);
       summaryLines.push(`- \`AGENTS.md\` ${label}`);
     } else {
-      console.log(`  ${pc.green("+")} ${agentsMdPath} ${pc.dim("(created)")}`);
-      summaryLines.push("- `AGENTS.md` (created)");
+      console.log(`  ${pc.dim("-")} ${agentsMdPath} ${pc.dim("(unchanged)")}`);
+      summaryLines.push("- `AGENTS.md` (unchanged)");
     }
 
     // .claude/CLAUDE.md status (consolidation result, shown once regardless of targets)

@@ -37,6 +37,7 @@ describe("merge", () => {
       const result = await mergeAgentsMd(tempDir, "# Global Standards", testSource);
 
       expect(result.merged).toBe(false);
+      expect(result.changed).toBe(true);
       expect(result.preservedRepoContent).toBe(false);
       expect(result.content).toContain(GLOBAL_START_MARKER);
       expect(result.content).toContain(GLOBAL_END_MARKER);
@@ -84,6 +85,33 @@ ${REPO_END_MARKER}
       expect(result.content).toContain("# New Global Standards");
       expect(result.content).not.toContain("Old global content");
       expect(result.content).toContain("Keep this content");
+    });
+
+    it("should report changed=false when content is identical after sync", async () => {
+      // First sync to create the file
+      const firstResult = await mergeAgentsMd(tempDir, "# Global Standards", testSource);
+      const agentsMdPath = path.join(tempDir, "AGENTS.md");
+      await fs.writeFile(agentsMdPath, firstResult.content, "utf-8");
+
+      // Second sync with same global content
+      const secondResult = await mergeAgentsMd(tempDir, "# Global Standards", testSource);
+
+      expect(secondResult.merged).toBe(true);
+      expect(secondResult.changed).toBe(false);
+      expect(secondResult.content).toBe(firstResult.content);
+    });
+
+    it("should report changed=true when global content differs", async () => {
+      // First sync
+      const firstResult = await mergeAgentsMd(tempDir, "# Global Standards v1", testSource);
+      const agentsMdPath = path.join(tempDir, "AGENTS.md");
+      await fs.writeFile(agentsMdPath, firstResult.content, "utf-8");
+
+      // Second sync with different global content
+      const secondResult = await mergeAgentsMd(tempDir, "# Global Standards v2", testSource);
+
+      expect(secondResult.merged).toBe(true);
+      expect(secondResult.changed).toBe(true);
     });
 
     it("should override when override option is true", async () => {

@@ -375,6 +375,7 @@ export interface SyncResult {
   lockfile: Lockfile;
   agentsMd: {
     merged: boolean;
+    changed: boolean;
     preservedRepoContent: boolean;
   };
   claudeMd: {
@@ -551,6 +552,7 @@ export async function sync(
     lockfile,
     agentsMd: {
       merged: mergeResult.merged,
+      changed: mergeResult.changed,
       preservedRepoContent: mergeResult.preservedRepoContent,
     },
     claudeMd: {

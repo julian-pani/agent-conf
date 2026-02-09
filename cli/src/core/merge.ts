@@ -12,6 +12,8 @@ export interface MergeOptions {
 export interface MergeResult {
   content: string;
   merged: boolean;
+  /** True if the generated content differs from the existing AGENTS.md */
+  changed: boolean;
   preservedRepoContent: boolean;
 }
 
@@ -125,11 +127,13 @@ export async function mergeAgentsMd(
   const hadDotClaudeClaudeMd = existing.dotClaudeClaudeMd !== null;
   const merged =
     !options.override && (existing.agentsMd !== null || hadRootClaudeMd || hadDotClaudeClaudeMd);
+  const changed = existing.agentsMd === null || existing.agentsMd !== content;
   const preservedRepoContent = contentToMerge.length > 0;
 
   return {
     content,
     merged,
+    changed,
     preservedRepoContent,
     mergedClaudeMdContent: claudeMdContents.length > 0 ? claudeMdContents.join("\n\n") : null,
     hadRootClaudeMd,
