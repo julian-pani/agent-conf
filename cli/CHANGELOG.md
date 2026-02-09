@@ -1,3 +1,9 @@
+## [0.10.0](https://github.com/julian-pani/agconf/compare/v0.9.0...v0.10.0) (2026-02-09)
+
+### Features
+
+* improve canonical init defaults and AGENTS.md handling ([bb76d70](https://github.com/julian-pani/agconf/commit/bb76d706f6d136435d82c613aac62c4058a3e28c))
+
 ## [0.9.0](https://github.com/julian-pani/agconf/compare/v0.8.0...v0.9.0) (2026-02-09)
 
 ### Features
