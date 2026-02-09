@@ -1,3 +1,9 @@
+## [0.10.1](https://github.com/julian-pani/agconf/compare/v0.10.0...v0.10.1) (2026-02-09)
+
+### Bug Fixes
+
+* use step output instead of secrets context in reusable workflow if condition ([7260791](https://github.com/julian-pani/agconf/commit/72607912f5b4bce5202e41e878a6cfeeb6f41c17))
+
 ## [0.10.0](https://github.com/julian-pani/agconf/compare/v0.9.0...v0.10.0) (2026-02-09)
 
 ### Features
