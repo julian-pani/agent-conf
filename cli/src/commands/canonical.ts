@@ -161,6 +161,9 @@ skills/
  * Generates the sync workflow file content.
  */
 function generateSyncWorkflow(repoFullName: string, prefix: string): string {
+  const repoOwner = repoFullName.includes("/") ? repoFullName.split("/")[0] : repoFullName;
+  const repoName = repoFullName.includes("/") ? repoFullName.split("/")[1] : repoFullName;
+
   return `# ${prefix} Auto-Sync Workflow (Reusable)
 # This workflow is called by downstream repositories.
 #
@@ -259,6 +262,8 @@ jobs:
         with:
           app-id: \${{ secrets.app_id }}
           private-key: \${{ secrets.app_private_key }}
+          owner: ${repoOwner}
+          repositories: ${repoName}
 
       - name: Checkout
         uses: actions/checkout@v4

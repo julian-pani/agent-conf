@@ -462,6 +462,56 @@ describe("canonical init - workflow content validation", () => {
     expect(stepNames).toContain("Check for changes");
   });
 
+  it("should scope GitHub App token to canonical repository when org is provided", async () => {
+    await canonicalInitCommand({
+      name: "my-standards",
+      org: "acme-corp",
+      dir: tempDir,
+      markerPrefix: "agconf",
+      includeExamples: false,
+      yes: true,
+    });
+
+    const syncWorkflowPath = path.join(tempDir, ".github", "workflows", "sync-reusable.yml");
+    const syncWorkflow = await fs.readFile(syncWorkflowPath, "utf-8");
+    const parsed = parseYaml(syncWorkflow);
+
+    const steps = parsed.jobs.sync.steps;
+    const appTokenStep = steps.find(
+      (s: { name: string }) => s.name === "Generate GitHub App token",
+    );
+
+    expect(appTokenStep).toBeDefined();
+    expect(appTokenStep.with.owner).toBe("acme-corp");
+    expect(appTokenStep.with.repositories).toBe("my-standards");
+  });
+
+  it("should always include owner and repositories in GitHub App token step", async () => {
+    await canonicalInitCommand({
+      name: "my-standards",
+      dir: tempDir,
+      markerPrefix: "agconf",
+      includeExamples: false,
+      yes: true,
+    });
+
+    const syncWorkflowPath = path.join(tempDir, ".github", "workflows", "sync-reusable.yml");
+    const syncWorkflow = await fs.readFile(syncWorkflowPath, "utf-8");
+    const parsed = parseYaml(syncWorkflow);
+
+    const steps = parsed.jobs.sync.steps;
+    const appTokenStep = steps.find(
+      (s: { name: string }) => s.name === "Generate GitHub App token",
+    );
+
+    expect(appTokenStep).toBeDefined();
+    expect(appTokenStep.with.owner).toBeDefined();
+    expect(appTokenStep.with.repositories).toBe("my-standards");
+    // owner and repositories should never contain slashes
+    expect(appTokenStep.with.owner).not.toContain("/");
+    expect(appTokenStep.with.repositories).not.toContain("/");
+  });
+
   it("should include workflow inputs and outputs", async () => {
     await canonicalInitCommand({
       name: "test-standards",
