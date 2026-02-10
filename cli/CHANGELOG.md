@@ -1,3 +1,9 @@
+## [0.11.1](https://github.com/julian-pani/agconf/compare/v0.11.0...v0.11.1) (2026-02-10)
+
+### Bug Fixes
+
+* **cli:** skip pre-commit hook in sync workflow commits ([4861781](https://github.com/julian-pani/agconf/commit/4861781c3bc0999f542aa2f21d750db8309456aa))
+
 ## [0.11.0](https://github.com/julian-pani/agconf/compare/v0.10.2...v0.11.0) (2026-02-09)
 
 ### Features
