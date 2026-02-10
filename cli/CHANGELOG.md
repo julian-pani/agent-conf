@@ -1,3 +1,9 @@
+## [0.11.2](https://github.com/julian-pani/agconf/compare/v0.11.1...v0.11.2) (2026-02-10)
+
+### Bug Fixes
+
+* **cli:** scope GitHub App token to canonical repository in sync workflow ([2881037](https://github.com/julian-pani/agconf/commit/2881037d7838b7539907087c61cfb51deacce2bf))
+
 ## [0.11.1](https://github.com/julian-pani/agconf/compare/v0.11.0...v0.11.1) (2026-02-10)
 
 ### Bug Fixes
