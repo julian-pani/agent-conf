@@ -22,7 +22,7 @@ Full documentation available on GitHub: https://github.com/julian-pani/agconf
 | `init` | Initialize repo from a canonical source | `agconf init --source org/standards` |
 | `sync` | Sync content from canonical repo (fetches latest by default) | `agconf sync` or `agconf sync --pinned` |
 | `check` | Verify managed files are unchanged | `agconf check` |
-| `upgrade-cli` | Upgrade the CLI to latest version from npm | `agconf upgrade-cli` |
+| `upgrade-cli` | Upgrade the CLI to latest version (auto-detects package manager) | `agconf upgrade-cli` |
 | `canonical init` | Scaffold a new canonical repository | `agconf canonical init` |
 | `canonical update` | Update CLI version in workflow files | `agconf canonical update` |
 | `config show` | Show current configuration | `agconf config show` |

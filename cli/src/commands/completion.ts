@@ -29,7 +29,7 @@ const COMMANDS = {
   },
   "upgrade-cli": {
     description: "Upgrade the CLI to latest version",
-    options: ["-y", "--yes"],
+    options: ["-y", "--yes", "-p", "--package-manager"],
   },
   canonical: {
     description: "Manage canonical repositories",
@@ -63,6 +63,7 @@ const CONFIG_SUBCOMMANDS = ["show", "get", "set"];
 const COMPLETION_SUBCOMMANDS = ["install", "uninstall"];
 const CANONICAL_SUBCOMMANDS = ["init"];
 const TARGET_VALUES = ["claude", "codex"];
+const PACKAGE_MANAGER_VALUES = ["npm", "pnpm", "yarn", "bun"];
 
 /**
  * Handle shell completion requests.
@@ -145,6 +146,12 @@ export function handleCompletion(): boolean {
   // Complete --target values
   if (prev === "--target" || prev === "-t") {
     tabtab.log(TARGET_VALUES);
+    return true;
+  }
+
+  // Complete --package-manager values
+  if (prev === "--package-manager" || prev === "-p") {
+    tabtab.log(PACKAGE_MANAGER_VALUES);
     return true;
   }
 

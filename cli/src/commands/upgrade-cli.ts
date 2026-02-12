@@ -4,11 +4,17 @@ import pc from "picocolors";
 import { getCliVersion } from "../core/lockfile.js";
 import { compareVersions } from "../core/version.js";
 import { createLogger } from "../utils/logger.js";
+import {
+  buildInstallCommand,
+  detectPackageManager,
+  type PackageManager,
+} from "../utils/package-manager.js";
 
 const NPM_PACKAGE_NAME = "agconf";
 
 export interface UpgradeCliOptions {
   yes?: boolean;
+  packageManager?: string;
 }
 
 /**
@@ -62,6 +68,28 @@ export async function upgradeCliCommand(options: UpgradeCliOptions): Promise<voi
 
   console.log();
   console.log(`${pc.yellow("→")} Update available: ${currentVersion} → ${latestVersion}`);
+
+  // Detect package manager
+  const validPms: PackageManager[] = ["npm", "pnpm", "yarn", "bun"];
+  let pm: ReturnType<typeof detectPackageManager>;
+
+  if (options.packageManager) {
+    const pmName = options.packageManager as PackageManager;
+    if (!validPms.includes(pmName)) {
+      logger.error(`Invalid package manager: ${options.packageManager}`);
+      logger.info(`Valid options: ${validPms.join(", ")}`);
+      process.exit(1);
+    }
+    pm = {
+      name: pmName,
+      installCommand: buildInstallCommand(pmName, NPM_PACKAGE_NAME),
+      detectedVia: "--package-manager flag",
+    };
+  } else {
+    pm = detectPackageManager(NPM_PACKAGE_NAME);
+  }
+
+  console.log(`Package manager: ${pc.cyan(pm.name)} (${pm.detectedVia})`);
   console.log();
 
   // Confirm update
@@ -82,7 +110,7 @@ export async function upgradeCliCommand(options: UpgradeCliOptions): Promise<voi
   installSpinner.start();
 
   try {
-    execSync(`npm install -g ${NPM_PACKAGE_NAME}@latest`, {
+    execSync(pm.installCommand, {
       stdio: "pipe",
     });
     installSpinner.succeed("CLI upgraded");
@@ -92,7 +120,11 @@ export async function upgradeCliCommand(options: UpgradeCliOptions): Promise<voi
   } catch (error) {
     installSpinner.fail("Upgrade failed");
     logger.error(error instanceof Error ? error.message : String(error));
-    logger.info(`\nYou can try manually: npm install -g ${NPM_PACKAGE_NAME}@latest`);
+    logger.info(`\nYou can try manually: ${pm.installCommand}`);
+    const otherPms = validPms.filter((p) => p !== pm.name);
+    logger.info(
+      `If ${pm.name} is not your package manager, try: agconf upgrade-cli --package-manager <${otherPms.join("|")}>`,
+    );
     process.exit(1);
   }
 }

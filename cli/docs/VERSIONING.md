@@ -146,7 +146,7 @@ If the lockfile was created with a newer CLI, a warning is shown:
   Run: agconf upgrade-cli
 ```
 
-This is informational only - the CLI will still work if schema versions are compatible.
+This is informational only - the CLI will still work if schema versions are compatible. The `upgrade-cli` command automatically detects which package manager was used to install agconf and uses it for the upgrade.
 
 ## Canonical Repository Setup
 

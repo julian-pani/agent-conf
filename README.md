@@ -112,7 +112,7 @@ GitHub Actions workflows are created automatically to keep downstream repos in s
 | `init` | Initialize repo from a canonical source |
 | `sync` | Sync content from canonical repo (fetches latest by default) |
 | `check` | Verify managed files are unchanged |
-| `upgrade-cli` | Upgrade the CLI to the latest version |
+| `upgrade-cli` | Upgrade the CLI to latest version (auto-detects package manager) |
 | `canonical init` | Scaffold a new canonical repository |
 | `canonical update` | Update CLI version in workflow files |
 | `config` | Manage global CLI configuration |
@@ -182,14 +182,18 @@ This command is used by the pre-commit hook and CI workflows to detect unauthori
 
 ### `agconf upgrade-cli`
 
-Upgrade the CLI itself to the latest version from npm.
+Upgrade the CLI itself to the latest version. The command automatically detects which package manager was used to install agconf (npm, pnpm, yarn, or bun) and uses it for the upgrade.
 
 ```bash
-# Upgrade to latest version
+# Upgrade to latest version (auto-detect package manager)
 agconf upgrade-cli
 
 # Non-interactive mode (skip confirmation)
 agconf upgrade-cli --yes
+
+# Explicit package manager override
+agconf upgrade-cli --package-manager pnpm
+agconf upgrade-cli -p yarn
 ```
 
 ### `agconf canonical init`

@@ -51,7 +51,10 @@ pnpm install:global       # Build + install globally
 - `rules.ts` - Sync modular rule files from canonical to downstream repos
 
 ### Commands (`cli/src/commands/`)
-Commands: init, sync, check, upgrade-cli, canonical (init, update), config, completion
+Commands: init, sync, check, upgrade-cli (with `--package-manager` option), canonical (init, update), config, completion
+
+### Utilities (`cli/src/utils/`)
+- `package-manager.ts` - Package manager detection for CLI upgrades (npm, pnpm, yarn, bun)
 
 ### Configuration (`cli/src/config/`)
 - Zod schemas for canonical config (`agconf.yaml`) and lockfile validation
