@@ -1,3 +1,9 @@
+## [0.12.0](https://github.com/julian-pani/agconf/compare/v0.11.2...v0.12.0) (2026-02-16)
+
+### Features
+
+* **cli:** auto-detect package manager for upgrade-cli command ([f295785](https://github.com/julian-pani/agconf/commit/f295785016ec8ecfa441615eebb22735758e8246))
+
 ## [0.11.2](https://github.com/julian-pani/agconf/compare/v0.11.1...v0.11.2) (2026-02-10)
 
 ### Bug Fixes
