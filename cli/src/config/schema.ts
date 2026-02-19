@@ -76,7 +76,7 @@ export type CanonicalRepoConfig = z.infer<typeof CanonicalRepoConfigSchema>;
 // This is the config file that lives in downstream repositories (the consumers
 // of skills and standards). It defines which sources to sync from.
 
-export const SourceConfigSchema = z.object({
+const SourceConfigSchema = z.object({
   /** URL of the canonical repository (e.g., "https://github.com/acme/agent-standards") */
   url: z.string().url().optional(),
   /** GitHub repository in owner/repo format (alternative to url) */
