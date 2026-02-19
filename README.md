@@ -114,7 +114,6 @@ GitHub Actions workflows are created automatically to keep downstream repos in s
 | `check` | Verify managed files are unchanged |
 | `upgrade-cli` | Upgrade the CLI to latest version (auto-detects package manager) |
 | `canonical init` | Scaffold a new canonical repository |
-| `canonical update` | Update CLI version in workflow files |
 | `config` | Manage global CLI configuration |
 
 ### `agconf init`
@@ -215,24 +214,6 @@ agconf canonical init --no-examples
 
 # Custom marker prefix
 agconf canonical init --marker-prefix my-org
-
-# Pin specific CLI version in workflows
-agconf canonical init --cli-version 1.2.0
-```
-
-### `agconf canonical update`
-
-Update CLI version in workflow files of a canonical repository.
-
-```bash
-# Update to current CLI version
-agconf canonical update
-
-# Update to specific version
-agconf canonical update --cli-version 2.0.0
-
-# Non-interactive mode
-agconf canonical update -y
 ```
 
 This creates the standard canonical repository structure:
