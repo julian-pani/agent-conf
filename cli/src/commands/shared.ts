@@ -530,28 +530,28 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
         `- \`${skillsRelPath}\` (total: ${result.skills.synced.length} skills, ${targetResult.skills.copied} files) ${skillsStatusLabel}`,
       );
 
-      // Helper to display skill list with truncation
+      // Helper to display change lists with truncation
       const MAX_ITEMS_DEFAULT = 5;
       const shouldExpand = options.expandChanges === true;
 
-      const formatSkillList = (
-        skills: string[],
+      const formatChangeList = (
+        items: string[],
         icon: string,
         colorFn: (s: string) => string,
         label: string,
         mdLabel: string,
+        formatItem: (item: string) => { display: string; summary: string },
       ) => {
-        if (skills.length === 0) return;
+        if (items.length === 0) return;
 
-        const maxDisplay = shouldExpand ? skills.length : MAX_ITEMS_DEFAULT;
-        const displaySkills = skills.slice(0, maxDisplay);
-        const hiddenCount = skills.length - displaySkills.length;
+        const maxDisplay = shouldExpand ? items.length : MAX_ITEMS_DEFAULT;
+        const displayItems = items.slice(0, maxDisplay);
+        const hiddenCount = items.length - displayItems.length;
 
-        for (const skill of displaySkills) {
-          const skillPath = formatPath(path.join(targetDir, config.dir, "skills", skill));
-          const skillRelPath = `${config.dir}/skills/${skill}/`;
-          console.log(`    ${colorFn(icon)} ${skillPath}/ ${pc.dim(`(${label})`)}`);
-          summaryLines.push(`  - \`${skillRelPath}\` (${mdLabel})`);
+        for (const item of displayItems) {
+          const { display, summary } = formatItem(item);
+          console.log(`    ${colorFn(icon)} ${display} ${pc.dim(`(${label})`)}`);
+          summaryLines.push(`  - ${summary} (${mdLabel})`);
         }
 
         if (hiddenCount > 0) {
@@ -560,11 +560,16 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
         }
       };
 
+      const formatSkillItem = (skill: string) => ({
+        display: `${formatPath(path.join(targetDir, config.dir, "skills", skill))}/`,
+        summary: `\`${config.dir}/skills/${skill}/\``,
+      });
+
       // Show new skills
-      formatSkillList(newSkills, "+", pc.green, "new", "new");
+      formatChangeList(newSkills, "+", pc.green, "new", "new", formatSkillItem);
 
       // Show updated skills
-      formatSkillList(updatedSkills, "~", pc.yellow, "updated", "updated");
+      formatChangeList(updatedSkills, "~", pc.yellow, "updated", "updated", formatSkillItem);
 
       // Show removed skills
       for (const skill of removedSkills) {
@@ -605,38 +610,16 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
         );
         summaryLines.push(`- \`${rulesRelPath}\` (total: ${rulesCount} rules) ${rulesStatusLabel}`);
 
-        // Helper to display rule list with truncation
-        const formatRuleList = (
-          rules: string[],
-          icon: string,
-          colorFn: (s: string) => string,
-          label: string,
-          mdLabel: string,
-        ) => {
-          if (rules.length === 0) return;
-
-          const maxDisplay = shouldExpand ? rules.length : MAX_ITEMS_DEFAULT;
-          const displayRules = rules.slice(0, maxDisplay);
-          const hiddenCount = rules.length - displayRules.length;
-
-          for (const rule of displayRules) {
-            const rulePath = formatPath(path.join(targetDir, config.dir, "rules", rule));
-            const ruleRelPath = `${config.dir}/rules/${rule}`;
-            console.log(`    ${colorFn(icon)} ${rulePath} ${pc.dim(`(${label})`)}`);
-            summaryLines.push(`  - \`${ruleRelPath}\` (${mdLabel})`);
-          }
-
-          if (hiddenCount > 0) {
-            console.log(`    ${pc.dim(`  ... ${hiddenCount} more ${label}`)}`);
-            summaryLines.push(`  - ... ${hiddenCount} more ${mdLabel}`);
-          }
-        };
+        const formatRuleItem = (rule: string) => ({
+          display: formatPath(path.join(targetDir, config.dir, "rules", rule)),
+          summary: `\`${config.dir}/rules/${rule}\``,
+        });
 
         // Show new rules
-        formatRuleList(newRules, "+", pc.green, "new", "new");
+        formatChangeList(newRules, "+", pc.green, "new", "new", formatRuleItem);
 
         // Show updated rules
-        formatRuleList(updatedRules, "~", pc.yellow, "updated", "updated");
+        formatChangeList(updatedRules, "~", pc.yellow, "updated", "updated", formatRuleItem);
       }
 
       // Rules status for Codex target (concatenated into AGENTS.md)
@@ -654,36 +637,16 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
         // Only show as "updated" if content actually changed (not just re-synced)
         const updatedRules = result.rules.modified.filter((r) => previousRules.includes(r)).sort();
 
-        // Helper to display rule list with truncation (Codex version - no file paths)
-        const formatCodexRuleList = (
-          rules: string[],
-          icon: string,
-          colorFn: (s: string) => string,
-          label: string,
-          mdLabel: string,
-        ) => {
-          if (rules.length === 0) return;
-
-          const maxDisplay = shouldExpand ? rules.length : MAX_ITEMS_DEFAULT;
-          const displayRules = rules.slice(0, maxDisplay);
-          const hiddenCount = rules.length - displayRules.length;
-
-          for (const rule of displayRules) {
-            console.log(`    ${colorFn(icon)} ${rule} ${pc.dim(`(${label})`)}`);
-            summaryLines.push(`  - \`${rule}\` (${mdLabel})`);
-          }
-
-          if (hiddenCount > 0) {
-            console.log(`    ${pc.dim(`  ... ${hiddenCount} more ${label}`)}`);
-            summaryLines.push(`  - ... ${hiddenCount} more ${mdLabel}`);
-          }
-        };
+        const formatCodexRuleItem = (rule: string) => ({
+          display: rule,
+          summary: `\`${rule}\``,
+        });
 
         // Show new rules
-        formatCodexRuleList(newRules, "+", pc.green, "new", "new");
+        formatChangeList(newRules, "+", pc.green, "new", "new", formatCodexRuleItem);
 
         // Show updated rules
-        formatCodexRuleList(updatedRules, "~", pc.yellow, "updated", "updated");
+        formatChangeList(updatedRules, "~", pc.yellow, "updated", "updated", formatCodexRuleItem);
       }
 
       // Agents status for Claude target (agents are only synced to Claude)
@@ -710,38 +673,16 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
           `- \`${agentsRelPath}\` (total: ${agentsCount} agents) ${agentsStatusLabel}`,
         );
 
-        // Helper to display agent list with truncation
-        const formatAgentList = (
-          agents: string[],
-          icon: string,
-          colorFn: (s: string) => string,
-          label: string,
-          mdLabel: string,
-        ) => {
-          if (agents.length === 0) return;
-
-          const maxDisplay = shouldExpand ? agents.length : MAX_ITEMS_DEFAULT;
-          const displayAgents = agents.slice(0, maxDisplay);
-          const hiddenCount = agents.length - displayAgents.length;
-
-          for (const agent of displayAgents) {
-            const agentPath = formatPath(path.join(targetDir, config.dir, "agents", agent));
-            const agentRelPath = `${config.dir}/agents/${agent}`;
-            console.log(`    ${colorFn(icon)} ${agentPath} ${pc.dim(`(${label})`)}`);
-            summaryLines.push(`  - \`${agentRelPath}\` (${mdLabel})`);
-          }
-
-          if (hiddenCount > 0) {
-            console.log(`    ${pc.dim(`  ... ${hiddenCount} more ${label}`)}`);
-            summaryLines.push(`  - ... ${hiddenCount} more ${mdLabel}`);
-          }
-        };
+        const formatAgentItem = (agent: string) => ({
+          display: formatPath(path.join(targetDir, config.dir, "agents", agent)),
+          summary: `\`${config.dir}/agents/${agent}\``,
+        });
 
         // Show new agents
-        formatAgentList(newAgents, "+", pc.green, "new", "new");
+        formatChangeList(newAgents, "+", pc.green, "new", "new", formatAgentItem);
 
         // Show updated agents
-        formatAgentList(updatedAgents, "~", pc.yellow, "updated", "updated");
+        formatChangeList(updatedAgents, "~", pc.yellow, "updated", "updated", formatAgentItem);
       }
 
       // Warning when agents were skipped due to Codex-only target

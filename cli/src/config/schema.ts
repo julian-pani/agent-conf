@@ -75,7 +75,7 @@ export type CanonicalRepoConfig = z.infer<typeof CanonicalRepoConfigSchema>;
 // This is the config file that lives in downstream repositories (the consumers
 // of skills and standards). It defines which sources to sync from.
 
-export const SourceConfigSchema = z.object({
+const SourceConfigSchema = z.object({
   /** URL of the canonical repository (e.g., "https://github.com/acme/agent-standards") */
   url: z.string().url().optional(),
   /** GitHub repository in owner/repo format (alternative to url) */
@@ -162,32 +162,3 @@ export type ResolvedConfig = z.infer<typeof ResolvedConfigSchema>;
 // =============================================================================
 // Default Configuration
 // =============================================================================
-
-// =============================================================================
-// Marker Generation Helpers
-// =============================================================================
-
-/**
- * Generate marker strings based on the configured prefix.
- */
-export function getMarkers(prefix: string) {
-  return {
-    globalStart: `<!-- ${prefix}:global:start -->`,
-    globalEnd: `<!-- ${prefix}:global:end -->`,
-    repoStart: `<!-- ${prefix}:repo:start -->`,
-    repoEnd: `<!-- ${prefix}:repo:end -->`,
-  };
-}
-
-/**
- * Generate metadata key names based on the configured prefix.
- * Used in skill frontmatter to track managed content.
- */
-export function getMetadataKeys(prefix: string) {
-  // Normalize prefix for use as key (replace dashes with underscores)
-  const keyPrefix = prefix.replace(/-/g, "_");
-  return {
-    managed: `${keyPrefix}_managed`,
-    contentHash: `${keyPrefix}_content_hash`,
-  };
-}

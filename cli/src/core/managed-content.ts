@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import fg from "fast-glob";
-import { getMetadataKeys } from "../config/schema.js";
+import { toMetadataPrefix } from "../utils/prefix.js";
 import { parseFrontmatter as parseFrontmatterShared, serializeFrontmatter } from "./frontmatter.js";
 import {
   hasGlobalBlockChanges,
@@ -26,10 +26,15 @@ export interface MetadataOptions extends MarkerOptions {
 }
 
 /**
- * Get metadata key names for a given prefix.
+ * Generate metadata key names based on the configured prefix.
+ * Used in skill frontmatter to track managed content.
  */
-export function getMetadataKeyNames(prefix: string = DEFAULT_METADATA_PREFIX) {
-  return getMetadataKeys(prefix);
+export function getMetadataKeys(prefix: string = DEFAULT_METADATA_PREFIX) {
+  const keyPrefix = toMetadataPrefix(prefix);
+  return {
+    managed: `${keyPrefix}_managed`,
+    contentHash: `${keyPrefix}_content_hash`,
+  };
 }
 
 /**
@@ -122,7 +127,7 @@ export function stripManagedMetadata(content: string, options: MetadataOptions =
   }
 
   // Get the key prefix (convert dashes to underscores for key names)
-  const keyPrefix = `${metadataPrefix.replace(/-/g, "_")}_`;
+  const keyPrefix = `${toMetadataPrefix(metadataPrefix)}_`;
 
   // Remove managed fields from metadata
   if (frontmatter.metadata && typeof frontmatter.metadata === "object") {
@@ -172,7 +177,7 @@ export function addManagedMetadata(content: string, options: MetadataOptions = {
   }
 
   const metadata = frontmatter.metadata as Record<string, string>;
-  const keys = getMetadataKeyNames(metadataPrefix);
+  const keys = getMetadataKeys(metadataPrefix);
 
   // Add managed fields (only managed flag and hash - source/timestamp in lockfile)
   metadata[keys.managed] = "true";
@@ -196,7 +201,7 @@ export function hasManualChanges(content: string, options: MetadataOptions = {})
   }
 
   const metadata = frontmatter.metadata as Record<string, string>;
-  const keys = getMetadataKeyNames(metadataPrefix);
+  const keys = getMetadataKeys(metadataPrefix);
   const storedHash = metadata[keys.contentHash];
 
   if (!storedHash) {
@@ -219,7 +224,7 @@ export function isManaged(content: string, options: MetadataOptions = {}): boole
   }
 
   const metadata = frontmatter.metadata as Record<string, string>;
-  const keys = getMetadataKeyNames(metadataPrefix);
+  const keys = getMetadataKeys(metadataPrefix);
   return metadata[keys.managed] === "true";
 }
 
@@ -330,7 +335,7 @@ export async function checkRuleFiles(
         // Extract rulePath from metadata if available
         const { frontmatter } = parseFrontmatter(content);
         const metadata = frontmatter.metadata as Record<string, string> | undefined;
-        const keyPrefix = (options.metadataPrefix || "agconf").replace(/-/g, "_");
+        const keyPrefix = toMetadataPrefix(options.metadataPrefix || "agconf");
         const rulePath = metadata?.[`${keyPrefix}_source_path`] || ruleFile;
 
         results.push({

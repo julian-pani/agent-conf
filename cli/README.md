@@ -24,7 +24,6 @@ Full documentation available on GitHub: https://github.com/julian-pani/agconf
 | `check` | Verify managed files are unchanged | `agconf check` |
 | `upgrade-cli` | Upgrade the CLI to latest version (auto-detects package manager) | `agconf upgrade-cli` |
 | `canonical init` | Scaffold a new canonical repository | `agconf canonical init` |
-| `canonical update` | Update CLI version in workflow files | `agconf canonical update` |
 | `config show` | Show current configuration | `agconf config show` |
 | `completion install` | Install shell completions | `agconf completion install` |
 

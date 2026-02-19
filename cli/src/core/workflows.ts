@@ -50,7 +50,7 @@ const WORKFLOWS_DIR = ".github/workflows";
 /**
  * Configuration for workflow generation.
  */
-export interface WorkflowConfig {
+interface WorkflowConfig {
   /** Source repository in owner/repo format */
   sourceRepo: string;
   /** CLI command name */
@@ -81,7 +81,7 @@ export function getWorkflowConfig(
   };
 }
 
-export interface WorkflowFile {
+interface WorkflowFile {
   name: string;
   filename: string;
   reusableWorkflow: string;
@@ -106,7 +106,7 @@ export function getWorkflowFiles(config: WorkflowConfig): WorkflowFile[] {
   ];
 }
 
-export interface WorkflowStatus {
+interface WorkflowStatus {
   exists: boolean;
   currentRef?: string;
   isManaged: boolean;
@@ -335,7 +335,7 @@ export async function ensureWorkflowsDir(repoRoot: string): Promise<void> {
 /**
  * Writes a workflow file to the repository.
  */
-export async function writeWorkflow(
+async function writeWorkflow(
   repoRoot: string,
   workflow: WorkflowFile,
   versionRef: string,
@@ -346,40 +346,6 @@ export async function writeWorkflow(
   const filePath = getWorkflowPath(repoRoot, workflow.filename);
   const content = generateWorkflow(workflow, versionRef, config, settings);
   await fs.writeFile(filePath, content, "utf-8");
-}
-
-/**
- * Updates the version ref in an existing workflow file.
- */
-export async function updateWorkflowVersion(
-  repoRoot: string,
-  workflow: WorkflowFile,
-  newRef: string,
-  config: WorkflowConfig,
-): Promise<boolean> {
-  const filePath = getWorkflowPath(repoRoot, workflow.filename);
-
-  try {
-    const content = await fs.readFile(filePath, "utf-8");
-    const currentRef = extractWorkflowRef(content, workflow.reusableWorkflow, config.sourceRepo);
-
-    if (currentRef === newRef) {
-      return false; // No change needed
-    }
-
-    const updatedContent = updateWorkflowRef(
-      content,
-      workflow.reusableWorkflow,
-      newRef,
-      config.sourceRepo,
-    );
-    await fs.writeFile(filePath, updatedContent, "utf-8");
-    return true;
-  } catch {
-    // Expected: file doesn't exist, create it
-    await writeWorkflow(repoRoot, workflow, newRef, config);
-    return true;
-  }
 }
 
 /**
@@ -394,7 +360,7 @@ export interface WorkflowSyncResult {
 /**
  * Options for syncing workflow files.
  */
-export interface SyncWorkflowsOptions {
+interface SyncWorkflowsOptions {
   /** Resolved config (for marker prefix, cli name, etc.) */
   resolvedConfig?: Partial<ResolvedConfig> | undefined;
   /** Workflow settings from downstream config */

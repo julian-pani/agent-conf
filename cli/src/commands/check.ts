@@ -18,6 +18,7 @@ import {
   stripMetadataComments,
   stripRulesSectionMetadata,
 } from "../core/markers.js";
+import { toMetadataPrefix } from "../utils/prefix.js";
 
 export interface CheckOptions {
   quiet?: boolean;
@@ -87,7 +88,7 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
 
   // Gather detailed info for modified files
   // Compute the metadata key prefix (convert dashes to underscores)
-  const keyPrefix = markerPrefix ? `${markerPrefix.replace(/-/g, "_")}_` : "agent_conf_";
+  const keyPrefix = markerPrefix ? `${toMetadataPrefix(markerPrefix)}_` : "agconf_";
 
   for (const file of allFiles) {
     if (!file.hasChanges) continue;

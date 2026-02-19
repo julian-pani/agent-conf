@@ -17,7 +17,20 @@ const COMMANDS = {
   },
   sync: {
     description: "Sync agconf standards",
-    options: ["-s", "--source", "--local", "-y", "--yes", "--override", "--ref", "-t", "--target"],
+    options: [
+      "-s",
+      "--source",
+      "--local",
+      "-y",
+      "--yes",
+      "--override",
+      "--ref",
+      "-t",
+      "--target",
+      "--pinned",
+      "--summary-file",
+      "--expand-changes",
+    ],
   },
   check: {
     description: "Check if managed files have been modified",

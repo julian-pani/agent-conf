@@ -345,16 +345,6 @@ The generated workflow files install the `agconf` CLI with a pinned version:
 
 The version is automatically set to the CLI version used when running `agconf canonical init`. This ensures consistent behavior between local development and CI.
 
-To update the CLI version in your workflows after upgrading:
-
-```bash
-# Update to your current CLI version
-agconf canonical update
-
-# Or specify a version explicitly
-agconf canonical update --cli-version 2.0.0
-```
-
 ### How Reusable Workflows Work
 
 1. Your canonical repository hosts the reusable workflows

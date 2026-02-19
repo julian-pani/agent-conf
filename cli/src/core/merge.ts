@@ -3,13 +3,13 @@ import * as path from "node:path";
 import type { Source } from "../schemas/lockfile.js";
 import { buildAgentsMd, extractRepoBlockContent, parseAgentsMd } from "./markers.js";
 
-export interface MergeOptions {
+interface MergeOptions {
   override: boolean;
   /** Marker prefix to use for managed content (default: "agconf") */
   markerPrefix?: string;
 }
 
-export interface MergeResult {
+interface MergeResult {
   content: string;
   merged: boolean;
   /** True if the generated content differs from the existing AGENTS.md */
@@ -17,7 +17,7 @@ export interface MergeResult {
   preservedRepoContent: boolean;
 }
 
-export interface ConsolidateClaudeMdResult {
+interface ConsolidateClaudeMdResult {
   created: boolean;
   updated: boolean;
   deletedRootClaudeMd: boolean;

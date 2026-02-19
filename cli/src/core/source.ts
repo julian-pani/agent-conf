@@ -21,11 +21,11 @@ export interface ResolvedSource {
   markerPrefix: string;
 }
 
-export interface LocalSourceOptions {
+interface LocalSourceOptions {
   path?: string;
 }
 
-export interface GithubSourceOptions {
+interface GithubSourceOptions {
   repository: string;
   ref: string;
 }

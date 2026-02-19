@@ -1,3 +1,4 @@
+import { toMarkerPrefix } from "../utils/prefix.js";
 import { parseFrontmatter as parseFrontmatterShared, serializeFrontmatter } from "./frontmatter.js";
 import { computeContentHash } from "./managed-content.js";
 
@@ -190,7 +191,7 @@ export function addAgentMetadata(agent: Agent, metadataPrefix: string): string {
   // Compute hash using the same function that check will use
   // This ensures hash consistency between sync and check operations
   // Convert underscore prefix to dash prefix for managed-content compatibility
-  const hashMetadataPrefix = metadataPrefix.replace(/_/g, "-");
+  const hashMetadataPrefix = toMarkerPrefix(metadataPrefix);
   const contentHash = computeContentHash(agent.rawContent, {
     metadataPrefix: hashMetadataPrefix,
   });
