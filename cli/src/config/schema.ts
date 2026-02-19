@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { toMetadataPrefix } from "../utils/prefix.js";
 
 // =============================================================================
 // Canonical Repository Configuration Schema (agconf.yaml)
@@ -184,8 +185,7 @@ export function getMarkers(prefix: string) {
  * Used in skill frontmatter to track managed content.
  */
 export function getMetadataKeys(prefix: string) {
-  // Normalize prefix for use as key (replace dashes with underscores)
-  const keyPrefix = prefix.replace(/-/g, "_");
+  const keyPrefix = toMetadataPrefix(prefix);
   return {
     managed: `${keyPrefix}_managed`,
     contentHash: `${keyPrefix}_content_hash`,

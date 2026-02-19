@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import fg from "fast-glob";
 import { getMetadataKeys } from "../config/schema.js";
+import { toMetadataPrefix } from "../utils/prefix.js";
 import { parseFrontmatter as parseFrontmatterShared, serializeFrontmatter } from "./frontmatter.js";
 import {
   hasGlobalBlockChanges,
@@ -122,7 +123,7 @@ export function stripManagedMetadata(content: string, options: MetadataOptions =
   }
 
   // Get the key prefix (convert dashes to underscores for key names)
-  const keyPrefix = `${metadataPrefix.replace(/-/g, "_")}_`;
+  const keyPrefix = `${toMetadataPrefix(metadataPrefix)}_`;
 
   // Remove managed fields from metadata
   if (frontmatter.metadata && typeof frontmatter.metadata === "object") {
@@ -330,7 +331,7 @@ export async function checkRuleFiles(
         // Extract rulePath from metadata if available
         const { frontmatter } = parseFrontmatter(content);
         const metadata = frontmatter.metadata as Record<string, string> | undefined;
-        const keyPrefix = (options.metadataPrefix || "agconf").replace(/-/g, "_");
+        const keyPrefix = toMetadataPrefix(options.metadataPrefix || "agconf");
         const rulePath = metadata?.[`${keyPrefix}_source_path`] || ruleFile;
 
         results.push({

@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import fg from "fast-glob";
 import type { Lockfile } from "../schemas/lockfile.js";
+import { toMetadataPrefix } from "../utils/prefix.js";
 import {
   type Agent,
   type AgentValidationError,
@@ -490,7 +491,7 @@ export async function sync(
       targetDir,
       targets: options.targets,
       markerPrefix,
-      metadataPrefix: markerPrefix.replace(/-/g, "_"),
+      metadataPrefix: toMetadataPrefix(markerPrefix),
       agentsMdContent: currentAgentsMd,
     });
 
@@ -513,7 +514,7 @@ export async function sync(
       agentsResult = await syncAgents({
         sourceAgentsPath: resolvedSource.agentsPath,
         targetDir,
-        metadataPrefix: markerPrefix.replace(/-/g, "_"),
+        metadataPrefix: toMetadataPrefix(markerPrefix),
       });
     } else {
       // Agents exist but only Codex target - skip with warning
