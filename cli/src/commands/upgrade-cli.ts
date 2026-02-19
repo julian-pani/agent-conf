@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import fs from "node:fs";
 import * as prompts from "@clack/prompts";
 import pc from "picocolors";
 import { getCliVersion } from "../core/lockfile.js";
@@ -114,9 +115,6 @@ export async function upgradeCliCommand(options: UpgradeCliOptions): Promise<voi
       stdio: "pipe",
     });
     installSpinner.succeed("CLI upgraded");
-
-    console.log();
-    prompts.outro(pc.green(`CLI upgraded to ${latestVersion}!`));
   } catch (error) {
     installSpinner.fail("Upgrade failed");
     logger.error(error instanceof Error ? error.message : String(error));
@@ -126,5 +124,47 @@ export async function upgradeCliCommand(options: UpgradeCliOptions): Promise<voi
       `If ${pm.name} is not your package manager, try: agconf upgrade-cli --package-manager <${otherPms.join("|")}>`,
     );
     process.exit(1);
+  }
+
+  // Post-install verification: confirm the binary in $PATH is actually updated
+  let installedVersion: string | null = null;
+  try {
+    installedVersion = execSync("agconf --version", { encoding: "utf-8", stdio: "pipe" }).trim();
+  } catch {
+    // If we can't run agconf --version, skip verification
+  }
+
+  if (installedVersion && installedVersion !== latestVersion) {
+    console.log();
+    logger.warn(
+      `Version mismatch: installed ${latestVersion} but the agconf binary in $PATH is still ${installedVersion}`,
+    );
+
+    // Check if running under a tool manager like Volta
+    const binPath = process.argv[1];
+    let resolvedPath: string | null = null;
+    try {
+      resolvedPath = binPath ? fs.realpathSync(binPath) : null;
+    } catch {
+      // ignore
+    }
+
+    if (resolvedPath?.includes("/.volta/")) {
+      logger.info(`Volta detected. Run: ${pc.cyan("volta install agconf@latest")}`);
+    } else if (resolvedPath?.includes("/.asdf/")) {
+      logger.info(`asdf detected. Run: ${pc.cyan("asdf reshim nodejs")}`);
+    } else if (resolvedPath?.includes("/.mise/") || resolvedPath?.includes("/.local/share/mise/")) {
+      logger.info(`mise detected. Run: ${pc.cyan("mise reshim")}`);
+    } else {
+      logger.info(
+        "Your tool manager may be shimming the binary. Check its docs to update global packages.",
+      );
+    }
+
+    console.log();
+    prompts.outro(pc.yellow("Upgrade installed but not active in $PATH"));
+  } else {
+    console.log();
+    prompts.outro(pc.green(`CLI upgraded to ${latestVersion}!`));
   }
 }
