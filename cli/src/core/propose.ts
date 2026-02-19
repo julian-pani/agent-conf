@@ -81,12 +81,11 @@ export async function detectProposedChanges(options: ProposeOptions = {}): Promi
   const allFiles = await checkAllManagedFiles(targetDir, targets, checkOptions);
   const modifiedFiles = allFiles.filter((f) => f.hasChanges);
 
-  // Filter by --files if specified
+  // Filter by --files if specified (patterns are treated as regexes against relative paths)
   let filesToPropose = modifiedFiles;
   if (options.files && options.files.length > 0) {
-    filesToPropose = modifiedFiles.filter((f) =>
-      options.files!.some((pattern) => f.path.includes(pattern)),
-    );
+    const regexes = options.files.map((pattern) => new RegExp(pattern));
+    filesToPropose = modifiedFiles.filter((f) => regexes.some((re) => re.test(f.path)));
   }
 
   const changes: ProposedChange[] = [];
