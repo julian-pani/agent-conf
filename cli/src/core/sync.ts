@@ -382,7 +382,7 @@ export interface SyncResult {
   claudeMd: {
     created: boolean;
     updated: boolean;
-    deletedRootClaudeMd: boolean;
+    deletedDotClaudeClaudeMd: boolean;
   };
   targets: TargetResult[];
   skills: {
@@ -427,8 +427,8 @@ export async function sync(
   await writeAgentsMd(targetDir, mergeResult.content);
 
   // Consolidate CLAUDE.md files (regardless of target)
-  // This merges content into AGENTS.md and creates .claude/CLAUDE.md reference
-  const consolidateResult = await consolidateClaudeMd(targetDir, mergeResult.hadRootClaudeMd);
+  // This merges content into AGENTS.md and creates root CLAUDE.md reference
+  const consolidateResult = await consolidateClaudeMd(targetDir, mergeResult.hadDotClaudeClaudeMd);
 
   // Find all skill directories once
   const skillDirs = await fg("*/", {
@@ -559,7 +559,7 @@ export async function sync(
     claudeMd: {
       created: consolidateResult.created,
       updated: consolidateResult.updated,
-      deletedRootClaudeMd: consolidateResult.deletedRootClaudeMd,
+      deletedDotClaudeClaudeMd: consolidateResult.deletedDotClaudeClaudeMd,
     },
     targets: targetResults,
     skills: {
