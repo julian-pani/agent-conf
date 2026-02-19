@@ -20,7 +20,7 @@ interface MergeResult {
 interface ConsolidateClaudeMdResult {
   created: boolean;
   updated: boolean;
-  deletedRootClaudeMd: boolean;
+  deletedDotClaudeClaudeMd: boolean;
 }
 
 interface ExistingContent {
@@ -147,46 +147,41 @@ export async function writeAgentsMd(targetDir: string, content: string): Promise
 }
 
 /**
- * Consolidate CLAUDE.md files to a single .claude/CLAUDE.md with @../AGENTS.md reference.
+ * Consolidate CLAUDE.md files to a single root CLAUDE.md with @AGENTS.md reference.
  * Content from any existing CLAUDE.md files should already be merged into AGENTS.md.
  * This function:
- * 1. Creates/updates .claude/CLAUDE.md with @../AGENTS.md reference
- * 2. Deletes root CLAUDE.md if it existed
+ * 1. Creates/updates root CLAUDE.md with @AGENTS.md reference
+ * 2. Deletes .claude/CLAUDE.md if it exists (migration from old layout)
  */
 export async function consolidateClaudeMd(
   targetDir: string,
-  hadRootClaudeMd: boolean,
+  _hadDotClaudeClaudeMd?: boolean,
 ): Promise<ConsolidateClaudeMdResult> {
   const rootPath = path.join(targetDir, "CLAUDE.md");
   const dotClaudePath = path.join(targetDir, ".claude", "CLAUDE.md");
-  const reference = "@../AGENTS.md";
+  const reference = "@AGENTS.md";
 
-  // Ensure .claude directory exists
-  await fs.mkdir(path.dirname(dotClaudePath), { recursive: true });
-
-  // Create or update .claude/CLAUDE.md
-  const existing = await readFileIfExists(dotClaudePath);
+  // Create or update root CLAUDE.md
+  const existing = await readFileIfExists(rootPath);
   let created = false;
   let updated = false;
 
   if (existing === null) {
-    await fs.writeFile(dotClaudePath, `${reference}\n`, "utf-8");
+    await fs.writeFile(rootPath, `${reference}\n`, "utf-8");
     created = true;
   } else if (!existing.includes(reference)) {
-    await fs.writeFile(dotClaudePath, `${reference}\n`, "utf-8");
+    await fs.writeFile(rootPath, `${reference}\n`, "utf-8");
     updated = true;
   }
 
-  // Delete root CLAUDE.md if it existed
-  let deletedRootClaudeMd = false;
-  if (hadRootClaudeMd) {
-    try {
-      await fs.unlink(rootPath);
-      deletedRootClaudeMd = true;
-    } catch (e) {
-      if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
-    }
+  // Delete .claude/CLAUDE.md if it exists (always attempt for migration)
+  let deletedDotClaudeClaudeMd = false;
+  try {
+    await fs.unlink(dotClaudePath);
+    deletedDotClaudeClaudeMd = true;
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
   }
 
-  return { created, updated, deletedRootClaudeMd };
+  return { created, updated, deletedDotClaudeClaudeMd };
 }

@@ -201,95 +201,113 @@ ${REPO_END_MARKER}
   });
 
   describe("consolidateClaudeMd", () => {
-    it("should create CLAUDE.md in .claude/ with reference when none exists", async () => {
+    it("should create root CLAUDE.md with reference when none exists", async () => {
       const result = await consolidateClaudeMd(tempDir, false);
 
       expect(result.created).toBe(true);
       expect(result.updated).toBe(false);
-      expect(result.deletedRootClaudeMd).toBe(false);
+      expect(result.deletedDotClaudeClaudeMd).toBe(false);
 
-      const claudeMdPath = path.join(tempDir, ".claude", "CLAUDE.md");
+      const claudeMdPath = path.join(tempDir, "CLAUDE.md");
       const content = await fs.readFile(claudeMdPath, "utf-8");
-      expect(content).toBe("@../AGENTS.md\n");
+      expect(content).toBe("@AGENTS.md\n");
     });
 
-    it("should delete root CLAUDE.md after consolidation", async () => {
-      const rootClaudeMdPath = path.join(tempDir, "CLAUDE.md");
-      await fs.writeFile(rootClaudeMdPath, "# My CLAUDE.md\nSome content", "utf-8");
+    it("should delete .claude/CLAUDE.md after consolidation", async () => {
+      const dotClaudeMdPath = path.join(tempDir, ".claude", "CLAUDE.md");
+      await fs.mkdir(path.join(tempDir, ".claude"), { recursive: true });
+      await fs.writeFile(dotClaudeMdPath, "# My CLAUDE.md\nSome content", "utf-8");
 
       const result = await consolidateClaudeMd(tempDir, true);
 
       expect(result.created).toBe(true);
       expect(result.updated).toBe(false);
-      expect(result.deletedRootClaudeMd).toBe(true);
+      expect(result.deletedDotClaudeClaudeMd).toBe(true);
 
-      // Root CLAUDE.md should be deleted
-      const rootExists = await fs
-        .access(rootClaudeMdPath)
+      // .claude/CLAUDE.md should be deleted
+      const dotClaudeExists = await fs
+        .access(dotClaudeMdPath)
         .then(() => true)
         .catch(() => false);
-      expect(rootExists).toBe(false);
+      expect(dotClaudeExists).toBe(false);
 
-      // .claude/CLAUDE.md should have reference
-      const dotClaudeMdPath = path.join(tempDir, ".claude", "CLAUDE.md");
-      const content = await fs.readFile(dotClaudeMdPath, "utf-8");
-      expect(content).toBe("@../AGENTS.md\n");
+      // Root CLAUDE.md should have reference
+      const rootClaudeMdPath = path.join(tempDir, "CLAUDE.md");
+      const content = await fs.readFile(rootClaudeMdPath, "utf-8");
+      expect(content).toBe("@AGENTS.md\n");
     });
 
-    it("should create .claude/CLAUDE.md when only root existed", async () => {
-      // Remove the .claude directory that beforeEach creates
-      await fs.rm(path.join(tempDir, ".claude"), { recursive: true, force: true });
-
-      const rootClaudeMdPath = path.join(tempDir, "CLAUDE.md");
-      await fs.writeFile(rootClaudeMdPath, "# My CLAUDE.md\nSome content", "utf-8");
+    it("should create root CLAUDE.md when only .claude/CLAUDE.md existed", async () => {
+      await fs.mkdir(path.join(tempDir, ".claude"), { recursive: true });
+      const dotClaudeMdPath = path.join(tempDir, ".claude", "CLAUDE.md");
+      await fs.writeFile(dotClaudeMdPath, "# My CLAUDE.md\nSome content", "utf-8");
 
       const result = await consolidateClaudeMd(tempDir, true);
 
       expect(result.created).toBe(true);
-      expect(result.deletedRootClaudeMd).toBe(true);
+      expect(result.deletedDotClaudeClaudeMd).toBe(true);
 
-      // .claude directory should be created with CLAUDE.md
-      const dotClaudeMdPath = path.join(tempDir, ".claude", "CLAUDE.md");
-      const content = await fs.readFile(dotClaudeMdPath, "utf-8");
-      expect(content).toBe("@../AGENTS.md\n");
+      // Root CLAUDE.md should be created with reference
+      const rootClaudeMdPath = path.join(tempDir, "CLAUDE.md");
+      const content = await fs.readFile(rootClaudeMdPath, "utf-8");
+      expect(content).toBe("@AGENTS.md\n");
     });
 
-    it("should update .claude/CLAUDE.md with reference if missing", async () => {
-      const dotClaudeMdPath = path.join(tempDir, ".claude", "CLAUDE.md");
-      await fs.writeFile(dotClaudeMdPath, "# My CLAUDE.md\nSome content", "utf-8");
+    it("should update root CLAUDE.md with reference if missing", async () => {
+      const rootClaudeMdPath = path.join(tempDir, "CLAUDE.md");
+      await fs.writeFile(rootClaudeMdPath, "# My CLAUDE.md\nSome content", "utf-8");
 
       const result = await consolidateClaudeMd(tempDir, false);
 
       expect(result.created).toBe(false);
       expect(result.updated).toBe(true);
-      expect(result.deletedRootClaudeMd).toBe(false);
+      expect(result.deletedDotClaudeClaudeMd).toBe(false);
 
-      const content = await fs.readFile(dotClaudeMdPath, "utf-8");
-      expect(content).toBe("@../AGENTS.md\n");
+      const content = await fs.readFile(rootClaudeMdPath, "utf-8");
+      expect(content).toBe("@AGENTS.md\n");
     });
 
-    it("should not modify .claude/CLAUDE.md if reference already exists", async () => {
-      const dotClaudeMdPath = path.join(tempDir, ".claude", "CLAUDE.md");
-      await fs.writeFile(dotClaudeMdPath, "@../AGENTS.md\n\nSome content", "utf-8");
+    it("should not modify root CLAUDE.md if reference already exists", async () => {
+      const rootClaudeMdPath = path.join(tempDir, "CLAUDE.md");
+      await fs.writeFile(rootClaudeMdPath, "@AGENTS.md\n\nSome content", "utf-8");
 
       const result = await consolidateClaudeMd(tempDir, false);
 
       expect(result.created).toBe(false);
       expect(result.updated).toBe(false);
-      expect(result.deletedRootClaudeMd).toBe(false);
+      expect(result.deletedDotClaudeClaudeMd).toBe(false);
 
       // Content should remain unchanged since reference already exists
-      const content = await fs.readFile(dotClaudeMdPath, "utf-8");
-      expect(content).toBe("@../AGENTS.md\n\nSome content");
+      const content = await fs.readFile(rootClaudeMdPath, "utf-8");
+      expect(content).toBe("@AGENTS.md\n\nSome content");
     });
 
-    it("should handle ENOENT gracefully when root was already deleted", async () => {
-      // hadRootClaudeMd is true but file doesn't exist (already deleted between merge and consolidate)
+    it("should handle ENOENT gracefully when .claude/CLAUDE.md was already deleted", async () => {
+      // hadDotClaudeClaudeMd is true but file doesn't exist
       const result = await consolidateClaudeMd(tempDir, true);
 
       // Should not throw, should report no deletion
-      expect(result.deletedRootClaudeMd).toBe(false);
+      expect(result.deletedDotClaudeClaudeMd).toBe(false);
       expect(result.created).toBe(true);
+    });
+
+    it("should always attempt to delete .claude/CLAUDE.md for migration", async () => {
+      // Even when hadDotClaudeClaudeMd is false, if .claude/CLAUDE.md exists it should be deleted
+      await fs.mkdir(path.join(tempDir, ".claude"), { recursive: true });
+      const dotClaudeMdPath = path.join(tempDir, ".claude", "CLAUDE.md");
+      await fs.writeFile(dotClaudeMdPath, "@../AGENTS.md\n", "utf-8");
+
+      const result = await consolidateClaudeMd(tempDir, false);
+
+      expect(result.created).toBe(true);
+      expect(result.deletedDotClaudeClaudeMd).toBe(true);
+
+      // .claude/CLAUDE.md should be gone
+      const dotClaudeExists = await fs
+        .access(dotClaudeMdPath)
+        .then(() => true)
+        .catch(() => false);
+      expect(dotClaudeExists).toBe(false);
     });
   });
 

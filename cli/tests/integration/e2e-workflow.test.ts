@@ -259,8 +259,8 @@ describe("e2e workflow: full sync + check lifecycle", () => {
         .catch(() => false);
       expect(lockfileExists).toBe(true);
 
-      const claudeMd = await fs.readFile(path.join(targetDir, ".claude", "CLAUDE.md"), "utf-8");
-      expect(claudeMd).toContain("@../AGENTS.md");
+      const claudeMd = await fs.readFile(path.join(targetDir, "CLAUDE.md"), "utf-8");
+      expect(claudeMd).toContain("@AGENTS.md");
 
       // Step 2: check passes immediately after sync
       const checkResult1 = await runCheck(targetDir);

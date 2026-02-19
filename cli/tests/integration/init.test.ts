@@ -71,10 +71,10 @@ describe("init integration", () => {
     expect(agentsMd).toContain(REPO_END_MARKER);
     expect(agentsMd).toContain("# Global Engineering Standards");
 
-    // Check CLAUDE.md was created in .claude/ with correct reference
-    const claudeMdPath = path.join(tempTargetDir, ".claude", "CLAUDE.md");
+    // Check CLAUDE.md was created in root with correct reference
+    const claudeMdPath = path.join(tempTargetDir, "CLAUDE.md");
     const claudeMd = await fs.readFile(claudeMdPath, "utf-8");
-    expect(claudeMd).toContain("@../AGENTS.md");
+    expect(claudeMd).toContain("@AGENTS.md");
 
     // Check skills were copied
     const skillPath = path.join(tempTargetDir, ".claude", "skills", "test-skill", "SKILL.md");
@@ -178,9 +178,9 @@ describe("init integration", () => {
     expect(codexSkillExists).toBe(true);
 
     // Check CLAUDE.md was created (only Claude uses instructions files)
-    const claudeMdPath = path.join(tempTargetDir, ".claude", "CLAUDE.md");
+    const claudeMdPath = path.join(tempTargetDir, "CLAUDE.md");
     const claudeMd = await fs.readFile(claudeMdPath, "utf-8");
-    expect(claudeMd).toContain("@../AGENTS.md");
+    expect(claudeMd).toContain("@AGENTS.md");
 
     // Codex does NOT need a CODEX.md - it reads AGENTS.md directly
     const codexMdPath = path.join(tempTargetDir, ".codex", "CODEX.md");
@@ -196,7 +196,7 @@ describe("init integration", () => {
     expect(result.targets.map((t) => t.target)).toContain("codex");
   });
 
-  it("should consolidate root CLAUDE.md into AGENTS.md and delete root", async () => {
+  it("should consolidate root CLAUDE.md into AGENTS.md and update root reference", async () => {
     // Create a root CLAUDE.md with content
     const rootClaudeMdPath = path.join(tempTargetDir, "CLAUDE.md");
     await fs.writeFile(rootClaudeMdPath, "# My Root CLAUDE Content\nSome instructions", "utf-8");
@@ -207,17 +207,16 @@ describe("init integration", () => {
       targets: ["claude"],
     });
 
-    // Root CLAUDE.md should be deleted
-    const rootExists = await fs
-      .access(rootClaudeMdPath)
+    // Root CLAUDE.md should exist with reference (updated, not deleted)
+    const rootClaudeMd = await fs.readFile(rootClaudeMdPath, "utf-8");
+    expect(rootClaudeMd).toContain("@AGENTS.md");
+
+    // .claude/CLAUDE.md should NOT exist
+    const dotClaudeExists = await fs
+      .access(path.join(tempTargetDir, ".claude", "CLAUDE.md"))
       .then(() => true)
       .catch(() => false);
-    expect(rootExists).toBe(false);
-
-    // .claude/CLAUDE.md should exist with reference
-    const dotClaudeMdPath = path.join(tempTargetDir, ".claude", "CLAUDE.md");
-    const dotClaudeMd = await fs.readFile(dotClaudeMdPath, "utf-8");
-    expect(dotClaudeMd).toContain("@../AGENTS.md");
+    expect(dotClaudeExists).toBe(false);
 
     // Content should be merged into AGENTS.md
     const agentsMdPath = path.join(tempTargetDir, "AGENTS.md");
@@ -225,12 +224,12 @@ describe("init integration", () => {
     expect(agentsMd).toContain("# My Root CLAUDE Content");
 
     // Check result
-    expect(result.claudeMd.created).toBe(true);
-    expect(result.claudeMd.deletedRootClaudeMd).toBe(true);
+    expect(result.claudeMd.updated).toBe(true);
+    expect(result.claudeMd.deletedDotClaudeClaudeMd).toBe(false);
   });
 
   it("should consolidate CLAUDE.md even when only Codex is target", async () => {
-    // Create a root CLAUDE.md with content
+    // Create a root CLAUDE.md with content (no @AGENTS.md reference)
     const rootClaudeMdPath = path.join(tempTargetDir, "CLAUDE.md");
     await fs.writeFile(rootClaudeMdPath, "# Codex-only test\nSome instructions", "utf-8");
 
@@ -240,24 +239,17 @@ describe("init integration", () => {
       targets: ["codex"], // Only Codex target
     });
 
-    // Root CLAUDE.md should still be deleted (consolidation happens regardless of target)
-    const rootExists = await fs
-      .access(rootClaudeMdPath)
-      .then(() => true)
-      .catch(() => false);
-    expect(rootExists).toBe(false);
-
-    // .claude/CLAUDE.md should exist with reference (prepared for future Claude usage)
-    const dotClaudeMdPath = path.join(tempTargetDir, ".claude", "CLAUDE.md");
-    const dotClaudeMd = await fs.readFile(dotClaudeMdPath, "utf-8");
-    expect(dotClaudeMd).toContain("@../AGENTS.md");
+    // Root CLAUDE.md should exist with reference (updated with @AGENTS.md)
+    const rootClaudeMd = await fs.readFile(rootClaudeMdPath, "utf-8");
+    expect(rootClaudeMd).toContain("@AGENTS.md");
 
     // Content should be merged into AGENTS.md (available to Codex)
     const agentsMdPath = path.join(tempTargetDir, "AGENTS.md");
     const agentsMd = await fs.readFile(agentsMdPath, "utf-8");
     expect(agentsMd).toContain("# Codex-only test");
 
-    expect(result.claudeMd.deletedRootClaudeMd).toBe(true);
+    expect(result.claudeMd.updated).toBe(true);
+    expect(result.claudeMd.deletedDotClaudeClaudeMd).toBe(false);
   });
 
   it("should merge content from both CLAUDE.md files during sync", async () => {
@@ -281,18 +273,18 @@ describe("init integration", () => {
     expect(agentsMd).toContain("# Root content");
     expect(agentsMd).toContain("# Dotclaude content");
 
-    // Root should be deleted
-    const rootExists = await fs
-      .access(rootClaudeMdPath)
+    // Root CLAUDE.md should have reference (updated)
+    const rootClaudeMd = await fs.readFile(rootClaudeMdPath, "utf-8");
+    expect(rootClaudeMd).toContain("@AGENTS.md");
+
+    // .claude/CLAUDE.md should be deleted
+    const dotClaudeExists = await fs
+      .access(dotClaudeMdPath)
       .then(() => true)
       .catch(() => false);
-    expect(rootExists).toBe(false);
+    expect(dotClaudeExists).toBe(false);
 
-    // .claude/CLAUDE.md should have reference
-    const dotClaudeMd = await fs.readFile(dotClaudeMdPath, "utf-8");
-    expect(dotClaudeMd).toContain("@../AGENTS.md");
-
-    expect(result.claudeMd.deletedRootClaudeMd).toBe(true);
+    expect(result.claudeMd.deletedDotClaudeClaudeMd).toBe(true);
   });
 
   it("should use custom marker prefix from canonical config", async () => {

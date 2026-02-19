@@ -473,16 +473,16 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
       summaryLines.push("- `AGENTS.md` (unchanged)");
     }
 
-    // .claude/CLAUDE.md status (consolidation result, shown once regardless of targets)
+    // CLAUDE.md status (consolidation result, shown once regardless of targets)
     {
-      const claudeMdPath = formatPath(path.join(targetDir, ".claude", "CLAUDE.md"));
-      const claudeMdRelPath = ".claude/CLAUDE.md";
+      const claudeMdPath = formatPath(path.join(targetDir, "CLAUDE.md"));
+      const claudeMdRelPath = "CLAUDE.md";
 
       if (result.claudeMd.created) {
         console.log(`  ${pc.green("+")} ${claudeMdPath} ${pc.dim("(created)")}`);
         summaryLines.push(`- \`${claudeMdRelPath}\` (created)`);
       } else if (result.claudeMd.updated) {
-        const hint = result.claudeMd.deletedRootClaudeMd
+        const hint = result.claudeMd.deletedDotClaudeClaudeMd
           ? "(content merged into AGENTS.md, reference added)"
           : "(reference added)";
         console.log(`  ${pc.yellow("~")} ${claudeMdPath} ${pc.dim(hint)}`);
@@ -492,13 +492,13 @@ export async function performSync(options: PerformSyncOptions): Promise<void> {
         summaryLines.push(`- \`${claudeMdRelPath}\` (unchanged)`);
       }
 
-      // Show deleted root CLAUDE.md
-      if (result.claudeMd.deletedRootClaudeMd) {
-        const rootClaudeMdPath = formatPath(path.join(targetDir, "CLAUDE.md"));
+      // Show deleted .claude/CLAUDE.md
+      if (result.claudeMd.deletedDotClaudeClaudeMd) {
+        const dotClaudeMdPath = formatPath(path.join(targetDir, ".claude", "CLAUDE.md"));
         console.log(
-          `  ${pc.red("-")} ${rootClaudeMdPath} ${pc.dim("(deleted, content merged into AGENTS.md)")}`,
+          `  ${pc.red("-")} ${dotClaudeMdPath} ${pc.dim("(deleted, content merged into AGENTS.md)")}`,
         );
-        summaryLines.push("- `CLAUDE.md` (deleted, content merged into AGENTS.md)");
+        summaryLines.push("- `.claude/CLAUDE.md` (deleted, content merged into AGENTS.md)");
       }
     }
 
