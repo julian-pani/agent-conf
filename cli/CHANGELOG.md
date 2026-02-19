@@ -1,3 +1,9 @@
+## [0.13.2](https://github.com/julian-pani/agconf/compare/v0.13.1...v0.13.2) (2026-02-19)
+
+### Bug Fixes
+
+* **cli:** detect silent upgrade failure for Volta and similar tool managers ([#37](https://github.com/julian-pani/agconf/issues/37)) ([5f75480](https://github.com/julian-pani/agconf/commit/5f75480334efa40ace439cd97c1ea5f4927b389d))
+
 ## [0.13.1](https://github.com/julian-pani/agconf/compare/v0.13.0...v0.13.1) (2026-02-19)
 
 ### Bug Fixes
