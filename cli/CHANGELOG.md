@@ -1,3 +1,9 @@
+## [0.13.1](https://github.com/julian-pani/agconf/compare/v0.13.0...v0.13.1) (2026-02-19)
+
+### Bug Fixes
+
+* **cli:** use regex matching for propose --files filter ([#36](https://github.com/julian-pani/agconf/issues/36)) ([58afa0d](https://github.com/julian-pani/agconf/commit/58afa0d2fc223eb576849c2d5c4515707336a6b8))
+
 ## [0.13.0](https://github.com/julian-pani/agconf/compare/v0.12.0...v0.13.0) (2026-02-19)
 
 ### Features
