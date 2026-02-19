@@ -125,7 +125,7 @@ export function createCli(): Command {
     .option("-n, --dry-run", "Show what would be proposed without creating anything")
     .option("-t, --title <title>", "Proposal title (used for branch, commit, and PR)")
     .option("-m, --message <message>", "Message to include in the PR description")
-    .option("--files <patterns...>", "Only propose specific files")
+    .option("--files <patterns...>", "Only propose files matching regex patterns (relative paths)")
     .option("-y, --yes", "Non-interactive mode")
     .action(
       async (options: {
