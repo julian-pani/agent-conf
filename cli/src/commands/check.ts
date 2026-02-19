@@ -287,7 +287,8 @@ export async function checkCommand(options: CheckOptions = {}): Promise<void> {
   }
 
   console.log(pc.dim("These files are managed by agconf and should not be modified manually."));
-  console.log(pc.dim("Run 'agconf sync' to restore them to the expected state."));
+  console.log(pc.dim("To propose these changes to canonical: agconf propose"));
+  console.log(pc.dim("To restore original content: agconf sync"));
   console.log();
 
   process.exit(1);

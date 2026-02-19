@@ -160,6 +160,7 @@ describe("completion", () => {
         expect.arrayContaining([
           expect.objectContaining({ name: "init" }),
           expect.objectContaining({ name: "sync" }),
+          expect.objectContaining({ name: "propose" }),
           expect.objectContaining({ name: "config" }),
           expect.objectContaining({ name: "completion" }),
         ]),
@@ -273,6 +274,24 @@ describe("completion", () => {
 
       expect(handleCompletion()).toBe(true);
       expect(tabtab.log).toHaveBeenCalledWith(expect.arrayContaining(["-q", "--quiet"]));
+    });
+
+    it("should complete options for propose command", () => {
+      vi.mocked(tabtab.parseEnv).mockReturnValue({
+        complete: true,
+        words: 2,
+        point: 19,
+        line: "agconf propose ",
+        partial: "",
+        last: "",
+        lastPartial: "",
+        prev: "propose",
+      });
+
+      expect(handleCompletion()).toBe(true);
+      expect(tabtab.log).toHaveBeenCalledWith(
+        expect.arrayContaining(["-n", "--dry-run", "-t", "--title", "-m", "--message", "--files"]),
+      );
     });
 
     it("should complete options for sync command", () => {
