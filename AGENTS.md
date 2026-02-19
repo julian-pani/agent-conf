@@ -51,7 +51,9 @@ pnpm install:global       # Build + install globally
 - `rules.ts` - Sync modular rule files from canonical to downstream repos
 
 ### Commands (`cli/src/commands/`)
-Commands: init, sync, check, upgrade-cli (with `--package-manager` option), canonical (init), config, completion
+Commands: init, sync, check, propose, upgrade-cli (with `--package-manager` option), canonical (init), config, completion
+
+> **Reminder**: When modifying command options in `cli/src/cli.ts`, you MUST also update `cli/src/commands/completion.ts`. See [CLI Command Changes](#cli-command-changes).
 
 ### Utilities (`cli/src/utils/`)
 - `package-manager.ts` - Package manager detection for CLI upgrades (npm, pnpm, yarn, bun)
@@ -66,6 +68,8 @@ Commands: init, sync, check, upgrade-cli (with `--package-manager` option), cano
 - **Merge strategy**: Global content updates while preserving repo-specific sections in AGENTS.md
 - **Target support**: Multi-agent targets (Claude Code, Codex) defined in `cli/src/core/targets.ts`; source resolution (GitHub repos, local paths) in `cli/src/core/source.ts`
 - **Downstream config**: `.agconf/config.yaml` in downstream repos for user preferences (workflow settings)
+- **Default prefix**: The canonical default prefix is `"agconf"`. When writing fallback values, always reference the defined constants (`DEFAULT_MARKER_PREFIX`, `DEFAULT_METADATA_PREFIX`) rather than hardcoding.
+- **Prefix normalization**: Marker prefixes use dashes (e.g., `my-prefix`), metadata prefixes use underscores (e.g., `my_prefix`). Conversion MUST use `toMarkerPrefix()` / `toMetadataPrefix()` from `cli/src/utils/prefix.ts`. Do not use inline `.replace()` calls.
 
 ### Downstream Config
 
@@ -148,6 +152,7 @@ When adding or modifying CLI commands, always update the shell completions in `c
 ### Testing Requirements
 **No manual tests.** All tests must be runnable programmatically via `pnpm test`. When implementing new features:
 - Write comprehensive unit and integration tests
+- **Every command file in `cli/src/commands/` must have a corresponding test file** that covers flag validation, error paths, and orchestration logic
 - Avoid any verification steps that require manual execution
 - Use temp directories and mocks for file system and external dependencies
 - For commands that use `process.cwd()`, add a `cwd` option for testability
@@ -189,6 +194,20 @@ Each synced content type needs:
 - `computeRulesSectionHash()` from `cli/src/core/markers.ts` - for AGENTS.md rules section
 
 All these functions return `sha256:${hash.slice(0, 12)}` format. When adding new content types, import and use these existing functions rather than computing hashes inline. This prevents hash length mismatches (e.g., 12 vs 16 chars) that cause check to fail immediately after sync.
+
+### Documentation Synchronization
+When removing or renaming CLI commands, subcommands, or options, update ALL documentation references:
+- `AGENTS.md` (Commands list and any architecture references)
+- Root `README.md` (command tables and usage examples)
+- `cli/README.md`
+- `cli/docs/` guides that reference the command
+- `cli/src/commands/completion.ts` (shell completions)
+
+### Export Hygiene
+Only export functions, types, and constants that are imported by other modules. If a symbol is only used within its own file, do not export it. Periodically check for unused exports.
+
+### Utility Reuse
+Before writing a helper function for file I/O, hashing, prefix conversion, or other common patterns, check `cli/src/utils/` and existing core modules for an existing implementation. If a utility does not exist yet but the pattern appears in 2+ locations, extract it to `cli/src/utils/`.
 
 ### Parallel Worktrees
 When working on multiple tasks in parallel, create git worktrees in the `.worktrees/` directory inside the workspace (this directory is gitignored). For example:
