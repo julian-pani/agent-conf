@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { toMetadataPrefix } from "../utils/prefix.js";
 
 // =============================================================================
 // Canonical Repository Configuration Schema (agconf.yaml)
@@ -163,31 +162,3 @@ export type ResolvedConfig = z.infer<typeof ResolvedConfigSchema>;
 // =============================================================================
 // Default Configuration
 // =============================================================================
-
-// =============================================================================
-// Marker Generation Helpers
-// =============================================================================
-
-/**
- * Generate marker strings based on the configured prefix.
- */
-export function getMarkers(prefix: string) {
-  return {
-    globalStart: `<!-- ${prefix}:global:start -->`,
-    globalEnd: `<!-- ${prefix}:global:end -->`,
-    repoStart: `<!-- ${prefix}:repo:start -->`,
-    repoEnd: `<!-- ${prefix}:repo:end -->`,
-  };
-}
-
-/**
- * Generate metadata key names based on the configured prefix.
- * Used in skill frontmatter to track managed content.
- */
-export function getMetadataKeys(prefix: string) {
-  const keyPrefix = toMetadataPrefix(prefix);
-  return {
-    managed: `${keyPrefix}_managed`,
-    contentHash: `${keyPrefix}_content_hash`,
-  };
-}

@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { getMarkers as getMarkersFromConfig } from "../config/schema.js";
 
 // Default marker prefix
 const DEFAULT_MARKER_PREFIX = "agconf";
@@ -15,11 +14,15 @@ export interface Markers {
 }
 
 /**
- * Get markers for a given prefix.
- * Uses the config schema helper for consistency.
+ * Generate marker strings based on the configured prefix.
  */
 export function getMarkers(prefix: string = DEFAULT_MARKER_PREFIX): Markers {
-  return getMarkersFromConfig(prefix);
+  return {
+    globalStart: `<!-- ${prefix}:global:start -->`,
+    globalEnd: `<!-- ${prefix}:global:end -->`,
+    repoStart: `<!-- ${prefix}:repo:start -->`,
+    repoEnd: `<!-- ${prefix}:repo:end -->`,
+  };
 }
 
 export interface ParsedAgentsMd {
