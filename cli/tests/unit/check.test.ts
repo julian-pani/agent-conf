@@ -173,6 +173,12 @@ metadata:
       expect(mockExit).toHaveBeenCalledWith(1);
     });
 
+    it("should show propose hint when modifications detected", async () => {
+      await expect(checkCommand({ cwd: tempDir })).rejects.toThrow("process.exit called");
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("agconf propose"));
+    });
+
     it("should exit with code 1 in quiet mode", async () => {
       await expect(checkCommand({ quiet: true, cwd: tempDir })).rejects.toThrow(
         "process.exit called",

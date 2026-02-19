@@ -37,6 +37,8 @@ export function generateHookSection(config: HookConfig): string {
   return `${HOOK_MARKER_START}
 ${HOOK_IDENTIFIER} - DO NOT EDIT THIS SECTION
 _agconf_check() {
+    local current_branch
+    current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
     local repo_root
     repo_root=$(git rev-parse --show-toplevel)
     if [ ! -f "$repo_root/${configDir}/${lockfileName}" ]; then return 0; fi
@@ -46,20 +48,34 @@ _agconf_check() {
     check_output=$(${cliName} check 2>&1) || check_exit=$?
     check_exit=\${check_exit:-0}
     if [ "$check_exit" -ne 0 ]; then
-        echo ""
-        echo "Error: Cannot commit changes to ${cliName}-managed files"
-        echo ""
-        echo "Output from '${cliName} check' command:"
-        echo "$check_output"
-        echo ""
-        echo "Options:"
-        echo "  1. Discard your changes: git checkout -- <file>"
-        echo "  2. Skip this check: git commit --no-verify"
-        echo "  3. Restore managed files: ${cliName} sync"
-        echo "  4. For AGENTS.md: edit only the repo-specific block (between repo:start and repo:end)"
-        echo "  5. For skills: create a new custom skill instead"
-        echo ""
-        return 1
+        case "$current_branch" in
+            master|main)
+                echo ""
+                echo "Error: Cannot commit changes to ${cliName}-managed files"
+                echo ""
+                echo "Output from '${cliName} check' command:"
+                echo "$check_output"
+                echo ""
+                echo "Options:"
+                echo "  1. Discard your changes: git checkout -- <file>"
+                echo "  2. Skip this check: git commit --no-verify"
+                echo "  3. Restore managed files: ${cliName} sync"
+                echo "  4. For AGENTS.md: edit only the repo-specific block (between repo:start and repo:end)"
+                echo "  5. For skills: create a new custom skill instead"
+                echo "  6. Propose changes upstream: ${cliName} propose"
+                echo ""
+                return 1
+                ;;
+            *)
+                echo ""
+                echo "Warning: committing changes to ${cliName}-managed files"
+                echo ""
+                echo "$check_output"
+                echo ""
+                echo "When ready, propose these changes upstream: ${cliName} propose"
+                echo ""
+                ;;
+        esac
     fi
 }
 _agconf_check || exit 1

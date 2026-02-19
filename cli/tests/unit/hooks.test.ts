@@ -222,6 +222,53 @@ describe("hooks", () => {
       expect(section).toContain(".myagent/lock.json");
       expect(section).toContain("command -v myagent");
     });
+
+    it("should include branch detection for different behavior on feature vs protected branches", () => {
+      const config = getHookConfig();
+      const section = generateHookSection(config);
+
+      // Should detect current branch
+      expect(section).toContain("git symbolic-ref --short HEAD");
+      // Should differentiate master/main from other branches
+      expect(section).toContain("master|main");
+      // On protected branches: block with error
+      expect(section).toContain("return 1");
+      // On feature branches: warn but don't block
+      expect(section).toContain("Warning: committing changes to");
+      expect(section).toContain("propose these changes upstream");
+    });
+
+    it("should block commits on protected branches with full error", () => {
+      const config = getHookConfig();
+      const section = generateHookSection(config);
+
+      // Error message on master/main should have all options
+      expect(section).toContain("Error: Cannot commit changes to");
+      expect(section).toContain("Discard your changes");
+      expect(section).toContain("Skip this check");
+      expect(section).toContain("Restore managed files");
+      expect(section).toContain("Propose changes upstream");
+    });
+
+    it("should mention propose command in both warning and error paths", () => {
+      const config = getHookConfig();
+      const section = generateHookSection(config);
+
+      // propose should appear in both the error (protected) and warning (feature) paths
+      const proposeMatches = section.match(/agconf propose/g);
+      expect(proposeMatches).not.toBeNull();
+      expect(proposeMatches!.length).toBe(2);
+    });
+
+    it("should use custom CLI name in propose suggestion", () => {
+      const section = generateHookSection({
+        cliName: "myagent",
+        configDir: ".myagent",
+        lockfileName: "lock.json",
+      });
+
+      expect(section).toContain("myagent propose");
+    });
   });
 
   describe("generatePreCommitHook", () => {

@@ -5,6 +5,7 @@ import { checkCommand } from "./commands/check.js";
 import { handleCompletion, installCompletion, uninstallCompletion } from "./commands/completion.js";
 import { configGetCommand, configSetCommand, configShowCommand } from "./commands/config.js";
 import { initCommand } from "./commands/init.js";
+import { proposeCommand } from "./commands/propose.js";
 import { syncCommand } from "./commands/sync.js";
 import { upgradeCliCommand } from "./commands/upgrade-cli.js";
 import { checkCliVersionMismatch, getCliVersion } from "./core/lockfile.js";
@@ -117,6 +118,26 @@ export function createCli(): Command {
     .action(async (options: { quiet?: boolean; debug?: boolean }) => {
       await checkCommand(options);
     });
+
+  program
+    .command("propose")
+    .description("Propose local changes to managed content back to canonical repository")
+    .option("-n, --dry-run", "Show what would be proposed without creating anything")
+    .option("-t, --title <title>", "Proposal title (used for branch, commit, and PR)")
+    .option("-m, --message <message>", "Message to include in the PR description")
+    .option("--files <patterns...>", "Only propose specific files")
+    .option("-y, --yes", "Non-interactive mode")
+    .action(
+      async (options: {
+        dryRun?: boolean;
+        title?: string;
+        message?: string;
+        files?: string[];
+        yes?: boolean;
+      }) => {
+        await proposeCommand(options);
+      },
+    );
 
   program
     .command("upgrade-cli")
