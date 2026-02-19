@@ -171,6 +171,7 @@ Check if managed files have been modified.
 ```bash
 agconf check                   # Show detailed check results
 agconf check --quiet           # Exit code only (for scripts/CI)
+agconf check --debug           # Show hash computation details
 ```
 
 Exit codes:

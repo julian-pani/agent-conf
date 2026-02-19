@@ -66,6 +66,9 @@ agconf check
 
 # Exit code only (for scripts/CI)
 agconf check --quiet
+
+# Show hash computation details (for debugging)
+agconf check --debug
 ```
 
 ### Output Format
